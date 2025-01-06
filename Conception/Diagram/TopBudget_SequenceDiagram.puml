@@ -1,0 +1,19 @@
+@startuml TopBudget_SequenceDiagram
+
+actor Utilisateur as U
+
+participant "Interface Utilisateur\n(Dashboard)" as UI
+participant "Backend API\n(Node.js + Express)" as API
+participant "Service Dépense" as ServiceDepense
+database "Base de Données\n(MongoDB)" as DB
+
+U -> UI: Saisie des détails de la dépense\n(montant, catégorie, etc.)
+UI -> API: POST /api/depenses (détails de la dépense)
+API -> ServiceDepense: Valider les données de la dépense
+ServiceDepense -> API: Validation réussie ou erreur
+API -> DB: Insérer la dépense dans la collection "depenses"
+DB --> API: Confirmer l'insertion (ID de la dépense)
+API --> UI: Réponse HTTP 201 (Créée) avec les détails de la dépense
+UI --> U: Afficher la dépense ajoutée avec succès
+
+@enduml

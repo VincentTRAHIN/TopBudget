@@ -1,0 +1,94 @@
+@startuml TopBudget_ClassDiagram
+
+' Classe Utilisateur
+class Utilisateur {
+    - id: ObjectId
+    - nom: String
+    - email: String
+    - motDePasse: String
+    - dateCreation: Date
+    - role: Enum {Perso, Conjoint, Admin}
+    --
+    + inscrire()
+    + seConnecter()
+    + modifierProfil()
+    + changerMotDePasse()
+}
+
+' Classe Dépense
+class Depense {
+    - id: ObjectId
+    - montant: Float
+    - date: Date
+    - commentaire: String
+    - typeCompte: Enum {Perso, Nom de l'autre compte}
+    - recurrence: Boolean
+    - categorie: Categorie
+    - utilisateur: Utilisateur
+    - commentaire: String
+    - budgetPartage: BudgetPartage
+    --
+    + ajouterDepense()
+    + modifierDepense()
+    + supprimerDepense()
+    + filtrerDepenses()
+    + marquerCommeRecurrente()
+    + consulterDepenses()
+    + consulterDepensesParCategorie()
+    + consulterDepensesParMois()
+    + commenterDepense()
+    + associerBudgetPartage()
+
+}
+
+' Classe Categorie
+class Categorie {
+    - id: ObjectId
+    - nom: String
+    - description: String
+    - image: String
+    --
+    + creerCategorie()
+    + modifierCategorie()
+    + supprimerCategorie()
+    + consulterCategories()
+    + associerCategorie()
+}
+
+' Classe BudgetPartagé
+class BudgetPartage {
+    - id: ObjectId
+    - montantTotal: Float
+    - utilisateurs: List<Utilisateur>
+    - repartition: Map<Utilisateur, Float>
+    --
+    + calculerRepartition()
+    + ajouterContributeur()
+    + supprimerContributeur()
+    + consulterBudget()
+    + modifierBudget()
+
+}
+
+' Classe Statistiques
+class Statistiques {
+    - cacheStatistiques: Map<String, Float>
+    --
+    + calculerTotalMensuel(depenses: List<Depense>)
+    + calculerRepartitionParCategorie(depenses: List<Depense>)
+    + comparerMois(depenses: List<Depense>, moisActuel: Date, moisPrecedent: Date)
+    + calculerIndicateursPrincipaux(depenses: List<Depense>)
+    + actualiserCache()
+}
+
+' Relations entre les classes
+Utilisateur "1" --> "0..*" Depense : "Ajoute/Associe"
+Utilisateur "1" --> "0..*" Categorie : "Crée"
+Depense "1" --> "1" Categorie : "Catégorise"
+Utilisateur "0..1" --> "1" BudgetPartage : "Participe à"
+Depense "0..1" --> "1" BudgetPartage : "Associe à"
+BudgetPartage "1" --> "1..*" Utilisateur : "Inclut"
+Statistiques "1" ..> Depense : "Analyse les données de"
+Statistiques "1" ..> Categorie : "Utilise les catégories de"
+
+@enduml

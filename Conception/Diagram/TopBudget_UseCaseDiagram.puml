@@ -1,0 +1,34 @@
+
+@startuml TopBudget_UseCaseDiagram
+actor Utilisateur
+
+' Système principal : Application TopBudget
+rectangle "Application TopBudget" {
+    
+    ' Cas d'utilisation pour la gestion des dépenses
+    usecase "Ajouter, Consulter, Modifier, Supprimer, Filtrer une dépense" as CRUDExpense
+
+    ' Cas d'utilisation pour les statistiques
+    usecase "Visualiser les statistiques" as ViewStats
+    usecase "Comparer les mois" as CompareMonths
+    usecase "Voir les indicateurs principaux" as ViewIndicators
+
+    ' Cas d'utilisation pour la gestion des catégories
+    usecase "Ajouter, Modifier, Supprimer une catégorie" as Category
+
+    ' Cas d'utilisation pour l'authentification et sécurité
+    usecase "Se connecter" as Login
+    usecase "Se déconnecter automatiquement" as AutoLogout
+
+}
+
+' Relations entre l'utilisateur et les cas d'utilisation
+Utilisateur --> CRUDExpense
+Utilisateur --> ViewStats
+Utilisateur --> CompareMonths
+Utilisateur --> ViewIndicators
+Utilisateur --> Category
+Utilisateur --> Login
+Utilisateur --> AutoLogout
+
+@enduml

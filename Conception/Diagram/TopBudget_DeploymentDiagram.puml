@@ -1,0 +1,39 @@
+@startuml TopBudget_DeploymentDiagram
+
+node "Environnement de développement" as DevEnv {
+  [VSCode]
+  [Local MongoDB (optionnel)]
+}
+
+node "GitHub" as GitHub {
+  [Dépôt distant] as Origin
+  node "Workflow CI/CD" as GA {
+    [Build]
+    [Tests]
+    [Deploy]
+  }
+}
+
+node "Hébergement Frontend" as Frontend {
+  [Vercel]
+}
+
+node "Hébergement Backend" as Backend {
+  [Heroku]
+  [MongoDB Atlas]
+}
+
+node "Utilisateur" as User {
+  [Navigateur]
+}
+
+VSCode --> Origin: Commit and push
+Origin --> GA: On push to main branch
+GA --> Vercel: Déployer Frontend
+GA --> Heroku: Déployer Backend
+Heroku --> "MongoDB Atlas": Connexion sécurisée SSL
+Vercel --> Heroku: Requêtes API REST
+User --> Vercel: Accès via HTTPS
+User --> Heroku: Requêtes API via Frontend
+
+@enduml

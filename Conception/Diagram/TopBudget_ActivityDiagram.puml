@@ -1,0 +1,26 @@
+@startuml TopBudget_ActivityDiagram
+
+start
+:Utilisateur ouvre l'application;
+:Utilisateur accède à la page "Ajouter une dépense";
+
+if (Utilisateur connecté ?) then (Oui)
+    :Utilisateur saisit les détails de la dépense;
+    :Montant, catégorie, date, compte associé;
+    :Soumettre le formulaire;
+    -> Backend API : Valider les données;
+
+    if (Données valides ?) then (Oui)
+        -> Base de données : Insérer la dépense;
+        :Confirmer l'ajout à l'utilisateur;
+    else (Non)
+        :Afficher une erreur de validation;
+    endif
+else (Non)
+    :Rediriger vers la page de connexion;
+endif
+
+:Retourner à la page des dépenses;
+stop
+
+@enduml

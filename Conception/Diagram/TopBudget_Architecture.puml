@@ -1,0 +1,27 @@
+@startuml TopBudget_Architecture
+left to right direction
+
+node "Frontend" {
+    component NextJS [
+        Next.js
+    ]
+}
+
+node "Backend" {
+    component NodeJs [
+        Node.js + Express.js
+    ]
+    port API
+    API - [NodeJs]
+}
+
+database "MongoDB Atlas" as mongo {
+    component MongoDB [
+        MongoDB Atlas
+    ]
+}
+
+[NextJS] --> API: Requêtes API REST
+[MongoDB] <-- [NodeJs]: Connexion sécurisée (SSL)
+
+@enduml
