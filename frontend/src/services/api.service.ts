@@ -1,6 +1,6 @@
 // URLs de base
 export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+  process.env.NEXT_PUBLIC_API_URL;
 
 // Endpoints Auth
 export const loginUser = `${API_URL}/auth/login`;

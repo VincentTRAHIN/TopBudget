@@ -1,3 +1,5 @@
+"use client";
+
 import { useDepenses } from '@/hooks/useDepenses.hook';
 import { useCategories } from '@/hooks/useCategories.hook';
 import { IDepense } from '@/types/depense.type';
@@ -23,7 +25,7 @@ export default function FormDepense({
   onClose?: () => void;
 }) {
   const { refreshDepenses } = useDepenses();
-  const { categories } = useCategories();
+  const { categories }: { categories: { _id: string; nom: string }[] } = useCategories();
 
   const initialValues = existingDepense
     ? {

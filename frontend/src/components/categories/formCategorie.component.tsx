@@ -1,3 +1,5 @@
+"use client";
+
 import { useCategories } from "@/hooks/useCategories.hook";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { toast } from "react-hot-toast";

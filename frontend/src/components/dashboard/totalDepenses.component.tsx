@@ -1,3 +1,5 @@
+"use client";
+
 import { useDepenses } from "@/hooks/useDepenses.hook";
 
 export default function TotalDepenses() {

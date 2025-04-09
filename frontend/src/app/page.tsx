@@ -11,6 +11,9 @@ export default function Home() {
         <Link href="/auth/login" className="px-4 py-2 bg-primary-dark text-white rounded-lg">
           Connexion
         </Link>
+        <Link href="/auth/register" className="px-4 py-2 bg-primary-dark text-white rounded-lg">
+          Inscription
+        </Link>
       </div>
     </main>
   );

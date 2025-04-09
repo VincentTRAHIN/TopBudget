@@ -1,3 +1,5 @@
+"use client";
+
 import { useCategories } from "@/hooks/useCategories.hook";
 import { useDepenses } from "@/hooks/useDepenses.hook";
 import { Pie } from "react-chartjs-2";

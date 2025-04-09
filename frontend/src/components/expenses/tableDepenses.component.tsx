@@ -1,3 +1,5 @@
+"use client";
+
 import { useDepenses } from '@/hooks/useDepenses.hook';
 import { IDepense } from '@/types/depense.type';
 import FormDepense from './formDepenses.component';
@@ -28,7 +30,7 @@ export default function TableDepenses() {
   };
 
   const filtredDepenses = depenses.filter(
-    (depense) =>
+    (depense: IDepense) =>
       (depense.commentaire?.toLowerCase() || '').includes(
         search.toLowerCase(),
       ) ||
@@ -75,7 +77,7 @@ export default function TableDepenses() {
             </tr>
           </thead>
           <tbody>
-            {filtredDepenses.map((depense) => (
+            {filtredDepenses.map((depense: IDepense) => (
               <tr key={depense._id} className="border-b">
                 <td className="px-4 py-2">
                   {new Date(depense.date).toLocaleDateString('fr-FR')}

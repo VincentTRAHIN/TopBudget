@@ -1,3 +1,5 @@
+"use client";
+
 import useSWR from 'swr';
 import fetcher from '@/utils/fetcher.utils';
 import { ICategorie } from '@/types/categorie.type';

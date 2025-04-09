@@ -38,5 +38,5 @@ mongoose
   .catch((error) => logger.error('Erreur de connexion MongoDB Atlas:', error));
 
 // Lancer le serveur
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => logger.info(`🚀 Serveur backend démarré sur le port ${PORT}`));
