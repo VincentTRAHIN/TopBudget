@@ -10,6 +10,7 @@ dotenv.config();
 const mongoUri = process.env.MONGO_URI_SEED || "mongodb://localhost:27017/topbudget";
 
 
+
 async function seedDatabase() {
   try {
     await mongoose.connect(mongoUri);

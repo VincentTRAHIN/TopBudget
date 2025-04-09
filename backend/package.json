@@ -4,9 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "DEBUG=app:* ts-node-dev --respawn --transpile-only src/app.ts",
-    "build": "tsc",
-    "start": "node dist/app.js",
+    "start": "ts-node src/app.ts",
+    "watch": "ts-node-dev --respawn --transpile-only --poll src/app.ts",
     "seed": "ts-node scripts/seeding.script.ts"
   },
   "keywords": [],
@@ -38,6 +37,7 @@
     "eslint": "^9.24.0",
     "globals": "^16.0.0",
     "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.29.1"

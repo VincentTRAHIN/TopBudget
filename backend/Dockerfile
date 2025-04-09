@@ -1,20 +1,15 @@
-FROM node:20-alpine
+FROM node:lts-alpine
 
-# Créer le dossier d’application
 WORKDIR /usr/src/app
 
-# Copier les package.json et installer les dépendances
+RUN apk add --no-cache python3 make g++
+
 COPY package*.json ./
+
 RUN npm install
 
-# Copier tout le reste
 COPY . .
 
-# Compiler le TypeScript
-RUN npm run build
+EXPOSE 5001
 
-# Exposer le port du backend
-EXPOSE 5000
-
-# Commande pour lancer le backend en prod
-CMD ["node", "dist/app.js"]
+CMD ["npm", "run", "watch"]
