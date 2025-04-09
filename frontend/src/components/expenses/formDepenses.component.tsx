@@ -1,50 +1,73 @@
-import { useDepenses } from "@/hooks/useDepenses.hook";
-import { useCategories } from "@/hooks/useCategories.hook";
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import { useDepenses } from '@/hooks/useDepenses.hook';
+import { useCategories } from '@/hooks/useCategories.hook';
+import { IDepense } from '@/types/depense.type';
+import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
+import * as Yup from 'yup';
 
 const DepenseSchema = Yup.object().shape({
-  montant: Yup.number().positive("Doit être positif").required("Requis"),
-  date: Yup.date().required("Requis"),
-  typeCompte: Yup.string().oneOf(["Perso", "Conjoint", "Commun"]).required("Requis"),
-  categorie: Yup.string().required("Requis"),
+  montant: Yup.number().positive('Doit être positif').required('Requis'),
+  date: Yup.date().required('Requis'),
+  typeCompte: Yup.string()
+    .oneOf(['Perso', 'Conjoint', 'Commun'])
+    .required('Requis'),
+  categorie: Yup.string().required('Requis'),
   commentaire: Yup.string(),
 });
 
-export default function FormDepense() {
+export default function FormDepense({
+  existingDepense,
+  onClose,
+}: {
+  existingDepense?: IDepense;
+  onClose?: () => void;
+}) {
   const { refreshDepenses } = useDepenses();
   const { categories } = useCategories();
 
-  const initialValues = {
-    montant: "",
-    date: new Date().toISOString().split("T")[0],
-    typeCompte: "Perso",
-    categorie: "",
-    commentaire: "",
-  };
-
-  const handleSubmit = async (values: typeof initialValues, { resetForm }: import("formik").FormikHelpers<typeof initialValues>) => {
-    try {
-      const response = await fetch("/api/depenses", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de l'ajout");
+  const initialValues = existingDepense
+    ? {
+        montant: existingDepense.montant,
+        date: existingDepense.date.split('T')[0],
+        typeCompte: existingDepense.typeCompte,
+        categorie:
+          typeof existingDepense.categorie === 'string'
+            ? existingDepense.categorie
+            : existingDepense.categorie._id,
+        commentaire: existingDepense.commentaire || '',
       }
+    : {
+        montant: '',
+        date: new Date().toISOString().split('T')[0],
+        typeCompte: 'Perso',
+        categorie: '',
+        commentaire: '',
+      };
 
-      refreshDepenses();
-      resetForm();
-      alert("Dépense ajoutée !");
-    } catch (error) {
-      console.error(error);
-      alert("Erreur lors de l'ajout de la dépense");
-    }
-  };
+      const handleSubmit = async (values: typeof initialValues, { resetForm }: FormikHelpers<typeof initialValues>) => {
+        try {
+          const url = existingDepense ? `/api/depenses/${existingDepense._id}` : "/api/depenses";
+          const method = existingDepense ? "PUT" : "POST";
+      
+          const response = await fetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(values),
+          });
+      
+          if (!response.ok) {
+            throw new Error("Erreur");
+          }
+      
+          refreshDepenses();
+          resetForm();
+          if (onClose) onClose();
+          alert(existingDepense ? "Dépense modifiée !" : "Dépense ajoutée !");
+        } catch (error) {
+          console.error(error);
+          alert("Erreur lors de l'envoi");
+        }
+      };
+      
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -64,12 +87,20 @@ export default function FormDepense() {
                 placeholder="Montant (€)"
                 className="input"
               />
-              <ErrorMessage name="montant" component="div" className="text-red-500 text-sm" />
+              <ErrorMessage
+                name="montant"
+                component="div"
+                className="text-red-500 text-sm"
+              />
             </div>
 
             <div>
               <Field type="date" name="date" className="input" />
-              <ErrorMessage name="date" component="div" className="text-red-500 text-sm" />
+              <ErrorMessage
+                name="date"
+                component="div"
+                className="text-red-500 text-sm"
+              />
             </div>
 
             <div>
@@ -78,7 +109,11 @@ export default function FormDepense() {
                 <option value="Conjoint">Conjoint</option>
                 <option value="Commun">Commun</option>
               </Field>
-              <ErrorMessage name="typeCompte" component="div" className="text-red-500 text-sm" />
+              <ErrorMessage
+                name="typeCompte"
+                component="div"
+                className="text-red-500 text-sm"
+              />
             </div>
 
             <div>
@@ -90,7 +125,11 @@ export default function FormDepense() {
                   </option>
                 ))}
               </Field>
-              <ErrorMessage name="categorie" component="div" className="text-red-500 text-sm" />
+              <ErrorMessage
+                name="categorie"
+                component="div"
+                className="text-red-500 text-sm"
+              />
             </div>
 
             <div>
@@ -100,7 +139,11 @@ export default function FormDepense() {
                 placeholder="Commentaire (optionnel)"
                 className="input"
               />
-              <ErrorMessage name="commentaire" component="div" className="text-red-500 text-sm" />
+              <ErrorMessage
+                name="commentaire"
+                component="div"
+                className="text-red-500 text-sm"
+              />
             </div>
 
             <button
@@ -108,7 +151,7 @@ export default function FormDepense() {
               disabled={isSubmitting}
               className="btn-primary"
             >
-              {isSubmitting ? "Ajout..." : "Ajouter"}
+              {isSubmitting ? 'Ajout...' : 'Ajouter'}
             </button>
           </Form>
         )}
