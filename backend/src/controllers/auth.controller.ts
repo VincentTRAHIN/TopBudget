@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import User from "../models/user.model";
 import jwt from "jsonwebtoken";
 import { validationResult } from "express-validator";
+import logger from "../utils/logger.utils";
 
 const generateToken = (id: string) => {
   if (!process.env.JWT_SECRET) {
@@ -38,7 +39,7 @@ export const inscription = async (
       token: generateToken(nouvelUtilisateur._id as string),
     });
   } catch (error) {
-    console.error((error as Error).message);
+    logger.error((error as Error).message);
     res.status(500).json({ message: "Erreur lors de l'inscription" });
   }
 };
@@ -76,7 +77,7 @@ export const connexion = async (req: Request, res: Response): Promise<void> => {
       token: generateToken(utilisateur._id as string),
     });
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     res.status(500).json({ message: "Erreur lors de la connexion" });
   }
 };

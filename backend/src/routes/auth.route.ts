@@ -1,25 +1,18 @@
-import express from 'express';
-import { body } from 'express-validator';
-import { inscription, connexion } from '../controllers/auth.controller';
+import express from "express";
+import { inscription, connexion } from "../controllers/auth.controller";
+import { loginValidator, registerValidator } from "../middlewares/validators/user.validator";
 
 const router = express.Router();
 
 router.post(
-  '/register',
-  [
-    body('nom').notEmpty().withMessage('Le nom est requis'),
-    body('email').isEmail().withMessage('Un email valide est requis'),
-    body('motDePasse').isLength({ min: 6 }).withMessage('Le mot de passe doit contenir au moins 6 caractères'),
-  ],
+  "/register",
+  registerValidator,
   inscription
 );
 
 router.post(
-  '/login',
-  [
-    body('email').isEmail().withMessage('Un email valide est requis'),
-    body('motDePasse').exists().withMessage('Le mot de passe est requis'),
-  ],
+  "/login",
+  loginValidator,
   connexion
 );
 

@@ -1,6 +1,7 @@
 import { Response } from "express";
 import Categorie from "../models/categorie.model";
 import { validationResult } from "express-validator";
+import logger from "../utils/logger.utils";
 import { AuthRequest } from "../middlewares/auth.middleware";
 
 export const ajouterCategorie = async (
@@ -24,7 +25,7 @@ export const ajouterCategorie = async (
 
     res.status(201).json(nouvelleCategorie);
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     res.status(500).json({ message: "Erreur lors de l'ajout de la catégorie" });
   }
 };
@@ -37,7 +38,7 @@ export const obtenirCategories = async (
     const categories = await Categorie.find();
     res.json(categories);
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     res
       .status(500)
       .json({ message: "Erreur lors de la récupération des catégories" });
@@ -61,7 +62,7 @@ export const modifierCategorie = async (
     });
     res.json(updated);
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     res
       .status(500)
       .json({ message: "Erreur lors de la mise à jour de la catégorie" });
@@ -83,7 +84,7 @@ export const supprimerCategorie = async (
     await categorie.deleteOne();
     res.json({ message: "Catégorie supprimée" });
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     res
       .status(500)
       .json({ message: "Erreur lors de la suppression de la catégorie" });

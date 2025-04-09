@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model';
+import logger from '../utils/logger.utils';
 
 export interface AuthRequest extends Request {
   user?: { id: string; name: string; email: string }; 
@@ -22,7 +23,7 @@ export const proteger = async (req: AuthRequest, res: Response, next: NextFuncti
       }
       next();
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(401).json({ message: 'Non autorisé, token invalide' });
     }
   }

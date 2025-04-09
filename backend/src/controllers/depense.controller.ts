@@ -1,6 +1,7 @@
 import {  Response } from 'express';
 import Depense from '../models/depense.model';
 import { validationResult } from 'express-validator';
+import logger from '../utils/logger.utils';
 import { AuthRequest } from '../middlewares/auth.middleware';
 
 export const ajouterDepense = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -25,7 +26,7 @@ export const ajouterDepense = async (req: AuthRequest, res: Response): Promise<v
 
     res.status(201).json(nouvelleDepense);
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     res.status(500).json({ message: "Erreur lors de l'ajout de la dépense" });
   }
 };
@@ -39,7 +40,7 @@ export const obtenirDepenses = async (req: AuthRequest, res: Response): Promise<
     const depenses = await Depense.find({ utilisateur: req.user.id }).populate('categorie');
     res.json(depenses);
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     res.status(500).json({ message: "Erreur lors de la récupération des dépenses" });
   }
 };
@@ -61,7 +62,7 @@ export const modifierDepense = async (req: AuthRequest, res: Response): Promise<
     const updated = await Depense.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(updated);
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     res.status(500).json({ message: "Erreur lors de la mise à jour de la dépense" });
   }
 };
@@ -83,7 +84,7 @@ export const supprimerDepense = async (req: AuthRequest, res: Response): Promise
     await depense.deleteOne();
     res.json({ message: 'Dépense supprimée' });
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     res.status(500).json({ message: "Erreur lors de la suppression de la dépense" });
   }
 };

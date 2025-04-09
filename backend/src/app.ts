@@ -6,7 +6,8 @@ import morgan from 'morgan';
 import authRoutes from './routes/auth.route';
 import depenseRoutes from './routes/depense.route';
 import categorieRoutes from './routes/categorie.route';
-import { logger } from './utils/logger.utils';
+import statistiquesRoutes from './routes/statistiques.route';
+import logger from './utils/logger.utils';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use(morgan('combined', { stream: { write: (message) => logger.info(message.t
 app.use('/api/auth', authRoutes);
 app.use('/api/depenses', depenseRoutes);
 app.use('/api/categories', categorieRoutes);
+app.use('/api/statistiques', statistiquesRoutes);
 
 
 
