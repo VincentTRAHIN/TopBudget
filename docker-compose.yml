@@ -10,6 +10,8 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+
+      - NEXT_PUBLIC_API_URL=http://backend:5001/api
     depends_on:
       - backend
     stdin_open: true
@@ -22,12 +24,13 @@ services:
     ports:
       - "5001:5001"
     volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
+      - ./backend:/app
+      - /app/node_modules
     environment:
       - NODE_ENV=development
       - MONGO_URI=mongodb://mongo:27017/topbudget
       - JWT_SECRET=ton_super_secret
+      - PORT=5001
     depends_on:
       - mongo
     stdin_open: true
@@ -41,6 +44,7 @@ services:
     volumes:
       - mongo-data:/data/db
     command: ["mongod", "--quiet", "--logpath=/dev/null"]
+
   mongo-express:
     image: mongo-express
     restart: always
