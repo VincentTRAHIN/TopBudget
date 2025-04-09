@@ -2,6 +2,7 @@ import { useDepenses } from '@/hooks/useDepenses.hook';
 import { useCategories } from '@/hooks/useCategories.hook';
 import { IDepense } from '@/types/depense.type';
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
+import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const DepenseSchema = Yup.object().shape({
@@ -61,10 +62,10 @@ export default function FormDepense({
           refreshDepenses();
           resetForm();
           if (onClose) onClose();
-          alert(existingDepense ? "Dépense modifiée !" : "Dépense ajoutée !");
+          toast.success(existingDepense ? "Dépense modifiée !" : "Dépense ajoutée !");
         } catch (error) {
           console.error(error);
-          alert("Erreur lors de l'envoi");
+          toast.error("Erreur lors de l'envoi");
         }
       };
       

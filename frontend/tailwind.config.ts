@@ -11,6 +11,8 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        primary: "#3B82F6",
+        "primary-dark": "#2563EB",
       },
     },
   },
