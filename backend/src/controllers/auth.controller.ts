@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { AuthRequest } from "../middlewares/auth.middleware";
 import User from "../models/user.model";
 import jwt from "jsonwebtoken";
 import { validationResult } from "express-validator";
@@ -45,10 +46,15 @@ export const inscription = async (
 };
 
 export const connexion = async (req: Request, res: Response): Promise<void> => {
+  logger.info("Requête reçue sur /api/auth/login"); // Log 1
+  logger.info(`Corps de la requête: ${JSON.stringify(req.body)}`); // Log 2: Voir les données reçues
   const erreurs = validationResult(req);
   if (!erreurs.isEmpty()) {
-     res.status(400).json({ erreurs: erreurs.array() });
-     return;
+    logger.warn(
+      `Erreurs de validation login: ${JSON.stringify(erreurs.array())}`
+    ); // Log 3: Voir les erreurs de validation
+    res.status(400).json({ erreurs: erreurs.array() });
+    return;
   }
 
   const { email, motDePasse } = req.body;
@@ -56,19 +62,22 @@ export const connexion = async (req: Request, res: Response): Promise<void> => {
   try {
     const utilisateur = await User.findOne({ email });
     if (!utilisateur) {
-       res
-        .status(400)
-        .json({ message: "Email ou mot de passe invalide" });
-        return;
+      logger.warn(`Utilisateur non trouvé pour email: ${email}`); // Log 4
+
+      res.status(400).json({ message: "Email ou mot de passe invalide" });
+      return;
     }
+    logger.info(`Utilisateur trouvé: ${utilisateur.email}`); // Log 5
+
 
     const motDePasseValide = await utilisateur.comparerMotDePasse(motDePasse);
     if (!motDePasseValide) {
-       res
-        .status(400)
-        .json({ message: "Email ou mot de passe invalide" });
-        return;
+      logger.warn(`Mot de passe invalide pour utilisateur: ${email}`); // Log 6
+
+      res.status(400).json({ message: "Email ou mot de passe invalide" });
+      return;
     }
+    logger.info(`Connexion réussie pour utilisateur: ${email}`); // Log 7
 
     res.json({
       _id: utilisateur._id,
@@ -77,7 +86,41 @@ export const connexion = async (req: Request, res: Response): Promise<void> => {
       token: generateToken(utilisateur._id as string),
     });
   } catch (error) {
-    logger.error(error);
+    logger.error('Erreur interne lors de la connexion:', error); // Log 8
     res.status(500).json({ message: "Erreur lors de la connexion" });
+  }
+};
+
+export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
+  if (!req.user) {
+    res
+      .status(401)
+      .json({ message: "Non autorisé ou utilisateur non trouvé via token" });
+    return;
+  }
+
+  try {
+    const utilisateur = await User.findById(req.user.id).select("-motDePasse");
+
+    if (!utilisateur) {
+      // Si l'utilisateur a été supprimé entretemps
+      res
+        .status(404)
+        .json({ message: "Utilisateur non trouvé en base de données" });
+      return;
+    }
+
+    // Renvoyer les données de l'utilisateur
+    res.status(200).json({
+      _id: utilisateur._id,
+      nom: utilisateur.nom,
+      email: utilisateur.email,
+      role: utilisateur.role,
+    });
+  } catch (error) {
+    logger.error("Erreur dans getMe:", error);
+    res.status(500).json({
+      message: "Erreur serveur lors de la récupération de l'utilisateur",
+    });
   }
 };

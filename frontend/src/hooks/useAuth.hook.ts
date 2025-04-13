@@ -1,31 +1,48 @@
+// src/hooks/useAuth.hook.ts
 "use client";
 
 import { useState } from 'react';
-import useSWR  from 'swr';
+import useSWR from 'swr';
+import { useRouter } from 'next/navigation'; 
 import fetcher from '@/utils/fetcher.utils';
 import {
   IUser,
   UserLoginPayload,
   UserRegisterPayload,
 } from '@/types/user.type';
-import { loginUser, registerUser } from '@/services/api.service';
+import { loginUser as loginUserEndpoint, registerUser as registerUserEndpoint } from '@/services/api.service'; 
+import { toast } from 'react-hot-toast'; 
 
 export const useAuth = () => {
+  const router = useRouter(); 
+
+  // SWR pour /api/auth/me utilise maintenant le fetcher modifié qui envoie le token
   const {
     data: user,
     error,
-    mutate,
+    mutate, // mutate permet de revalider les données SWR
+    isLoading: isUserLoading, // Renommer pour clarté vs loading de l'action
   } = useSWR<IUser | null>('/api/auth/me', fetcher, {
     revalidateOnFocus: false,
-    shouldRetryOnError: false,
+    shouldRetryOnError: false, // Ne pas retenter automatiquement si le token est invalide/manquant
+    onError: (err) => {
+      // Si /me renvoie une erreur (souvent 401), s'assurer que le token est effacé
+      // et l'état utilisateur est null.
+      console.error("Erreur fetch /me:", err);
+      if (localStorage.getItem('authToken')) {
+          localStorage.removeItem('authToken');
+          // Pas besoin de redirect ici car RequireAuth s'en chargera
+          mutate(null, false); // Met à jour le cache SWR sans revalidation
+      }
+    }
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loadingAction, setLoadingAction] = useState(false); // État de chargement pour les actions login/register
 
   const login = async (credentials: UserLoginPayload) => {
-    setLoading(true);
+    setLoadingAction(true);
     try {
-      const res = await fetch(loginUser, {
+      const res = await fetch(loginUserEndpoint, { // Utiliser l'URL du service
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -33,20 +50,48 @@ export const useAuth = () => {
         body: JSON.stringify(credentials),
       });
 
+      const data = await res.json(); // Toujours essayer de lire la réponse JSON
+
       if (!res.ok) {
-        throw new Error('Erreur de connexion');
+        // Lancer une erreur avec le message du backend si possible
+        throw new Error(data.message || 'Erreur de connexion');
       }
 
+      // --- Stockage du Token ---
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+      } else {
+        // Gérer le cas où le backend ne renvoie pas de token même avec un statut 2xx
+        console.error("Login réussi mais pas de token reçu.");
+        throw new Error("Réponse invalide du serveur après connexion.");
+      }
+
+      // --- Revalidation SWR ---
+      // Déclenche une revalidation de /api/auth/me qui utilisera le nouveau token stocké
       await mutate();
+      toast.success('Connexion réussie !');
+      // La redirection sera gérée par la page ou le composant appelant (ex: router.push('/dashboard'))
+
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Erreur dans login:", error);
+        toast.error(error.message || "Une erreur est survenue");
+      } else {
+        console.error("Erreur inconnue dans login:", error);
+        toast.error("Une erreur inconnue est survenue");
+      }
+      localStorage.removeItem('authToken'); // Nettoyer en cas d'erreur
+      await mutate(null, false); // S'assurer que l'état SWR est null
+      throw error; // Renvoyer l'erreur pour que le composant puisse réagir
     } finally {
-      setLoading(false);
+      setLoadingAction(false);
     }
   };
 
   const register = async (userData: UserRegisterPayload) => {
-    setLoading(true);
+    setLoadingAction(true);
     try {
-      const res = await fetch(registerUser, {
+      const res = await fetch(registerUserEndpoint, { // Utiliser l'URL du service
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -54,29 +99,68 @@ export const useAuth = () => {
         body: JSON.stringify(userData),
       });
 
+      const data = await res.json(); // Toujours essayer de lire la réponse JSON
+
       if (!res.ok) {
-        throw new Error("Erreur d'inscription");
+        throw new Error(data.message || "Erreur d'inscription");
       }
 
+      // --- Stockage du Token ---
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+      } else {
+         console.error("Inscription réussie mais pas de token reçu.");
+         throw new Error("Réponse invalide du serveur après inscription.");
+      }
+
+      // --- Revalidation SWR ---
       await mutate();
+      toast.success('Inscription réussie !');
+      // La redirection sera gérée par la page ou le composant appelant
+
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Erreur dans register:", error);
+        toast.error(error.message || "Une erreur est survenue");
+      } else {
+        console.error("Erreur inconnue dans register:", error);
+        toast.error("Une erreur inconnue est survenue");
+      }
+      localStorage.removeItem('authToken'); // Nettoyer en cas d'erreur
+      await mutate(null, false); // S'assurer que l'état SWR est null
+      throw error; // Renvoyer l'erreur
     } finally {
-      setLoading(false);
+      setLoadingAction(false);
     }
   };
 
   const logout = async () => {
-    // Ici à adapter plus tard selon comment tu veux faire logout (effacer JWT, etc.)
-    await mutate(null);
+    // --- Suppression du Token ---
+    localStorage.removeItem('authToken');
+
+    // --- Mise à jour SWR ---
+    // Met à jour immédiatement le cache SWR à null sans déclencher de revalidation réseau
+    await mutate(null, false);
+
+    toast.success('Déconnexion réussie');
+    // Redirection vers la page de connexion
+    router.push('/auth/login');
   };
+
+  // Déterminer l'état d'authentification basé sur les données utilisateur de SWR
+  // isLoading est vrai si on n'a ni données ni erreur (chargement initial SWR)
+  const isAuthenticated = !!user;
+  const isLoading = isUserLoading && !error && !user; // Vrai seulement pendant le chargement initial de SWR
 
   return {
     user,
-    isLoading: !user && !error,
-    isAuthenticated: !!user,
-    loading,
+    isLoading, // État de chargement global de l'authentification
+    isAuthenticated,
+    loadingAction, // État de chargement spécifique aux actions login/register
     login,
     register,
     logout,
-    error,
+    error, // Erreur SWR (si le fetch /me échoue après plusieurs tentatives par ex.)
+    mutate // Exposer mutate si besoin de rafraîchir manuellement l'état user ailleurs
   };
 };
