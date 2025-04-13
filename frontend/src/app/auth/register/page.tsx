@@ -1,18 +1,19 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/hooks/useAuth.hook";
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import { useRouter } from "next/navigation";
+import { useAuth } from '@/hooks/useAuth.hook';
+import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
+import * as Yup from 'yup';
+import { useRouter } from 'next/navigation';
+import { UserRegisterPayload } from '@/types/user.type';
 
 const RegisterSchema = Yup.object().shape({
-  nom: Yup.string().required("Requis"),
-  email: Yup.string().email("Email invalide").required("Requis"),
-  motDePasse: Yup.string().min(6, "6 caractères minimum").required("Requis"),
+  nom: Yup.string().required('Requis'),
+  email: Yup.string().email('Email invalide').required('Requis'),
+  motDePasse: Yup.string().min(6, '6 caractères minimum').required('Requis'),
 });
 
 export default function RegisterPage() {
-  const { register, loading } = useAuth();
+  const { register, loadingAction } = useAuth();
   const router = useRouter();
 
   return (
@@ -21,17 +22,15 @@ export default function RegisterPage() {
         <h2 className="text-2xl font-bold mb-6 text-center">Inscription</h2>
 
         <Formik
-          initialValues={{ nom: "", email: "", motDePasse: "" }}
+          initialValues={{ nom: '', email: '', motDePasse: '' }}
           validationSchema={RegisterSchema}
-          onSubmit={async (values, { setSubmitting }) => {
-            try {
-              await register(values);
-              router.push("/dashboard");
-            } catch (error) {
-              console.error(error);
-            } finally {
-              setSubmitting(false);
-            }
+          onSubmit={async (
+            values: UserRegisterPayload,
+            { setSubmitting }: FormikHelpers<UserRegisterPayload>,
+          ) => {
+            await register(values);
+            router.push('/auth/login');
+            setSubmitting(false);
           }}
         >
           {({ isSubmitting }) => (
@@ -43,7 +42,11 @@ export default function RegisterPage() {
                   placeholder="Nom"
                   className="input"
                 />
-                <ErrorMessage name="nom" component="div" className="text-red-500 text-sm" />
+                <ErrorMessage
+                  name="nom"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
               </div>
 
               <div>
@@ -53,7 +56,11 @@ export default function RegisterPage() {
                   placeholder="Email"
                   className="input"
                 />
-                <ErrorMessage name="email" component="div" className="text-red-500 text-sm" />
+                <ErrorMessage
+                  name="email"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
               </div>
 
               <div>
@@ -63,15 +70,19 @@ export default function RegisterPage() {
                   placeholder="Mot de passe"
                   className="input"
                 />
-                <ErrorMessage name="motDePasse" component="div" className="text-red-500 text-sm" />
+                <ErrorMessage
+                  name="motDePasse"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
               </div>
 
               <button
                 type="submit"
-                disabled={isSubmitting || loading}
+                disabled={isSubmitting || loadingAction}
                 className="btn-primary"
               >
-                {isSubmitting ? "Inscription..." : "S'inscrire"}
+                {isSubmitting ? 'Inscription...' : "S'inscrire"}
               </button>
             </Form>
           )}
