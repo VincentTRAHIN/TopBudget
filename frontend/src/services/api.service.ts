@@ -5,6 +5,7 @@ export const API_URL =
 // Endpoints Auth
 export const loginUser = `${API_URL}/auth/login`;
 export const registerUser = `${API_URL}/auth/register`;
+export const getMeEndpoint = `${API_URL}/auth/me`;
 
 // Endpoints Dépenses
 export const depensesEndpoint = `${API_URL}/depenses`;

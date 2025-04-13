@@ -10,8 +10,8 @@ import {
   UserLoginPayload,
   UserRegisterPayload,
 } from '@/types/user.type';
-import { loginUser as loginUserEndpoint, registerUser as registerUserEndpoint } from '@/services/api.service'; 
-import { toast } from 'react-hot-toast'; 
+import { getMeEndpoint, loginUser as loginUserEndpoint, registerUser as registerUserEndpoint } from '@/services/api.service';import { toast } from 'react-hot-toast'; 
+
 
 export const useAuth = () => {
   const router = useRouter(); 
@@ -22,7 +22,7 @@ export const useAuth = () => {
     error,
     mutate, // mutate permet de revalider les données SWR
     isLoading: isUserLoading, // Renommer pour clarté vs loading de l'action
-  } = useSWR<IUser | null>('/api/auth/me', fetcher, {
+  } = useSWR<IUser | null>(getMeEndpoint, fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false, // Ne pas retenter automatiquement si le token est invalide/manquant
     onError: (err) => {
