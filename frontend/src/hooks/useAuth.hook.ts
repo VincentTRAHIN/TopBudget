@@ -26,8 +26,8 @@ export const useAuth = () => {
     mutate, 
     isLoading: isUserLoading, 
   } = useSWR<IUser | null>(getMeEndpoint, fetcher, {
-    revalidateOnFocus: true,
-    revalidateOnReconnect: true,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
     shouldRetryOnError: false, // Ne pas retenter automatiquement si le token est invalide/manquant
     onError: (err) => {
       // Si /me renvoie une erreur (souvent 401), s'assurer que le token est effacé
