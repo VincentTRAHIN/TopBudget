@@ -20,7 +20,6 @@ const DepenseSchema = Yup.object().shape({
   commentaire: Yup.string(),
 });
 
-// Type pour les valeurs du formulaire
 interface DepenseFormValues {
     montant: number | string; 
     date: string;
@@ -28,7 +27,6 @@ interface DepenseFormValues {
     categorie: string;
     commentaire: string;
 }
-
 
 export default function FormDepense({
   existingDepense,
@@ -38,18 +36,17 @@ export default function FormDepense({
   onClose?: () => void;
 }) {
   const { refreshDepenses } = useDepenses();
-  // Typer explicitement les catégories reçues du hook
   const { categories }: { categories: ICategorie[] } = useCategories();
 
   const initialValues: DepenseFormValues = existingDepense
     ? {
         montant: existingDepense.montant,
-        date: existingDepense.date.split('T')[0], // Garder le format YYYY-MM-DD pour l'input date
+        date: existingDepense.date.split('T')[0],
         typeCompte: existingDepense.typeCompte,
         categorie:
           typeof existingDepense.categorie === 'string'
             ? existingDepense.categorie
-            : existingDepense.categorie._id, // S'assurer qu'on a l'ID
+            : existingDepense.categorie._id,
         commentaire: existingDepense.commentaire || '',
       }
     : {
@@ -62,26 +59,21 @@ export default function FormDepense({
 
   const handleSubmit = async (values: DepenseFormValues, { resetForm }: FormikHelpers<DepenseFormValues>) => {
     try {
-      // Construire l'URL dynamiquement
       const url = existingDepense ? `${depensesEndpoint}/${existingDepense._id}` : depensesEndpoint;
       const method = existingDepense ? "PUT" : "POST";
 
-      // Remplacer fetch par fetcher
       await fetcher(url, {
         method,
-        // headers: { 'Content-Type': 'application/json' }, // fetcher gère
         body: JSON.stringify(values),
       });
 
-      // Succès si fetcher ne lance pas d'erreur
       refreshDepenses();
-      resetForm(); // Réinitialiser après succès
-      if (onClose) onClose(); // Fermer la modale/form si applicable
+      resetForm();
+      if (onClose) onClose();
       toast.success(existingDepense ? "Dépense modifiée !" : "Dépense ajoutée !");
 
-    } catch (error: unknown) { // Catch l'erreur du fetcher
+    } catch (error: unknown) {
       console.error("Erreur lors de l'envoi:", error);
-      // Afficher le message d'erreur
       if (error instanceof Error) {
         toast.error(error.message || "Erreur lors de l'envoi");
       } else {
@@ -90,9 +82,7 @@ export default function FormDepense({
     }
   };
 
-
   return (
-    // Ajouter une clé pour forcer le re-rendu si existingDepense change (utile si c'est une modale)
     <div key={existingDepense?._id || 'new'} className="bg-white p-6 rounded-lg shadow-md mb-6">
       <h3 className="text-lg font-semibold mb-4">
         {existingDepense ? 'Modifier la Dépense' : 'Ajouter une Dépense'}
@@ -102,11 +92,10 @@ export default function FormDepense({
         initialValues={initialValues}
         validationSchema={DepenseSchema}
         onSubmit={handleSubmit}
-        enableReinitialize // Important pour que le form se mette à jour si existingDepense change
+        enableReinitialize
       >
         {({ isSubmitting }) => (
           <Form className="space-y-4">
-            {/* Montant */}
             <div>
               <label htmlFor="montant" className="block text-sm font-medium text-gray-700 mb-1">Montant (€)</label>
               <Field
@@ -115,19 +104,17 @@ export default function FormDepense({
                 name="montant"
                 placeholder="10.50"
                 className="input"
-                step="0.01" // Permettre les centimes
+                step="0.01"
               />
               <ErrorMessage name="montant" component="div" className="text-red-500 text-sm mt-1" />
             </div>
 
-            {/* Date */}
             <div>
               <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">Date</label>
               <Field id="date" type="date" name="date" className="input" />
               <ErrorMessage name="date" component="div" className="text-red-500 text-sm mt-1" />
             </div>
 
-            {/* Type de Compte */}
             <div>
               <label htmlFor="typeCompte" className="block text-sm font-medium text-gray-700 mb-1">Compte</label>
               <Field as="select" id="typeCompte" name="typeCompte" className="input">
@@ -138,7 +125,6 @@ export default function FormDepense({
               <ErrorMessage name="typeCompte" component="div" className="text-red-500 text-sm mt-1" />
             </div>
 
-            {/* Catégorie */}
             <div>
               <label htmlFor="categorie" className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
               <Field as="select" id="categorie" name="categorie" className="input">
@@ -152,7 +138,6 @@ export default function FormDepense({
               <ErrorMessage name="categorie" component="div" className="text-red-500 text-sm mt-1" />
             </div>
 
-            {/* Commentaire */}
             <div>
               <label htmlFor="commentaire" className="block text-sm font-medium text-gray-700 mb-1">Commentaire</label>
               <Field
@@ -165,7 +150,6 @@ export default function FormDepense({
               <ErrorMessage name="commentaire" component="div" className="text-red-500 text-sm mt-1" />
             </div>
 
-            {/* Boutons */}
             <div className="flex gap-4">
                  <button
                     type="submit"

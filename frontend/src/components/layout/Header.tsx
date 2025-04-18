@@ -6,7 +6,6 @@ export default function Header() {
       <Menu className="w-6 h-6 cursor-pointer" />
       <h1 className="text-xl font-bold">TopBudget</h1>
       <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-        {/* Future dropdown user */}
       </div>
     </header>
   );

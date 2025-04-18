@@ -10,9 +10,8 @@ const LoginSchema = Yup.object().shape({
   motDePasse: Yup.string().required("Requis"),
 });
 
-
 export default function LoginPage() {
-  const { login, loading } = useAuth();
+  const { login, loadingAction } = useAuth();
   const router = useRouter();
 
   return (
@@ -25,7 +24,7 @@ export default function LoginPage() {
           validationSchema={LoginSchema}
           onSubmit={async (values, { setSubmitting }) => {
             try {
-              await login(values);
+              await login(values.email, values.motDePasse);
               router.push("/dashboard");
             } catch (error) {
               console.error(error);
@@ -58,7 +57,7 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                disabled={isSubmitting || loading}
+                disabled={isSubmitting || loadingAction}
                 className="btn-primary"
               >
                 {isSubmitting ? "Connexion..." : "Se connecter"}

@@ -4,15 +4,14 @@ import { useCategories } from "@/hooks/useCategories.hook";
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from "formik";
 import { toast } from "react-hot-toast";
 import * as Yup from "yup";
-import fetcher from '@/utils/fetcher.utils'; // Import fetcher
-import { categoriesEndpoint } from '@/services/api.service'; // Import endpoint URL
+import fetcher from '@/utils/fetcher.utils';
+import { categoriesEndpoint } from '@/services/api.service';
 
 const CategorieSchema = Yup.object().shape({
   nom: Yup.string().required("Nom requis"),
   description: Yup.string(),
 });
 
-// Définir un type plus précis pour les valeurs du formulaire si nécessaire
 interface CategorieFormValues {
     nom: string;
     description: string;
@@ -26,31 +25,25 @@ export default function FormCategorie() {
     description: "",
   };
 
-  // Utiliser le type FormikHelpers avec le type des valeurs
   const handleSubmit = async (values: CategorieFormValues, { resetForm }: FormikHelpers<CategorieFormValues>) => {
     try {
-      // Remplacer fetch par fetcher
-      await fetcher(categoriesEndpoint, { // Utiliser l'URL importée
+      await fetcher(categoriesEndpoint, {
         method: "POST",
-        // headers: { 'Content-Type': 'application/json' }, // fetcher gère Content-Type si body existe
         body: JSON.stringify(values),
       });
 
-      // Si fetcher ne lance pas d'erreur, c'est un succès
       refreshCategories();
       resetForm();
       toast.success("Catégorie ajoutée !");
 
-    } catch (error: unknown) { // Le catch reçoit l'erreur lancée par fetcher
+    } catch (error: unknown) {
       console.error("Erreur lors de l'ajout de la catégorie:", error);
-      // Vérifier si l'erreur est un objet avec un message
       if (error instanceof Error) {
         toast.error(error.message || "Erreur lors de l'ajout de la catégorie");
       } else {
         toast.error("Erreur inconnue lors de l'ajout de la catégorie");
       }
     }
-    // 'finally' n'est plus nécessaire ici car isSubmitting est géré par Formik
   };
 
   return (
