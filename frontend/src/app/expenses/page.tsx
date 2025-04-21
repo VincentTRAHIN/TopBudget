@@ -13,6 +13,7 @@ export default function ExpensesPage() {
   const { depenses } = useDepenses();
   const [selectedDepense, setSelectedDepense] = useState<IDepense | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddCategorieForm, setShowAddCategorieForm] = useState(false);
 
   const handleEdit = (depense: IDepense) => {
     setSelectedDepense(depense);
@@ -24,11 +25,22 @@ export default function ExpensesPage() {
     setShowAddForm(true);
   };
 
+  const handleAddCategorie = () => {
+    setShowAddCategorieForm(true);
+  };
+
   return (
     <RequireAuth>
       <Layout>
         <div className="space-y-6">
-          <FormCategorie />
+          <h1 className="text-2xl font-bold">Mes dépenses</h1>
+          {showAddCategorieForm && (
+            <FormCategorie
+              onClose={() => {
+                setShowAddCategorieForm(false);
+              }}
+            />
+          )}
           {showAddForm && (
             <FormDepense
               existingDepense={selectedDepense ?? undefined}
@@ -42,6 +54,7 @@ export default function ExpensesPage() {
             depenses={depenses}
             onEdit={handleEdit}
             onAdd={handleAdd}
+            onAddCategorie={handleAddCategorie}
           />
         </div>
       </Layout>

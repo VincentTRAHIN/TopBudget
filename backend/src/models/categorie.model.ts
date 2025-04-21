@@ -1,10 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
-
-export interface ICategorie extends Document {
-  nom: string;
-  description?: string;
-  image?: string;
-}
+import mongoose, { Schema } from 'mongoose';
+import { ICategorie } from '../types/categorie.types';
 
 const CategorieSchema = new Schema<ICategorie>({
   nom: { type: String, required: true, unique: true },

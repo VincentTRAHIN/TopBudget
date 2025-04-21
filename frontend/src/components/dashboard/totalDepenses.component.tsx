@@ -3,9 +3,7 @@
 import { useDepenses } from "@/hooks/useDepenses.hook";
 
 export default function TotalDepenses() {
-  const { depenses, isLoading } = useDepenses();
-
-  const total = depenses.reduce((acc, curr) => acc + curr.montant, 0);
+  const { total, isLoading } = useDepenses();
 
   if (isLoading) {
     return <div>Chargement des données...</div>;

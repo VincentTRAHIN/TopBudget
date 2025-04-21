@@ -9,6 +9,7 @@ import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 import fetcher from '@/utils/fetcher.utils'; 
 import { depensesEndpoint } from '@/services/api.service';
+import { X } from 'lucide-react';
 
 const DepenseSchema = Yup.object().shape({
   montant: Yup.number().positive('Doit être positif').required('Requis'),
@@ -83,7 +84,13 @@ export default function FormDepense({
   };
 
   return (
-    <div key={existingDepense?._id || 'new'} className="bg-white p-6 rounded-lg shadow-md mb-6">
+    <div key={existingDepense?._id || 'new'} className="bg-white p-6 rounded-lg shadow-md mb-6 relative">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+      >
+        <X size={20} />
+      </button>
       <h3 className="text-lg font-semibold mb-4">
         {existingDepense ? 'Modifier la Dépense' : 'Ajouter une Dépense'}
       </h3>

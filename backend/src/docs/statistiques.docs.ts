@@ -1,0 +1,307 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     StatistiquesResponse:
+ *       type: object
+ *       properties:
+ *         depensesParCategorie:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               categorie:
+ *                 type: string
+ *                 description: Nom de la catégorie
+ *               montant:
+ *                 type: number
+ *                 description: Montant total des dépenses
+ *               pourcentage:
+ *                 type: number
+ *                 description: Pourcentage du total
+ *         depensesParMois:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               mois:
+ *                 type: string
+ *                 description: Mois au format YYYY-MM
+ *               montant:
+ *                 type: number
+ *                 description: Montant total des dépenses
+ *         budgetRestant:
+ *           type: object
+ *           properties:
+ *             total:
+ *               type: number
+ *               description: Montant total des budgets
+ *             depenses:
+ *               type: number
+ *               description: Montant total des dépenses
+ *             restant:
+ *               type: number
+ *               description: Montant restant
+ *             pourcentage:
+ *               type: number
+ *               description: Pourcentage du budget utilisé
+ *     StatistiquesMensuelles:
+ *       type: object
+ *       properties:
+ *         mois:
+ *           type: string
+ *           format: date
+ *           description: Mois concerné
+ *         total:
+ *           type: number
+ *           description: Total des dépenses du mois
+ *     RepartitionCategorie:
+ *       type: object
+ *       properties:
+ *         categorie:
+ *           type: string
+ *           description: Nom de la catégorie
+ *         montant:
+ *           type: number
+ *           description: Montant total des dépenses
+ *         pourcentage:
+ *           type: number
+ *           description: Pourcentage du total
+ *     ComparaisonMois:
+ *       type: object
+ *       properties:
+ *         moisPrecedent:
+ *           type: string
+ *           format: date
+ *           description: Mois précédent
+ *         moisCourant:
+ *           type: string
+ *           format: date
+ *           description: Mois courant
+ *         difference:
+ *           type: number
+ *           description: Différence entre les deux mois
+ *         pourcentage:
+ *           type: number
+ *           description: Pourcentage de variation
+ */
+
+/**
+ * @swagger
+ * /api/statistiques:
+ *   get:
+ *     summary: Récupère les statistiques globales
+ *     tags: [Statistiques]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Date de début pour le filtre
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Date de fin pour le filtre
+ *     responses:
+ *       200:
+ *         description: Statistiques globales
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/StatistiquesResponse'
+ *       401:
+ *         description: Non autorisé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
+ * /api/statistiques/budget/{budgetId}:
+ *   get:
+ *     summary: Récupère les statistiques d'un budget spécifique
+ *     tags: [Statistiques]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: budgetId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du budget
+ *     responses:
+ *       200:
+ *         description: Statistiques du budget
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/StatistiquesResponse'
+ *       404:
+ *         description: Budget non trouvé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Non autorisé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
+ * /api/statistiques/categorie/{categorieId}:
+ *   get:
+ *     summary: Récupère les statistiques d'une catégorie spécifique
+ *     tags: [Statistiques]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: categorieId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la catégorie
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Date de début pour le filtre
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Date de fin pour le filtre
+ *     responses:
+ *       200:
+ *         description: Statistiques de la catégorie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/StatistiquesResponse'
+ *       404:
+ *         description: Catégorie non trouvée
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Non autorisé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
+ * /api/statistiques/total-mensuel:
+ *   get:
+ *     summary: Récupère le total des dépenses mensuelles
+ *     tags: [Statistiques]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: mois
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Mois spécifique (format YYYY-MM)
+ *     responses:
+ *       200:
+ *         description: Total des dépenses mensuelles
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/StatistiquesMensuelles'
+ *       401:
+ *         description: Non autorisé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
+ * /api/statistiques/par-categorie:
+ *   get:
+ *     summary: Récupère la répartition des dépenses par catégorie
+ *     tags: [Statistiques]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: mois
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Mois spécifique (format YYYY-MM)
+ *     responses:
+ *       200:
+ *         description: Répartition des dépenses par catégorie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/RepartitionCategorie'
+ *       401:
+ *         description: Non autorisé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
+ * /api/statistiques/comparaison-mois:
+ *   get:
+ *     summary: Compare les dépenses entre deux mois
+ *     tags: [Statistiques]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: moisPrecedent
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Mois précédent (format YYYY-MM)
+ *       - in: query
+ *         name: moisCourant
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Mois courant (format YYYY-MM)
+ *     responses:
+ *       200:
+ *         description: Comparaison des dépenses entre deux mois
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ComparaisonMois'
+ *       401:
+ *         description: Non autorisé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */ 

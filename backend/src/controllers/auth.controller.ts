@@ -4,12 +4,13 @@ import User from "../models/user.model";
 import jwt from "jsonwebtoken";
 import { validationResult } from "express-validator";
 import logger from "../utils/logger.utils";
+import { AUTH } from "../constants";
 
 const generateToken = (id: string) => {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET non défini");
   }
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: AUTH.JWT_EXPIRES_IN });
 };
 
 export const inscription = async (
@@ -26,7 +27,7 @@ export const inscription = async (
   try {
     const userExistant = await User.findOne({ email });
     if (userExistant) {
-      res.status(400).json({ message: "Cet email est déjà utilisé" });
+      res.status(400).json({ message: AUTH.ERROR_MESSAGES.EMAIL_ALREADY_EXISTS });
       return;
     }
 
@@ -46,13 +47,12 @@ export const inscription = async (
 };
 
 export const connexion = async (req: Request, res: Response): Promise<void> => {
-  logger.info("Requête reçue sur /api/auth/login"); // Log 1
-  logger.info(`Corps de la requête: ${JSON.stringify(req.body)}`); // Log 2: Voir les données reçues
+  logger.info("Requête reçue sur /api/auth/login");
+  logger.info(`Corps de la requête: ${JSON.stringify(req.body)}`);
+  
   const erreurs = validationResult(req);
   if (!erreurs.isEmpty()) {
-    logger.warn(
-      `Erreurs de validation login: ${JSON.stringify(erreurs.array())}`
-    ); // Log 3: Voir les erreurs de validation
+    logger.warn(`Erreurs de validation login: ${JSON.stringify(erreurs.array())}`);
     res.status(400).json({ erreurs: erreurs.array() });
     return;
   }
@@ -62,22 +62,19 @@ export const connexion = async (req: Request, res: Response): Promise<void> => {
   try {
     const utilisateur = await User.findOne({ email });
     if (!utilisateur) {
-      logger.warn(`Utilisateur non trouvé pour email: ${email}`); // Log 4
-
-      res.status(400).json({ message: "Email ou mot de passe invalide" });
+      logger.warn(`Utilisateur non trouvé pour email: ${email}`);
+      res.status(400).json({ message: AUTH.ERROR_MESSAGES.INVALID_CREDENTIALS });
       return;
     }
-    logger.info(`Utilisateur trouvé: ${utilisateur.email}`); // Log 5
-
+    logger.info(`Utilisateur trouvé: ${utilisateur.email}`);
 
     const motDePasseValide = await utilisateur.comparerMotDePasse(motDePasse);
     if (!motDePasseValide) {
-      logger.warn(`Mot de passe invalide pour utilisateur: ${email}`); // Log 6
-
-      res.status(400).json({ message: "Email ou mot de passe invalide" });
+      logger.warn(`Mot de passe invalide pour utilisateur: ${email}`);
+      res.status(400).json({ message: AUTH.ERROR_MESSAGES.INVALID_CREDENTIALS });
       return;
     }
-    logger.info(`Connexion réussie pour utilisateur: ${email}`); // Log 7
+    logger.info(`Connexion réussie pour utilisateur: ${email}`);
 
     res.json({
       _id: utilisateur._id,
@@ -86,16 +83,14 @@ export const connexion = async (req: Request, res: Response): Promise<void> => {
       token: generateToken(utilisateur._id as string),
     });
   } catch (error) {
-    logger.error('Erreur interne lors de la connexion:', error); // Log 8
+    logger.error('Erreur interne lors de la connexion:', error);
     res.status(500).json({ message: "Erreur lors de la connexion" });
   }
 };
 
 export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) {
-    res
-      .status(401)
-      .json({ message: "Non autorisé ou utilisateur non trouvé via token" });
+    res.status(401).json({ message: AUTH.ERROR_MESSAGES.UNAUTHORIZED });
     return;
   }
 
@@ -103,14 +98,10 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
     const utilisateur = await User.findById(req.user.id).select("-motDePasse");
 
     if (!utilisateur) {
-      // Si l'utilisateur a été supprimé entretemps
-      res
-        .status(404)
-        .json({ message: "Utilisateur non trouvé en base de données" });
+      res.status(404).json({ message: AUTH.ERROR_MESSAGES.USER_NOT_FOUND });
       return;
     }
 
-    // Renvoyer les données de l'utilisateur
     res.status(200).json({
       _id: utilisateur._id,
       nom: utilisateur.nom,

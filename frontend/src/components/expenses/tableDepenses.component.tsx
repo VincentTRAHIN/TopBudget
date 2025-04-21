@@ -6,15 +6,18 @@ import { toast } from 'react-hot-toast';
 import fetcher from '@/utils/fetcher.utils';
 import { depensesEndpoint } from '@/services/api.service';
 import { Edit, Trash2 } from 'lucide-react';
+import { useDepenses } from '@/hooks/useDepenses.hook';
 
 interface TableDepensesProps {
   depenses: IDepense[];
   onEdit: (depense: IDepense) => void;
   onAdd: () => void;
+  onAddCategorie: () => void;
 }
 
-export default function TableDepenses({ depenses = [], onEdit, onAdd }: TableDepensesProps) {
+export default function TableDepenses({ depenses = [], onEdit, onAdd, onAddCategorie }: TableDepensesProps) {
   const [search, setSearch] = useState('');
+  const { refreshDepenses } = useDepenses();
 
   const handleEdit = (depense: IDepense) => {
     onEdit(depense);
@@ -26,6 +29,7 @@ export default function TableDepenses({ depenses = [], onEdit, onAdd }: TableDep
         method: 'DELETE',
       });
       toast.success('Dépense supprimée avec succès !');
+      refreshDepenses();
     } catch {
       toast.error('Erreur lors de la suppression de la dépense');
     }
@@ -53,6 +57,9 @@ export default function TableDepenses({ depenses = [], onEdit, onAdd }: TableDep
           />
           <button onClick={onAdd} className="btn-primary px-4 py-2 whitespace-nowrap">
             Ajouter une dépense
+          </button>
+          <button onClick={onAddCategorie} className="btn-primary px-4 py-2 whitespace-nowrap">
+            Ajouter une catégorie
           </button>
         </div>
       </div>

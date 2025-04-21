@@ -69,13 +69,13 @@ export const useAuth = () => {
     }
   };
 
-  const register = async (email: string, password: string) => {
+  const register = async (nom: string, email: string, password: string) => {
     setLoadingAction(true);
     try {
       const res = await fetch(registerEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, motDePasse: password }),
+        body: JSON.stringify({ nom, email, motDePasse: password }),
       });
 
       const data = await res.json();

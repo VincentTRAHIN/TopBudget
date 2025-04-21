@@ -1,21 +1,13 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
-
-export interface IUser extends Document {
-  nom: string;
-  email: string;
-  motDePasse: string;
-  dateCreation: Date;
-  role: 'Perso' | 'Conjoint' | 'Admin';
-  comparerMotDePasse(motDePasse: string): Promise<boolean>;
-}
+import { IUser, UserRole } from '../types/user.types';
 
 const UserSchema = new Schema<IUser>({
   nom: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   motDePasse: { type: String, required: true },
   dateCreation: { type: Date, default: Date.now },
-  role: { type: String, enum: ['Perso', 'Conjoint', 'Admin'], default: 'Perso' },
+  role: { type: String, enum: ['Perso', 'Conjoint', 'Admin'] as UserRole[], default: 'Perso' },
 });
 
 // Hash du mot de passe avant save

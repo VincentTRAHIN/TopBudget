@@ -3,18 +3,50 @@
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth.hook";
 import { LogOut } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Home, CreditCard, Tag } from "lucide-react";
 
 export default function Sidebar() {
   const { isAuthenticated, logout } = useAuth();
+  const pathname = usePathname();
+
+  const isActive = (path: string) => pathname === path;
 
   return (
     <aside className="hidden md:flex flex-col w-64 h-full bg-white shadow-lg p-4 justify-between">
       <nav className="flex flex-col space-y-2">
-        <Link href="/dashboard" className="px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium">
-          Dashboard
+        <Link
+          href="/"
+          className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
+            isActive("/")
+              ? "bg-indigo-50 text-indigo-600"
+              : ""
+          }`}
+        >
+          <Home size={20} />
+          <span>Accueil</span>
         </Link>
-        <Link href="/expenses" className="px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium">
-          Mes Dépenses
+        <Link
+          href="/expenses"
+          className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
+            isActive("/expenses")
+              ? "bg-indigo-50 text-indigo-600"
+              : ""
+          }`}
+        >
+          <CreditCard size={20} />
+          <span>Mes Dépenses</span>
+        </Link>
+        <Link
+          href="/categories"
+          className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
+            isActive("/categories")
+              ? "bg-indigo-50 text-indigo-600"
+              : ""
+          }`}
+        >
+          <Tag size={20} />
+          <span>Catégories</span>
         </Link>
       </nav>
 

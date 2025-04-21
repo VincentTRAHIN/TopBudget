@@ -12,14 +12,19 @@ services:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:5001/api
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    networks:
+      - topbudget-network
     stdin_open: true
     tty: true
+    restart: unless-stopped
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: development
     ports:
       - "5001:5001"
     volumes:
@@ -27,36 +32,78 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - MONGO_URI=mongodb://mongo:27017/topbudget
-      - JWT_SECRET=ton_super_secret
+      - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/topbudget?authSource=admin
+      - JWT_SECRET=${JWT_SECRET}
       - PORT=5001
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
     depends_on:
-      - mongo
-    stdin_open: true
-    tty: true
+      mongo:
+        condition: service_healthy
+    networks:
+      - topbudget-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5001/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
 
   mongo:
     image: mongo:6
     container_name: mongodb
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=topbudget
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
     ports:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
-    command: ["mongod", "--quiet", "--logpath=/dev/null"]
+    networks:
+      - topbudget-network
+    healthcheck:
+      test: mongosh --eval 'db.runCommand("ping").ok' mongodb://${MONGO_USER}:${MONGO_PASSWORD}@localhost:27017/admin --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    command: ["--quiet", "--logpath=/dev/null"]
+    logging:
+      driver: "none"
 
   mongo-express:
     image: mongo-express
-    restart: always
+    restart: unless-stopped
     ports:
       - "8081:8081"
     environment:
       ME_CONFIG_MONGODB_SERVER: mongo
       ME_CONFIG_MONGODB_PORT: 27017
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ""
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ""
-      ME_CONFIG_BASICAUTH: "false"
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USER}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD}
+      ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
+      ME_CONFIG_BASICAUTH: "true"
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+    networks:
+      - topbudget-network
 
 volumes:
   mongo-data:
+    name: topbudget_mongo_data
+
+networks:
+  topbudget-network:
+    name: topbudget_network
+    driver: bridge
