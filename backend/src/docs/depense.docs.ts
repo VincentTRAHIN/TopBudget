@@ -91,31 +91,72 @@
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
- *         name: budgetId
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Numéro de la page à récupérer (par défaut 1)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Nombre de résultats par page (par défaut 10)
+ *       - in: query
+ *         name: categorie
  *         schema:
  *           type: string
- *         description: Filtrer par ID de budget
+ *         description: Filtrer par catégorie
  *       - in: query
- *         name: startDate
+ *         name: dateDebut
  *         schema:
  *           type: string
  *           format: date
  *         description: Date de début pour le filtre
  *       - in: query
- *         name: endDate
+ *         name: dateFin
  *         schema:
  *           type: string
  *           format: date
  *         description: Date de fin pour le filtre
+ *       - in: query
+ *         name: typeCompte
+ *         schema:
+ *           type: string
+ *           enum: [Perso, Conjoint, Commun]
+ *         description: Filtrer par type de compte
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *         description: Champ par lequel trier (ex. montant, date)
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         description: Ordre de tri (ascendant ou descendant)
  *     responses:
  *       200:
  *         description: Liste des dépenses
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/DepenseResponse'
+ *               type: object
+ *               properties:
+ *                 depenses:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/DepenseResponse'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                     page:
+ *                       type: integer
+ *                     pages:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
  *       401:
  *         description: Non autorisé
  *         content:

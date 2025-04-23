@@ -11,21 +11,21 @@ export const totalDepensesMensuelles = async (req: AuthRequest, res: Response) =
       return;
     }
 
-    const { mois, annee } = req.query;
+    const { mois, annee, categorie } = req.query;
 
-    if (!mois || !annee) {
-      res.status(400).json({ message: "Les paramètres mois et année sont requis" });
-      return;
-    }
-
-    const depenses = await Depense.find({
+    const match: { utilisateur: string; date: { $gte: Date; $lte: Date }; categorie?: string } = {
       utilisateur: req.user.id,
       date: {
         $gte: new Date(`${annee}-${mois}-01`),
         $lte: new Date(`${annee}-${mois}-31`)
       }
-    }).populate('categorie');
+    };
 
+    if (categorie) {
+      match.categorie = categorie as string;
+    }
+
+    const depenses = await Depense.find(match);
     const total = depenses.reduce((acc, depense) => acc + depense.montant, 0);
 
     res.json({

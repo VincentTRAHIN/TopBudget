@@ -51,20 +51,39 @@ export const obtenirDepenses = async (req: AuthRequest, res: Response): Promise<
       return;
     }
 
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = Math.min(
-      parseInt(req.query.limit as string) || DEPENSE.PAGINATION.DEFAULT_LIMIT,
-      DEPENSE.PAGINATION.MAX_LIMIT
-    );
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || DEPENSE.PAGINATION.DEFAULT_LIMIT;
+    const { categorie, dateDebut, dateFin, typeCompte, sortBy = 'date', order = 'desc' } = req.query;
+
     const skip = (page - 1) * limit;
 
-    const depenses = await Depense.find({ utilisateur: req.user.id })
+    const filter: { utilisateur: string; categorie?: string; date?: { $gte?: Date; $lte?: Date }; typeCompte?: string } = { utilisateur: req.user.id };
+    
+    if (typeof categorie === 'string') {
+      filter.categorie = categorie;
+    }
+    
+    if (dateDebut || dateFin) {
+      filter.date = {};
+      if (dateDebut) {
+        filter.date.$gte = new Date(dateDebut as string);
+      }
+      if (dateFin) {
+        filter.date.$lte = new Date(dateFin as string);
+      }
+    }
+
+    if (typeCompte) {
+      filter.typeCompte = typeCompte as string;
+    }
+
+    const depenses = await Depense.find(filter)
       .populate('categorie')
       .skip(skip)
       .limit(limit)
-      .sort({ date: -1 });
+      .sort({ [sortBy as string]: order === 'asc' ? 1 : -1 });
 
-    const total = await Depense.countDocuments({ utilisateur: req.user.id });
+    const total = await Depense.countDocuments(filter);
 
     res.json({
       depenses,

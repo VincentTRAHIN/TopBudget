@@ -29,6 +29,10 @@ export default function ExpensesPage() {
     setShowAddCategorieForm(true);
   };
 
+  const handleFilterChange = (filters: { categorie?: string; dateDebut?: string; dateFin?: string; typeCompte?: string; sortBy?: string; order?: string }) => {
+    console.log(filters);
+  };    
+
   return (
     <RequireAuth>
       <Layout>
@@ -55,6 +59,7 @@ export default function ExpensesPage() {
             onEdit={handleEdit}
             onAdd={handleAdd}
             onAddCategorie={handleAddCategorie}
+            onFilterChange={handleFilterChange}
           />
         </div>
       </Layout>

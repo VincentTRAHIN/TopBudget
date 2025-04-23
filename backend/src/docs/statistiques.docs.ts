@@ -221,15 +221,31 @@
  *           type: string
  *           format: date
  *         description: Mois spécifique (format YYYY-MM)
+ *       - in: query
+ *         name: annee
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Année spécifique (format YYYY)
+ *       - in: query
+ *         name: categorie
+ *         schema:
+ *           type: string
+ *         description: Filtrer par catégorie
  *     responses:
  *       200:
  *         description: Total des dépenses mensuelles
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/StatistiquesMensuelles'
+ *               type: object
+ *               properties:
+ *                 depenses:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/DepenseResponse'
+ *                 total:
+ *                   type: number
  *       401:
  *         description: Non autorisé
  *         content:

@@ -13,9 +13,10 @@ interface TableDepensesProps {
   onEdit: (depense: IDepense) => void;
   onAdd: () => void;
   onAddCategorie: () => void;
+  onFilterChange: (filters: { categorie?: string; dateDebut?: string; dateFin?: string; typeCompte?: string; sortBy?: string; order?: string }) => void;
 }
 
-export default function TableDepenses({ depenses = [], onEdit, onAdd, onAddCategorie }: TableDepensesProps) {
+export default function TableDepenses({ depenses = [], onEdit, onAdd, onAddCategorie, onFilterChange }: TableDepensesProps) {
   const [search, setSearch] = useState('');
   const { refreshDepenses } = useDepenses();
 
@@ -35,6 +36,12 @@ export default function TableDepenses({ depenses = [], onEdit, onAdd, onAddCateg
     }
   };
 
+  const handleFilterChange = (filters: { categorie?: string; dateDebut?: string; dateFin?: string; typeCompte?: string; sortBy?: string; order?: string }) => {
+    onFilterChange(filters);
+  };
+
+
+
   const filteredDepenses = depenses.filter((depense) => {
     const searchLower = search.toLowerCase();
     return (
@@ -50,11 +57,37 @@ export default function TableDepenses({ depenses = [], onEdit, onAdd, onAddCateg
         <div className="flex gap-2 w-full md:w-auto">
           <input
             type="text"
-            placeholder="Rechercher..."
+            placeholder="Rechercher par commentaire..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="input flex-grow md:w-64"
           />
+          <select onChange={(e) => handleFilterChange({ categorie: e.target.value })}>
+            <option value="">Toutes les catégories</option>
+            {/* Ajoutez ici les options pour les catégories */}
+          </select>
+          <input
+            type="date"
+            onChange={(e) => handleFilterChange({ dateDebut: e.target.value })}
+          />
+          <input
+            type="date"
+            onChange={(e) => handleFilterChange({ dateFin: e.target.value })}
+          />
+          <select onChange={(e) => handleFilterChange({ typeCompte: e.target.value })}>
+            <option value="">Tous les types de compte</option>
+            <option value="Perso">Perso</option>
+            <option value="Conjoint">Conjoint</option>
+            <option value="Commun">Commun</option>
+          </select>
+          <select onChange={(e) => handleFilterChange({ sortBy: e.target.value })}>
+            <option value="date">Trier par date</option>
+            <option value="montant">Trier par montant</option>
+          </select>
+          <select onChange={(e) => handleFilterChange({ order: e.target.value })}>
+            <option value="asc">Ascendant</option>
+            <option value="desc">Descendant</option>
+          </select>
           <button onClick={onAdd} className="btn-primary px-4 py-2 whitespace-nowrap">
             Ajouter une dépense
           </button>
