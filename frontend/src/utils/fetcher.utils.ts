@@ -1,4 +1,4 @@
-const fetcher = async (url: string, options: RequestInit = {}) => {
+const fetcher = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
   const isAuthMeEndpoint = url.includes('/auth/me');
@@ -72,7 +72,7 @@ const fetcher = async (url: string, options: RequestInit = {}) => {
       response.status === 204 ||
       response.headers.get('content-length') === '0'
     ) {
-      return undefined;
+      return undefined as T;
     }
     return response.json();
   } catch (error) {

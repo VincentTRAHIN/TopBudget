@@ -5,6 +5,8 @@ import useSWR from 'swr';
 import { useRouter } from 'next/navigation';
 import fetcher from '@/utils/fetcher.utils';
 import { loginEndpoint, registerEndpoint, meEndpoint } from '@/services/api.service';
+import { IUser } from '@/types/user.type';
+
 
 export const useAuth = () => {
   const router = useRouter();
@@ -14,7 +16,7 @@ export const useAuth = () => {
     error,
     mutate, 
     isLoading: isUserLoading, 
-  } = useSWR(meEndpoint, fetcher, {
+  } = useSWR<IUser | null>(meEndpoint, fetcher, {
     shouldRetryOnError: false,
     onError: (err) => {
       if (err.status === 401) {

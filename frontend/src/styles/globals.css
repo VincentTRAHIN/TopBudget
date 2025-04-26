@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .input {
-  @apply w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  @apply w-full border border-gray-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
 }
 
 .btn-primary {
