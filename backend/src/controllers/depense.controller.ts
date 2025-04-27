@@ -240,7 +240,7 @@ export const importerDepenses = async (
   readableStream
     .pipe(
       csvParser({
-        separator: ";",
+        separator: ",",
         mapHeaders: ({ header }) => header.trim(),
         headers: ["date", "montant", "categorie", "description"],
       })

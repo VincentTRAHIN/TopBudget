@@ -340,7 +340,7 @@
  *               csvFile:
  *                 type: string
  *                 format: binary
- *                 description: "Fichier CSV à importer (séparateur ';', en-têtes attendus: Date;Montant;Categorie;Description)"
+ *                 description: "Fichier CSV à importer (séparateur ',', en-têtes attendus: Date;Montant;Categorie;Description)"
  *           encoding:
  *             csvFile:
  *               contentType: text/csv
