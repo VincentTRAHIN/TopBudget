@@ -315,3 +315,72 @@
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */ 
+
+/**
+ * @swagger
+ * /api/depenses/import:
+ *   post:
+ *     summary: Importe des dépenses depuis un fichier CSV
+ *     tags: [Dépenses]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               csvFile:
+ *                 type: string
+ *                 format: binary
+ *                 description: Fichier CSV à importer (séparateur ';', en-têtes attendus: Date;Montant;TypeCompte;CategorieNom;Commentaire)
+ *           encoding:
+ *             csvFile:
+ *               contentType: text/csv
+ *     responses:
+ *       200:
+ *         description: Résultat de l'importation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 totalLignesLues:
+ *                   type: integer
+ *                 importedCount:
+ *                   type: integer
+ *                 errorCount:
+ *                   type: integer
+ *                 erreurs:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       ligne:
+ *                         type: integer
+ *                       data:
+ *                         type: object
+ *                       message:
+ *                         type: string
+ *       400:
+ *         description: Fichier manquant, mauvais format de fichier ou données invalides dans le fichier
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Non autorisé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erreur serveur lors du parsing ou de l'insertion
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */

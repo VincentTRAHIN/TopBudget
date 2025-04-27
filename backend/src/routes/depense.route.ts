@@ -5,9 +5,10 @@ import {
   obtenirDepenses,
   modifierDepense,
   supprimerDepense,
+  importerDepenses,
 } from "../controllers/depense.controller";
 import { creerDepenseValidator } from "../middlewares/validators/depense.validator";
-
+import uploadCSV from "../middlewares/upload.middleware";
 const router = express.Router();
 
 // Créer une dépense
@@ -21,5 +22,8 @@ router.put("/:id", proteger, modifierDepense);
 
 // Supprimer une dépense
 router.delete("/:id", proteger, supprimerDepense);
+
+// Importer des dépenses
+router.post("/import", proteger, uploadCSV, importerDepenses);
 
 export default router;
