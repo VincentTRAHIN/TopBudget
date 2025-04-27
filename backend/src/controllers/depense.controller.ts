@@ -230,7 +230,7 @@ export const importerDepenses = async (
   }[] = [];
   let ligneCourante = 0;
 
-  const categorieDisponible = await Categorie.find({ utilisateur: userId });
+  const categorieDisponible = await Categorie.find();
   const categorieMap = new Map(
     categorieDisponible.map((cat) => [cat.nom.toLowerCase(), cat._id])
   );
@@ -249,10 +249,10 @@ export const importerDepenses = async (
       ligneCourante++;
       logger.debug(`Ligne ${ligneCourante} lue: ${JSON.stringify(row)}`);
       const {
-        Date: dateStr,
-        Montant: montantStr,
-        Categorie: categorieStr,
-        Description: description,
+        date: dateStr,
+        montant: montantStr,
+        categorie: categorieStr,
+        description: description,
       } = row;
 
       if (!dateStr || !montantStr || !categorieStr) {
@@ -274,7 +274,7 @@ export const importerDepenses = async (
         return;
       }
 
-      const montantNumerique = parseFloat(montantStr);
+      const montantNumerique = parseFloat(montantStr.replace(',', '.'));
       if (isNaN(montantNumerique) || montantNumerique <= 0) {
         erreursImport.push({
           ligne: ligneCourante,

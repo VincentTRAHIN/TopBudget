@@ -6,7 +6,7 @@ const DepenseSchema = new Schema<IDepense>({
   description: { type: String, required: false},
   date: { type: Date, required: true },
   commentaire: { type: String },
-  typeCompte: { type: String, enum: ['Perso', 'Conjoint', 'Commun'] as TypeCompte[], required: true },
+  typeCompte: { type: String, enum: ['Perso', 'Conjoint', 'Commun'] as TypeCompte[], default: 'Perso' },
   recurrence: { type: Boolean, default: false },
   categorie: { type: mongoose.Schema.Types.ObjectId, ref: 'Categorie', required: true },
   utilisateur: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
