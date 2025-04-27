@@ -9,6 +9,7 @@ import { AppError } from "../middlewares/error.middleware";
 import { Readable } from "stream";
 import csvParser from "csv-parser";
 import mongoose from "mongoose";
+import { parse, isValid } from "date-fns";
 
 export const ajouterDepense = async (
   req: AuthRequest,
@@ -21,8 +22,15 @@ export const ajouterDepense = async (
   }
 
   try {
-    const { montant, date, commentaire, typeCompte, recurrence, categorie, description } =
-      req.body;
+    const {
+      montant,
+      date,
+      commentaire,
+      typeCompte,
+      recurrence,
+      categorie,
+      description,
+    } = req.body;
 
     // Validation du montant
     if (
@@ -245,51 +253,141 @@ export const importerDepenses = async (
         headers: ["date", "montant", "categorie", "description"],
       })
     )
-    .on("data", (row) => {
+    .on("data", async (row) => {
       ligneCourante++;
       logger.debug(`Ligne ${ligneCourante} lue: ${JSON.stringify(row)}`);
       const {
         date: dateStr,
         montant: montantStr,
-        categorie: categorieStr,
+        categorie: categorieStrRow,
         description: description,
       } = row;
 
-      if (!dateStr || !montantStr || !categorieStr) {
+      if (!dateStr || !montantStr || !categorieStrRow) {
         erreursImport.push({
           ligne: ligneCourante,
           data: row,
-          erreur: "Données manquantes",
+          erreur: "Données manquantes (date, montant, categorie)",
         });
         return;
       }
 
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) {
+      const expectedDateFormat = "dd/MM/yyyy";
+      const date = parse(dateStr, expectedDateFormat, new Date());
+      if (!isValid(date)) {
         erreursImport.push({
           ligne: ligneCourante,
           data: row,
-          erreur: `Date invalide: ${dateStr}. Format attendu: YYYY-MM-DD`,
+          erreur: `Date invalide: ${dateStr}. Format attendu: ${expectedDateFormat.toUpperCase()}`,
         });
         return;
       }
 
-      const montantNumerique = parseFloat(montantStr.replace(',', '.'));
-      if (isNaN(montantNumerique) || montantNumerique <= 0) {
+      const montantNumerique = parseFloat(montantStr.replace(",", "."));
+      if (
+        isNaN(montantNumerique) ||
+        montantNumerique <= DEPENSE.VALIDATION.MIN_MONTANT
+      ) {
         erreursImport.push({
           ligne: ligneCourante,
           data: row,
-          erreur: `Montant invalide: ${montantStr}`,
+          erreur: `${DEPENSE.ERROR_MESSAGES.INVALID_MONTANT}: ${montantStr}`,
         });
         return;
       }
 
-      const categorieId = categorieMap.get(categorieStr.toLowerCase());
+      const categorieNomNettoye = categorieStrRow.trim();
+      if (
+        categorieNomNettoye.length < CATEGORIE.VALIDATION.MIN_NOM_LENGTH ||
+        categorieNomNettoye.length > CATEGORIE.VALIDATION.MAX_NOM_LENGTH
+      ) {
+        erreursImport.push({
+          ligne: ligneCourante,
+          data: row,
+          erreur: `Nom de catégorie invalide: '${categorieNomNettoye}'. Doit contenir entre ${CATEGORIE.VALIDATION.MIN_NOM_LENGTH} et ${CATEGORIE.VALIDATION.MAX_NOM_LENGTH} caractères.`,
+        });
+        return;
+      }
+
+      let categorieId: mongoose.Types.ObjectId | undefined = categorieMap.get(
+        categorieNomNettoye.toLowerCase()
+      ) as mongoose.Types.ObjectId | undefined;
       if (!categorieId) {
+        logger.info(
+          `Catégorie '${categorieNomNettoye}' non trouvée, tentative de création.`
+        );
+        try {
+          const categorieDejaCreee = await Categorie.findOne({
+            nom: { $regex: new RegExp(`^${categorieNomNettoye}$`, "i") },
+          });
+
+          if (categorieDejaCreee) {
+            categorieId = categorieDejaCreee._id as mongoose.Types.ObjectId;
+            logger.info(
+              `Catégorie '${categorieNomNettoye}' trouvée après vérification (créée récemment).`
+            );
+            categorieMap.set(categorieNomNettoye.toLowerCase(), categorieId);
+          } else {
+            const nouvelleCategorie = await Categorie.create({
+              nom: categorieNomNettoye,
+              description: CATEGORIE.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE,
+            });
+            categorieId = nouvelleCategorie._id as mongoose.Types.ObjectId;
+            categorieMap.set(nouvelleCategorie.nom.toLowerCase(), categorieId);
+            logger.info(
+              `Catégorie '${nouvelleCategorie.nom}' créée avec succès (ID: ${categorieId}).`
+            );
+          }
+        } catch (error: unknown) {
+          let messageErreur = `Erreur lors de la création de la catégorie '${categorieNomNettoye}'`;
+
+          // Utilisation constante CATEGORIE pour l'erreur de validation Mongoose
+          if (error instanceof mongoose.Error.ValidationError) {
+            messageErreur = `${CATEGORIE.ERROR_MESSAGES.VALIDATION_ERROR} ('${categorieNomNettoye}'): ${error.message}`;
+            // Utilisation constante CATEGORIE pour l'erreur de doublon
+          } else if (
+            error instanceof Error &&
+            "code" in error &&
+            error.code === 11000
+          ) {
+            messageErreur = `${CATEGORIE.ERROR_MESSAGES.CATEGORIE_ALREADY_EXISTS} ('${categorieNomNettoye}')`;
+            logger.warn(messageErreur, error);
+          } else if (error instanceof Error) {
+            messageErreur += `: ${error.message}`;
+            logger.error(messageErreur, error);
+          } else {
+            logger.error(messageErreur, error);
+          }
+
+          erreursImport.push({
+            ligne: ligneCourante,
+            data: row,
+            erreur: messageErreur,
+          });
+          return;
+        }
+      }
+
+      if (!categorieId) {
+        logger.error(
+          `Erreur critique: categorieId est null/undefined pour la ligne ${ligneCourante} après tentative de création/recherche.`
+        );
         erreursImport.push({
           ligne: ligneCourante,
           data: row,
-          erreur: `${CATEGORIE.ERROR_MESSAGES.CATEGORIE_NOT_FOUND}: '${categorieStr}'`,
+          erreur: `Impossible de déterminer l'ID de la catégorie '${categorieNomNettoye}'.`,
+        });
+        return;
+      }
+
+      if (!categorieId) {
+        logger.error(
+          `Erreur critique: categorieId est null/undefined pour la ligne ${ligneCourante} après tentative de création/recherche.`
+        );
+        erreursImport.push({
+          ligne: ligneCourante,
+          data: row,
+          erreur: `${CATEGORIE.ERROR_MESSAGES.CATEGORIE_NOT_FOUND}: Impossible de déterminer l'ID pour '${categorieNomNettoye}'.`,
         });
         return;
       }
