@@ -73,7 +73,8 @@ export default function TableDepenses({
 
   const filteredDepenses = depenses.filter((depense) => {
     const searchLower = search.toLowerCase();
-    const matchesSearch = depense.commentaire?.toLowerCase().includes(searchLower) ||
+    const matchesSearch = depense.commentaire?.toLowerCase().includes(searchLower) || 
+      depense.description?.toLowerCase().includes(searchLower) ||
       (typeof depense.categorie !== 'string' &&
         depense.categorie?.nom?.toLowerCase().includes(searchLower)) ||
       depense.montant.toString().includes(searchLower);
@@ -111,7 +112,7 @@ export default function TableDepenses({
         <div className="flex gap-2 w-full md:w-auto">
           <input
             type="text"
-            placeholder="Rechercher par commentaire..."
+            placeholder="Rechercher par commentaire ou description..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="input flex-grow md:w-64"
@@ -178,6 +179,13 @@ export default function TableDepenses({
               </th>
               <th
                 className="px-4 py-2 text-left cursor-pointer"
+                onClick={() => handleSort('description')}
+              >
+                Description{' '}
+                {sortBy === 'description' ? (order === 'asc' ? '↑' : '↓') : ''}
+              </th>
+              <th
+                className="px-4 py-2 text-left cursor-pointer"
                 onClick={() => handleSort('commentaire')}
               >
                 Commentaire{' '}
@@ -213,6 +221,7 @@ export default function TableDepenses({
                 <td className="px-4 py-2">
                   {new Date(depense.date).toLocaleDateString()}
                 </td>
+                <td className="px-4 py-2">{depense.description}</td>
                 <td className="px-4 py-2">{depense.commentaire}</td>
                 <td className="px-4 py-2">
                   {typeof depense.categorie === 'string'

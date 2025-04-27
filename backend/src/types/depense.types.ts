@@ -4,6 +4,7 @@ export type TypeCompte = 'Perso' | 'Conjoint' | 'Commun';
 
 export interface IDepense extends Document {
   montant: number;
+  description?: string;
   date: Date;
   commentaire?: string;
   typeCompte: TypeCompte;
@@ -19,12 +20,14 @@ export interface IDepenseInput {
   typeCompte: TypeCompte;
   recurrence?: boolean;
   categorie: string;
+  description?: string;
   utilisateur: string;
 }
 
 export interface IDepenseResponse {
   id: string;
   montant: number;
+  description?: string;
   date: Date;
   commentaire?: string;
   typeCompte: TypeCompte;

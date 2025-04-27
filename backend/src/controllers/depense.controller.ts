@@ -21,7 +21,7 @@ export const ajouterDepense = async (
   }
 
   try {
-    const { montant, date, commentaire, typeCompte, recurrence, categorie } =
+    const { montant, date, commentaire, typeCompte, recurrence, categorie, description } =
       req.body;
 
     // Validation du montant
@@ -48,6 +48,7 @@ export const ajouterDepense = async (
       typeCompte,
       recurrence,
       categorie,
+      description,
       utilisateur: req.user ? req.user.id : null,
     });
 

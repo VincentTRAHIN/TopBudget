@@ -3,6 +3,7 @@ import { IDepense, TypeCompte } from '../types/depense.types';
 
 const DepenseSchema = new Schema<IDepense>({
   montant: { type: Number, required: true },
+  description: { type: String, required: false},
   date: { type: Date, required: true },
   commentaire: { type: String },
   typeCompte: { type: String, enum: ['Perso', 'Conjoint', 'Commun'] as TypeCompte[], required: true },

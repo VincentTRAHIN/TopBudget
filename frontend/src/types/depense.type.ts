@@ -6,6 +6,7 @@ export interface IDepense {
   _id: string;
   montant: number;
   date: string;
+  description?: string;
   commentaire?: string;
   typeCompte: TypeCompte;
   recurrence?: boolean;

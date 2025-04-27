@@ -18,6 +18,7 @@ const DepenseSchema = Yup.object().shape({
     .oneOf(['Perso', 'Conjoint', 'Commun'])
     .required('Requis'),
   categorie: Yup.string().required('Requis'),
+  description: Yup.string().max(500, 'Doit contenir moins de 500 caractères'),
   commentaire: Yup.string(),
 });
 
@@ -26,6 +27,7 @@ interface DepenseFormValues {
     date: string;
     typeCompte: 'Perso' | 'Conjoint' | 'Commun';
     categorie: string;
+    description: string;
     commentaire: string;
 }
 
@@ -49,6 +51,7 @@ export default function FormDepense({
             ? existingDepense.categorie
             : existingDepense.categorie._id,
         commentaire: existingDepense.commentaire || '',
+        description: existingDepense.description || '',
       }
     : {
         montant: '',
@@ -56,6 +59,7 @@ export default function FormDepense({
         typeCompte: 'Perso',
         categorie: '',
         commentaire: '',
+        description: '',
       };
 
   const handleSubmit = async (values: DepenseFormValues, { resetForm }: FormikHelpers<DepenseFormValues>) => {
@@ -143,6 +147,12 @@ export default function FormDepense({
                 ))}
               </Field>
               <ErrorMessage name="categorie" component="div" className="text-red-500 text-sm mt-1" />
+            </div>
+
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <Field id="description" type="text" name="description" className="input" />
+              <ErrorMessage name="description" component="div" className="text-red-500 text-sm mt-1" />
             </div>
 
             <div>

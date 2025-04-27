@@ -15,6 +15,7 @@ export const DEPENSE = {
     INVALID_DATE: 'La date est invalide',
     INVALID_TYPE_COMPTE: 'Type de compte invalide',
     CATEGORIE_NOT_FOUND: 'Catégorie non trouvée',
+    INVALID_DESCRIPTION: 'La description est invalide',
   },
   
   // Validation
@@ -22,6 +23,7 @@ export const DEPENSE = {
     MIN_MONTANT: 0,
     MAX_MONTANT: 1000000, // 1 million
     MAX_COMMENTAIRE_LENGTH: 500,
+    MAX_DESCRIPTION_LENGTH: 500,
   },
   
   // Pagination

@@ -20,6 +20,9 @@
  *         commentaire:
  *           type: string
  *           description: Commentaire sur la dépense
+ *         description:
+ *           type: string
+ *           description: Description de la dépense
  *         typeCompte:
  *           type: string
  *           enum: [Perso, Conjoint, Commun]
@@ -46,6 +49,9 @@
  *         commentaire:
  *           type: string
  *           description: Commentaire sur la dépense
+ *         description:
+ *           type: string
+ *           description: Description de la dépense
  *         typeCompte:
  *           type: string
  *           enum: [Perso, Conjoint, Commun]
@@ -334,7 +340,7 @@
  *               csvFile:
  *                 type: string
  *                 format: binary
- *                 description: Fichier CSV à importer (séparateur ';', en-têtes attendus: Date;Montant;TypeCompte;CategorieNom;Commentaire)
+ *                 description: "Fichier CSV à importer (séparateur ';', en-têtes attendus: Date;Montant;Categorie;Description)"
  *           encoding:
  *             csvFile:
  *               contentType: text/csv
