@@ -7,18 +7,34 @@ import { depensesEndpoint } from '@/services/api.service';
 
 interface DepensesResponse {
   depenses: IDepense[];
-  total: number;
+  pagination: {
+    total: number;
+    page: number;
+    pages: number;
+    limit: number;
+  }
 }
 
-export const useDepenses = () => {
+export interface PaginationInfo {
+  total: number;
+  page: number;
+  pages: number;
+  limit: number;
+}
+
+export const useDepenses = (page: number = 1, limit: number = 25) => {
+  const url = `${depensesEndpoint}?page=${page}&limit=${limit}`;
   const { data, error, isLoading, mutate } = useSWR<DepensesResponse>(
-    depensesEndpoint,
+    url,
     fetcher,
+    {
+      keepPreviousData: true,
+    }
   );
 
   return {
     depenses: data?.depenses || [],
-    total: data?.total || 0,
+    pagination: data?.pagination,
     isLoading,
     isError: error,
     refreshDepenses: mutate,

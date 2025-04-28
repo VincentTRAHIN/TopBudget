@@ -28,7 +28,7 @@ export const DEPENSE = {
   
   // Pagination
   PAGINATION: {
-    DEFAULT_LIMIT: 10,
+    DEFAULT_LIMIT: 25,
     MAX_LIMIT: 100,
   },
 } as const; 
