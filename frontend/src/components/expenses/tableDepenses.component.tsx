@@ -1,58 +1,52 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { IDepense } from '@/types/depense.type';
 import { toast } from 'react-hot-toast';
 import fetcher from '@/utils/fetcher.utils';
 import { depensesEndpoint } from '@/services/api.service';
 import { Edit, Trash2 } from 'lucide-react';
-import { useDepenses } from '@/hooks/useDepenses.hook';
-import { categoriesEndpoint } from '@/services/api.service';
+import {
+  useDepenses,
+  DepenseFilters,
+  DepenseSort,
+} from '@/hooks/useDepenses.hook';
 import { ICategorie } from '@/types/categorie.type';
 
 interface TableDepensesProps {
   categories: ICategorie[];
   depenses: IDepense[];
+  currentSort: DepenseSort;
   onEdit: (depense: IDepense) => void;
   onAdd: () => void;
   onAddCategorie: () => void;
-  onFilterChange: (filters: {
-    categorie?: string;
-    dateDebut?: string;
-    dateFin?: string;
-    typeCompte?: string;
-    sortBy?: string;
-    order?: string;
-  }) => void;
+  onFilterChange: (filters: Partial<DepenseFilters>) => void;
+  onSortChange: (sort: Partial<DepenseSort>) => void;
 }
 
 export default function TableDepenses({
   depenses = [],
+  categories = [],
+  currentSort,
   onEdit,
   onAdd,
   onAddCategorie,
   onFilterChange,
+  onSortChange,
 }: TableDepensesProps) {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [dateDebut, setDateDebut] = useState<string>('');
+  const [dateFin, setDateFin] = useState<string>('');
+  const [typeCompte, setTypeCompte] = useState<string>('');
   const { refreshDepenses } = useDepenses();
-  const [sortBy, setSortBy] = useState('date');
-  const [order, setOrder] = useState('asc');
-  const [categories, setCategories] = useState<ICategorie[]>([]);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const response = await fetcher<ICategorie[]>(categoriesEndpoint);
-      setCategories(response);
-    };
-    fetchCategories();
-  }, []);
 
   const handleEdit = (depense: IDepense) => {
     onEdit(depense);
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm('Confirmer la suppression ?')) return;
     try {
       await fetcher(`${depensesEndpoint}/${id}`, {
         method: 'DELETE',
@@ -64,192 +58,265 @@ export default function TableDepenses({
     }
   };
 
+  // Fonction pour déclencher le tri via le parent
   const handleSort = (field: string) => {
-    const newOrder = sortBy === field && order === 'asc' ? 'desc' : 'asc';
-    setSortBy(field);
-    setOrder(newOrder);
-    onFilterChange({ sortBy: field, order: newOrder });
+    const newOrder =
+      currentSort.sortBy === field && currentSort.order === 'asc'
+        ? 'desc'
+        : 'asc';
+    onSortChange({ sortBy: field, order: newOrder });
   };
-
-  const filteredDepenses = depenses.filter((depense) => {
-    const searchLower = search.toLowerCase();
-    const matchesSearch = depense.commentaire?.toLowerCase().includes(searchLower) || 
-      depense.description?.toLowerCase().includes(searchLower) ||
-      (typeof depense.categorie !== 'string' &&
-        depense.categorie?.nom?.toLowerCase().includes(searchLower)) ||
-      depense.montant.toString().includes(searchLower);
-
-    const matchesCategory = selectedCategory 
-      ? typeof depense.categorie !== 'string' && depense.categorie?._id === selectedCategory 
-      : true;
-
-    return matchesSearch && matchesCategory;
-  });
-
-  const sortedDepenses = [...filteredDepenses].sort((a, b) => {
-    const aValue =
-      sortBy === 'categorie'
-        ? (typeof a.categorie === 'string' ? a.categorie : a.categorie?.nom) ?? ''
-        : typeof a[sortBy as keyof IDepense] === 'string'
-        ? (a[sortBy as keyof IDepense] as string).toLowerCase()
-        : (a[sortBy as keyof IDepense] ?? '');
-
-    const bValue =
-      sortBy === 'categorie'
-        ? (typeof b.categorie === 'string' ? b.categorie : b.categorie?.nom) ?? ''
-        : typeof b[sortBy as keyof IDepense] === 'string'
-        ? (b[sortBy as keyof IDepense] as string).toLowerCase()
-        : (b[sortBy as keyof IDepense] ?? '');
-
-    if (aValue < bValue) return order === 'asc' ? -1 : 1;
-    if (aValue > bValue) return order === 'asc' ? 1 : -1;
-    return 0;
-  });
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <div className="flex gap-2 w-full md:w-auto">
+      {/* Section des Filtres */}
+      <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded items-end">
+        <div className="flex-grow min-w-[150px]">
+          <label
+            htmlFor="search-input"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Recherche
+          </label>
           <input
+            id="search-input"
             type="text"
-            placeholder="Rechercher par commentaire ou description..."
+            placeholder="Description, commentaire..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input flex-grow md:w-64"
-          />
-          <select
             onChange={(e) => {
-              setSelectedCategory(e.target.value);
-              onFilterChange({ categorie: e.target.value });
+              setSearch(e.target.value);
+              setTimeout(() => {
+                onFilterChange({ search: e.target.value });
+              }, 300);
+            }}
+            className="input"
+          />
+        </div>
+        <div className="flex-grow min-w-[150px]">
+          <label
+            htmlFor="category-select"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Catégorie
+          </label>
+          <select
+            id="category-select"
+            value={selectedCategory}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSelectedCategory(value);
+              onFilterChange({ categorie: value });
             }}
             className="input"
           >
-            <option value="">
-              Catégories
-            </option>
+            <option value="">Toutes</option>
             {categories.map((categorie) => (
               <option key={categorie._id} value={categorie._id}>
                 {categorie.nom}
               </option>
             ))}
           </select>
+        </div>
+        <div className="flex-grow min-w-[130px]">
+          <label
+            htmlFor="date-debut"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Du
+          </label>
           <input
+            id="date-debut"
             type="date"
-            onChange={(e) => onFilterChange({ dateDebut: e.target.value })}
+            value={dateDebut}
+            onChange={(e) => {
+              setDateDebut(e.target.value);
+              onFilterChange({ dateDebut: e.target.value });
+            }}
             className="input"
+            aria-label="Date de début"
           />
+        </div>
+        <div className="flex-grow min-w-[130px]">
+          <label
+            htmlFor="date-fin"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Au
+          </label>
           <input
+            id="date-fin"
             type="date"
-            onChange={(e) => onFilterChange({ dateFin: e.target.value })}
+            value={dateFin}
+            onChange={(e) => {
+              setDateFin(e.target.value);
+              onFilterChange({ dateFin: e.target.value });
+            }}
             className="input"
+            aria-label="Date de fin"
           />
+        </div>
+        <div className="flex-grow min-w-[150px]">
+          <label
+            htmlFor="type-compte-select"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Compte
+          </label>
           <select
-            onChange={(e) => onFilterChange({ typeCompte: e.target.value })}
+            id="type-compte-select"
+            value={typeCompte}
+            onChange={(e) => {
+              const value = e.target.value;
+              setTypeCompte(value);
+              onFilterChange({ typeCompte: value });
+            }}
             className="input"
           >
-            <option value="">Type de compte</option>
+            <option value="">Tous</option>
             <option value="Perso">Perso</option>
             <option value="Conjoint">Conjoint</option>
             <option value="Commun">Commun</option>
           </select>
-          <button
-            onClick={onAdd}
-            className="btn-primary px-4 py-2 whitespace-nowrap"
-          >
-            Ajouter une dépense
-          </button>
-          <button
-            onClick={onAddCategorie}
-            className="btn-primary px-4 py-2 whitespace-nowrap"
-          >
-            Ajouter une catégorie
-          </button>
         </div>
+        {/* Boutons d'action */}
+        <button
+          onClick={onAdd}
+          className="btn-primary px-4 py-2 whitespace-nowrap flex-shrink-0 self-end"
+        >
+          + Dépense
+        </button>
+        <button
+          onClick={onAddCategorie}
+          className="btn-primary px-4 py-2 whitespace-nowrap flex-shrink-0 self-end"
+        >
+          + Catégorie
+        </button>
       </div>
 
+      {/* Tableau des Dépenses */}
       <div className="overflow-x-auto">
-        <table className="table w-full">
+        <table className="table w-full text-sm">
           <thead>
             <tr className="bg-gray-100">
+              {/* En-têtes cliquables pour le tri */}
               <th
                 className="px-4 py-2 text-left cursor-pointer"
                 onClick={() => handleSort('date')}
               >
-                Date {sortBy === 'date' ? (order === 'asc' ? '↑' : '↓') : ''}
+                Date{' '}
+                {currentSort.sortBy === 'date'
+                  ? currentSort.order === 'asc'
+                    ? '↑'
+                    : '↓'
+                  : ''}
               </th>
               <th
                 className="px-4 py-2 text-left cursor-pointer"
                 onClick={() => handleSort('description')}
               >
                 Description{' '}
-                {sortBy === 'description' ? (order === 'asc' ? '↑' : '↓') : ''}
+                {currentSort.sortBy === 'description'
+                  ? currentSort.order === 'asc'
+                    ? '↑'
+                    : '↓'
+                  : ''}
               </th>
               <th
                 className="px-4 py-2 text-left cursor-pointer"
                 onClick={() => handleSort('commentaire')}
               >
                 Commentaire{' '}
-                {sortBy === 'commentaire' ? (order === 'asc' ? '↑' : '↓') : ''}
+                {currentSort.sortBy === 'commentaire'
+                  ? currentSort.order === 'asc'
+                    ? '↑'
+                    : '↓'
+                  : ''}
               </th>
               <th
                 className="px-4 py-2 text-left cursor-pointer"
                 onClick={() => handleSort('categorie')}
               >
                 Catégorie{' '}
-                {sortBy === 'categorie' ? (order === 'asc' ? '↑' : '↓') : ''}
+                {currentSort.sortBy === 'categorie'
+                  ? currentSort.order === 'asc'
+                    ? '↑'
+                    : '↓'
+                  : ''}
               </th>
               <th
                 className="px-4 py-2 text-left cursor-pointer"
                 onClick={() => handleSort('typeCompte')}
               >
-                Type de compte{' '}
-                {sortBy === 'typeCompte' ? (order === 'asc' ? '↑' : '↓') : ''}
+                Compte{' '}
+                {currentSort.sortBy === 'typeCompte'
+                  ? currentSort.order === 'asc'
+                    ? '↑'
+                    : '↓'
+                  : ''}
               </th>
               <th
                 className="px-4 py-2 text-right cursor-pointer"
                 onClick={() => handleSort('montant')}
               >
                 Montant{' '}
-                {sortBy === 'montant' ? (order === 'asc' ? '↑' : '↓') : ''}
+                {currentSort.sortBy === 'montant'
+                  ? currentSort.order === 'asc'
+                    ? '↑'
+                    : '↓'
+                  : ''}
               </th>
               <th className="px-4 py-2 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {sortedDepenses.map((depense) => (
-              <tr key={depense._id} className="hover:bg-gray-50">
-                <td className="px-4 py-2">
-                  {new Date(depense.date).toLocaleDateString()}
-                </td>
-                <td className="px-4 py-2">{depense.description}</td>
-                <td className="px-4 py-2">{depense.commentaire}</td>
-                <td className="px-4 py-2">
-                  {typeof depense.categorie === 'string'
-                    ? depense.categorie
-                    : depense.categorie?.nom}
-                </td>
-                <td className="px-4 py-2">
-                  {depense.typeCompte}
-                </td>
-                <td className="px-4 py-2 text-right">{depense.montant}€</td>
-                <td className="px-4 py-2">
-                  <div className="flex gap-2 justify-center">
-                    <button
-                      onClick={() => handleEdit(depense)}
-                      className="btn-icon"
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(depense._id)}
-                      className="btn-icon"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+            {/* Affiche les dépenses reçues (déjà triées/filtrées par le backend) */}
+            {depenses.length > 0 ? (
+              depenses.map((depense) => (
+                <tr key={depense._id} className="border-b hover:bg-gray-50">
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    {' '}
+                    {/* Empêche le retour à la ligne */}
+                    {new Date(depense.date).toLocaleDateString('fr-FR')}
+                  </td>
+                  <td className="px-4 py-2">{depense.description}</td>
+                  <td className="px-4 py-2">{depense.commentaire}</td>
+                  <td className="px-4 py-2">
+                    {typeof depense.categorie === 'object' &&
+                    depense.categorie !== null
+                      ? depense.categorie.nom
+                      : 'N/A'}
+                  </td>
+                  <td className="px-4 py-2">{depense.typeCompte}</td>
+                  <td className="px-4 py-2 text-right font-medium whitespace-nowrap">
+                    {depense.montant.toFixed(2)} €
+                  </td>
+                  <td className="px-4 py-2">
+                    <div className="flex gap-2 justify-center">
+                      <button
+                        onClick={() => handleEdit(depense)}
+                        className="p-1 text-blue-600 hover:text-blue-800"
+                        aria-label="Modifier"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(depense._id)}
+                        className="p-1 text-red-600 hover:text-red-800"
+                        aria-label="Supprimer"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={7} className="text-center py-4 text-gray-500">
+                  Aucune dépense trouvée.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

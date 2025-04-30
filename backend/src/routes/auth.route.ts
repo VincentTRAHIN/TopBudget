@@ -18,8 +18,7 @@ router.post(
 console.log("Chargement de auth.route.ts..."); 
 router.get(
   "/me",
-  (req, res, next) => {
-      console.log(`>>> REQUETE RECUE : GET /api/auth/me (avant proteger)`); // CE LOG EST-IL VISIBLE ?
+  (_, __, next) => {
       next();
   },
   proteger,

@@ -19,12 +19,10 @@ export class AppError extends Error {
 
 // Middleware de gestion des erreurs
 export const errorHandler = (err: Error | AppError, req: Request, res: Response) => {
-  // Par défaut, on considère une erreur serveur
   let statusCode = 500;
   let message = 'Erreur interne du serveur';
   let stack: string | undefined;
 
-  // Si c'est une erreur personnalisée (AppError)
   if (err instanceof AppError) {
     statusCode = err.statusCode;
     message = err.message;
@@ -43,7 +41,6 @@ export const errorHandler = (err: Error | AppError, req: Request, res: Response)
     stack: err.stack,
   });
 
-  // Envoie la réponse
   res.status(statusCode).json({
     status: 'error',
     message,

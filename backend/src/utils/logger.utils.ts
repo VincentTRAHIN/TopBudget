@@ -18,7 +18,7 @@ const customFormat = format.combine(
   format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   format.errors({ stack: true }), // Inclut les stack traces pour les erreurs
   isDevelopment
-    ? format.colorize() // Ajoute des couleurs en développement
+    ? format.colorize() 
     : format.uncolorize(),
   format.printf(({ timestamp, level, message, stack }) => {
     if (stack) {
@@ -58,7 +58,6 @@ const logger = createLogger({
   level: isDevelopment ? 'debug' : 'info',
   format: customFormat,
   transports: logTransports,
-  // Ne pas arrêter le processus en cas d'erreur non gérée
   exitOnError: false,
 });
 
@@ -70,7 +69,6 @@ process.on('unhandledRejection', (reason: Error) => {
 // Gestion des exceptions non gérées
 process.on('uncaughtException', (error: Error) => {
   logger.error('Uncaught Exception:', error);
-  // Donne le temps aux logs de s'écrire avant de quitter
   setTimeout(() => {
     process.exit(1);
   }, 1000);

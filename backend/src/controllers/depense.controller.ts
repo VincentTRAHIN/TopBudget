@@ -10,6 +10,17 @@ import { Readable } from "stream";
 import csvParser from "csv-parser";
 import mongoose from "mongoose";
 import { parse, isValid } from "date-fns";
+import { TypeCompte } from '../types/depense.types';
+import { ICategorie } from '../types/categorie.types';
+
+// Interface pour typer le filtre matchFilter plus précisément
+interface MatchFilter {
+  utilisateur: mongoose.Types.ObjectId;
+  categorie?: mongoose.Types.ObjectId;
+  date?: { $gte?: Date; $lte?: Date };
+  typeCompte?: TypeCompte; 
+  $or?: Array<{ [key: string]: { $regex: string; $options: string } }>;
+}
 
 export const ajouterDepense = async (
   req: AuthRequest,
@@ -49,6 +60,12 @@ export const ajouterDepense = async (
       return;
     }
 
+    const categorieExistante = await Categorie.findById(categorie);
+     if (!categorieExistante) {
+        res.status(404).json({ message: CATEGORIE.ERROR_MESSAGES.CATEGORIE_NOT_FOUND });
+        return;
+     }
+
     const nouvelleDepense = await Depense.create({
       montant,
       date,
@@ -67,6 +84,7 @@ export const ajouterDepense = async (
   }
 };
 
+
 export const obtenirDepenses = async (
   req: AuthRequest,
   res: Response
@@ -84,44 +102,102 @@ export const obtenirDepenses = async (
       dateDebut,
       dateFin,
       typeCompte,
+      search,
       sortBy = "date",
       order = "desc",
     } = req.query;
 
     const skip = (page - 1) * limit;
+    const orderValue = order === "asc" ? 1 : -1;
 
-    const filter: {
-      utilisateur: string;
-      categorie?: string;
-      date?: { $gte?: Date; $lte?: Date };
-      typeCompte?: string;
-    } = { utilisateur: req.user.id };
+    // --- Construction du filtre $match (commun à find et aggregate) ---
+    const matchFilter: MatchFilter = { utilisateur: new mongoose.Types.ObjectId(req.user.id) };
 
-    if (typeof categorie === "string") {
-      filter.categorie = categorie;
+
+    if (typeof categorie === "string" && categorie) {
+      // S'assurer que l'ID est valide avant de l'utiliser dans le filtre
+      if (mongoose.Types.ObjectId.isValid(categorie)) {
+        matchFilter.categorie = new mongoose.Types.ObjectId(categorie);
+      } else {
+         // Gérer le cas d'un ID de catégorie invalide si nécessaire (ex: ignorer le filtre)
+         logger.warn(`ID de catégorie invalide fourni pour le filtre: ${categorie}`);
+      }
     }
-
     if (dateDebut || dateFin) {
-      filter.date = {};
-      if (dateDebut) {
-        filter.date.$gte = new Date(dateDebut as string);
-      }
-      if (dateFin) {
-        filter.date.$lte = new Date(dateFin as string);
-      }
+        matchFilter.date = {};
+        if (dateDebut) matchFilter.date.$gte = new Date(dateDebut as string);
+        if (dateFin) matchFilter.date.$lte = new Date(dateFin as string);
+    }
+    if (typeof typeCompte === "string" && typeCompte) {
+        matchFilter.typeCompte = typeCompte as TypeCompte;
+    }
+    if (typeof search === "string" && search.trim()) {
+        const regex = { $regex: search.trim(), $options: 'i' };
+        matchFilter.$or = [ { description: regex }, { commentaire: regex } ];
     }
 
-    if (typeCompte) {
-      filter.typeCompte = typeCompte as string;
+    let depenses;
+    let total: number;
+
+    // --- Logique conditionnelle : Agrégation pour tri par catégorie, Find sinon ---
+    if (sortBy === 'categorie') {
+      logger.debug("Utilisation de l'agrégation pour trier par catégorie");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pipeline: any[] = [ 
+        { $match: matchFilter },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'categorie',
+            foreignField: '_id',
+            as: 'categorieDetails'
+          }
+        },
+        { $unwind: { path: '$categorieDetails', preserveNullAndEmptyArrays: true } },
+        { $addFields: { lowerCaseCatName: { $toLower: '$categorieDetails.nom' } } },
+        { $sort: { lowerCaseCatName: orderValue, _id: 1 } },
+        {
+          $facet: {
+            paginatedResults: [
+              { $skip: skip },
+              { $limit: limit },
+              {
+                $project: {
+                    _id: 1, montant: 1, date: 1, description: 1, commentaire: 1, typeCompte: 1, recurrence: 1, utilisateur: 1, createdAt: 1, updatedAt: 1,
+                    categorie: { _id: '$categorieDetails._id', nom: '$categorieDetails.nom', description: '$categorieDetails.description', image: '$categorieDetails.image' } 
+                }
+              }
+            ],
+            totalCount: [ { $count: 'count' } ]
+          }
+        }
+      ];
+
+
+      const aggregationResult = await Depense.aggregate(pipeline);
+
+      depenses = aggregationResult[0]?.paginatedResults || [];
+      total = aggregationResult[0]?.totalCount[0]?.count || 0;
+
+    } else {
+      logger.debug(`Utilisation de find() pour trier par ${sortBy}`);
+      // Utilisation de find() pour les autres tris
+      const sortOptions: { [key: string]: 1 | -1 } = {};
+      if (typeof sortBy === 'string') {
+          sortOptions[sortBy] = orderValue;
+      } else {
+          sortOptions["date"] = -1; 
+      }
+
+      depenses = await Depense.find(matchFilter)
+      .populate<{ categorie: Pick<ICategorie, '_id' | 'nom' | 'description' | 'image'> }>("categorie", "nom description image")
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limit)
+        .lean(); // lean pour les performances
+
+      total = await Depense.countDocuments(matchFilter);
     }
-
-    const depenses = await Depense.find(filter)
-      .populate("categorie")
-      .skip(skip)
-      .limit(limit)
-      .sort({ [sortBy as string]: order === "asc" ? 1 : -1 });
-
-    const total = await Depense.countDocuments(filter);
 
     res.json({
       depenses,
@@ -132,11 +208,10 @@ export const obtenirDepenses = async (
         limit,
       },
     });
+
   } catch (error) {
-    logger.error(error);
-    res
-      .status(500)
-      .json({ message: "Erreur lors de la récupération des dépenses" });
+    logger.error("Erreur dans obtenirDepenses:", error);
+    res.status(500).json({ message: "Erreur lors de la récupération des dépenses" });
   }
 };
 

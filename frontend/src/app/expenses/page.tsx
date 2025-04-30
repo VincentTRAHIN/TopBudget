@@ -1,14 +1,19 @@
-"use client";
+'use client';
 
-import Layout from "@/components/layout/Layout";
-import RequireAuth from "@/components/auth/requireAuth.component";
-import TableDepenses from "@/components/expenses/tableDepenses.component";
-import FormDepense from "@/components/expenses/formDepenses.component";
-import FormCategorie from "@/components/categories/formCategorie.component";
-import { useDepenses } from "@/hooks/useDepenses.hook";
-import { useState } from "react";
-import { IDepense } from "@/types/depense.type";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import Layout from '@/components/layout/Layout';
+import RequireAuth from '@/components/auth/requireAuth.component';
+import TableDepenses from '@/components/expenses/tableDepenses.component';
+import FormDepense from '@/components/expenses/formDepenses.component';
+import FormCategorie from '@/components/categories/formCategorie.component';
+import {
+  useDepenses,
+  DepenseFilters,
+  DepenseSort,
+} from '@/hooks/useDepenses.hook';
+import { useCategories } from '@/hooks/useCategories.hook';
+import { useState } from 'react';
+import { IDepense } from '@/types/depense.type';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 25;
 
@@ -17,8 +22,11 @@ export default function ExpensesPage() {
   const [selectedDepense, setSelectedDepense] = useState<IDepense | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAddCategorieForm, setShowAddCategorieForm] = useState(false);
-  const { depenses, pagination, isLoading, refreshDepenses, isError } = useDepenses(currentPage, ITEMS_PER_PAGE);
-
+  const [filters, setFilters] = useState<DepenseFilters>({});
+  const [sort, setSort] = useState<DepenseSort>({});
+  const { depenses, pagination, isLoading, isError } =
+    useDepenses(currentPage, ITEMS_PER_PAGE, filters, sort);
+  const { categories } = useCategories();
 
   const handleEdit = (depense: IDepense) => {
     setSelectedDepense(depense);
@@ -46,16 +54,30 @@ export default function ExpensesPage() {
     }
   };
 
-  const handleFilterChange = (filters: { categorie?: string; dateDebut?: string; dateFin?: string; typeCompte?: string; sortBy?: string; order?: string }) => {
-    console.log(filters);
-    // TODO: Quand les filtres changent, il faudra probablement:
-    // 1. Réinitialiser currentPage à 1 (setCurrentPage(1))
-    // 2. Modifier le hook useDepenses pour accepter aussi les filtres et les ajouter à l'URL
-    // 3. Appeler refreshDepenses ou laisser SWR refetcher car l'URL (la clé) aura changé
-    setCurrentPage(1);
-    refreshDepenses();
+   // Le handler principal qui met à jour l'état et reset la page
+   const handleFilterOrSortChange = (
+    changedFilters?: Partial<DepenseFilters>,
+    changedSort?: DepenseSort
+ ) => {
+  console.log("Changement détecté:", { changedFilters, changedSort });
+  if (changedFilters) {
+      setFilters(prevFilters => ({ ...prevFilters, ...changedFilters }));
+  }
+  if (changedSort) {
+      setSort(changedSort);
+  }
+  setCurrentPage(1);
+};
 
-  };
+// Wrapper spécifique pour le changement de tri
+const handleSortChange = (newSort: DepenseSort) => {
+    handleFilterOrSortChange(undefined, newSort); 
+};
+
+// Wrapper spécifique pour le changement de filtre 
+const handleFilterChange = (newFilters: Partial<DepenseFilters>) => {
+    handleFilterOrSortChange(newFilters, undefined); 
+};
 
   return (
     <RequireAuth>
@@ -75,23 +97,32 @@ export default function ExpensesPage() {
               onClose={() => {
                 setShowAddForm(false);
                 setSelectedDepense(null);
-                refreshDepenses();
               }}
             />
           )}
-          {isLoading && <div className="text-center p-4">Chargement des dépenses...</div>}
-          {isError && <div className="text-center p-4 text-red-600">Erreur lors du chargement des dépenses.</div>}
+          {isLoading && (
+            <div className="text-center p-4">Chargement des dépenses...</div>
+          )}
+          {isError && (
+            <div className="text-center p-4 text-red-600">
+              Erreur lors du chargement des dépenses.
+            </div>
+          )}
           {!isError && (
             <>
-          <TableDepenses
-            depenses={depenses}
-            onEdit={handleEdit}
-            onAdd={handleAdd}
-            onAddCategorie={handleAddCategorie}
-            onFilterChange={handleFilterChange}
-          />
-           {/* --- Section Pagination --- */}
-           {pagination && pagination.total > 0 && ( 
+              <TableDepenses
+                depenses={depenses}
+                categories={categories}
+                currentSort={sort}
+                onEdit={handleEdit}
+                onAdd={handleAdd}
+                onAddCategorie={handleAddCategorie}
+                onFilterChange={handleFilterChange}
+                onSortChange={handleSortChange}
+
+              />
+              {/* --- Section Pagination --- */}
+              {pagination && pagination.total > 0 && (
                 <div className="flex items-center justify-between mt-4 p-4 bg-white rounded shadow">
                   <span className="text-sm text-gray-700">
                     Total de {pagination.total} dépenses

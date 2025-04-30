@@ -18,8 +18,8 @@ const uploadCSV = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024 // Limite à 10MB 
+    fileSize: 10 * 1024 * 1024 
   }
-}).single('csvFile'); // 'csvFile' est le nom du champ attendu dans le formulaire frontend
+}).single('csvFile');
 
 export default uploadCSV;

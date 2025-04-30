@@ -15,15 +15,38 @@ interface DepensesResponse {
   }
 }
 
-export interface PaginationInfo {
-  total: number;
-  page: number;
-  pages: number;
-  limit: number;
+// Définir une interface pour les filtres et le tri
+export interface DepenseFilters {
+  categorie?: string;
+  dateDebut?: string;
+  dateFin?: string;
+  typeCompte?: string;
+  search?: string; 
 }
 
-export const useDepenses = (page: number = 1, limit: number = 25) => {
-  const url = `${depensesEndpoint}?page=${page}&limit=${limit}`;
+export interface DepenseSort {
+  sortBy?: string;
+  order?: 'asc' | 'desc';
+}
+
+export const useDepenses = (page: number = 1, limit: number = 25, filters: DepenseFilters = {}, sort: DepenseSort = {}) => {
+  const queryParams = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value) {
+      queryParams.append(key, value);
+    }
+  });
+
+  if(sort.sortBy) {
+    queryParams.append('sortBy', sort.sortBy);
+    queryParams.append('order', sort.order || 'asc');
+  }
+
+  const url = `${depensesEndpoint}?${queryParams.toString()}`;
   const { data, error, isLoading, mutate } = useSWR<DepensesResponse>(
     url,
     fetcher,
