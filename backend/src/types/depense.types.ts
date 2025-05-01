@@ -1,6 +1,8 @@
 import { Document, Types } from 'mongoose';
 
-export type TypeCompte = 'Perso' | 'Conjoint' | 'Commun';
+export type TypeCompte = 'Perso' |'Conjoint';
+export type TypeDepense = 'Perso' | 'Commune';
+
 
 export interface IDepense extends Document {
   montant: number;
@@ -8,6 +10,7 @@ export interface IDepense extends Document {
   date: Date;
   commentaire?: string;
   typeCompte: TypeCompte;
+  typeDepense: TypeDepense;
   recurrence: boolean;
   categorie: Types.ObjectId;
   utilisateur: Types.ObjectId;
@@ -18,10 +21,11 @@ export interface IDepenseInput {
   date: Date;
   commentaire?: string;
   typeCompte: TypeCompte;
+  typeDepense: TypeDepense;
   recurrence?: boolean;
-  categorie: string;
+  categorie: Types.ObjectId;
   description?: string;
-  utilisateur: string;
+  utilisateur: Types.ObjectId;
 }
 
 export interface IDepenseResponse {
@@ -31,6 +35,7 @@ export interface IDepenseResponse {
   date: Date;
   commentaire?: string;
   typeCompte: TypeCompte;
+  typeDepense: TypeDepense;
   recurrence: boolean;
   categorie: {
     id: string;

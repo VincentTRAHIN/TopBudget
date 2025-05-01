@@ -1,6 +1,7 @@
 import { ICategorie } from './categorie.type';
 
-export type TypeCompte = 'Perso' | 'Conjoint' | 'Commun';
+export type TypeCompte = 'Perso' | 'Conjoint';
+export type TypeDepense = 'Perso' | 'Commune';
 
 export interface IDepense {
   _id: string;
@@ -9,6 +10,7 @@ export interface IDepense {
   description?: string;
   commentaire?: string;
   typeCompte: TypeCompte;
+  typeDepense: TypeDepense;
   recurrence?: boolean;
   categorie: ICategorie | string;
   utilisateur: string;

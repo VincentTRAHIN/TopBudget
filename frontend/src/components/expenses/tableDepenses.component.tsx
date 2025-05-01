@@ -20,7 +20,7 @@ interface TableDepensesProps {
   onEdit: (depense: IDepense) => void;
   onAdd: () => void;
   onAddCategorie: () => void;
-  onFilterChange: (filters: Partial<DepenseFilters>) => void;
+  onFilterChange: (filters: Partial<DepenseFilters>) => void; 
   onSortChange: (sort: Partial<DepenseSort>) => void;
 }
 
@@ -39,6 +39,7 @@ export default function TableDepenses({
   const [dateDebut, setDateDebut] = useState<string>('');
   const [dateFin, setDateFin] = useState<string>('');
   const [typeCompte, setTypeCompte] = useState<string>('');
+  const [typeDepense, setTypeDepense] = useState<string>('');
   const { refreshDepenses } = useDepenses();
 
   const handleEdit = (depense: IDepense) => {
@@ -175,7 +176,28 @@ export default function TableDepenses({
             <option value="">Tous</option>
             <option value="Perso">Perso</option>
             <option value="Conjoint">Conjoint</option>
-            <option value="Commun">Commun</option>
+          </select>
+        </div>
+        <div className="flex-grow min-w-[150px]">
+          <label
+            htmlFor="type-depense-select"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Type de dépense
+          </label>
+          <select
+            id="type-depense-select"
+            value={typeDepense}
+            onChange={(e) => {
+              const value = e.target.value;
+              setTypeDepense(value);
+              onFilterChange({ typeDepense: value });
+            }}
+            className="input"
+          >
+            <option value="">Tous</option>
+            <option value="Perso">Perso</option>
+            <option value="Commune">Commune</option>
           </select>
         </div>
         {/* Boutons d'action */}
@@ -255,6 +277,17 @@ export default function TableDepenses({
                   : ''}
               </th>
               <th
+                className="px-4 py-2 text-left cursor-pointer"
+                onClick={() => handleSort('typeDepense')}
+              >
+                Type de dépense{' '}
+                {currentSort.sortBy === 'typeDepense'
+                  ? currentSort.order === 'asc'
+                    ? '↑'
+                    : '↓'
+                  : ''}
+              </th>
+              <th
                 className="px-4 py-2 text-right cursor-pointer"
                 onClick={() => handleSort('montant')}
               >
@@ -287,6 +320,7 @@ export default function TableDepenses({
                       : 'N/A'}
                   </td>
                   <td className="px-4 py-2">{depense.typeCompte}</td>
+                  <td className="px-4 py-2">{depense.typeDepense}</td>
                   <td className="px-4 py-2 text-right font-medium whitespace-nowrap">
                     {depense.montant.toFixed(2)} €
                   </td>

@@ -8,6 +8,7 @@
  *         - montant
  *         - date
  *         - typeCompte
+ *         - typeDepense
  *         - categorie
  *       properties:
  *         montant:
@@ -25,8 +26,12 @@
  *           description: Description de la dépense
  *         typeCompte:
  *           type: string
- *           enum: [Perso, Conjoint, Commun]
+ *           enum: [Perso, Conjoint]
  *           description: Type de compte
+ *         typeDepense:
+ *           type: string
+ *           enum: [Perso, Commune]
+ *           description: Type de dépense
  *         recurrence:
  *           type: boolean
  *           description: Si la dépense est récurrente
@@ -54,8 +59,12 @@
  *           description: Description de la dépense
  *         typeCompte:
  *           type: string
- *           enum: [Perso, Conjoint, Commun]
+ *           enum: [Perso, Conjoint]
  *           description: Type de compte
+ *         typeDepense:
+ *           type: string
+ *           enum: [Perso, Commune]
+ *           description: Type de dépense
  *         recurrence:
  *           type: boolean
  *           description: Si la dépense est récurrente
@@ -127,8 +136,14 @@
  *         name: typeCompte
  *         schema:
  *           type: string
- *           enum: [Perso, Conjoint, Commun]
+ *           enum: [Perso, Conjoint]
  *         description: Filtrer par type de compte
+ *       - in: query
+ *         name: typeDepense
+ *         schema:
+ *           type: string
+ *           enum: [Perso, Commune]
+ *         description: Filtrer par type de dépense
  *       - in: query
  *         name: sortBy
  *         schema:

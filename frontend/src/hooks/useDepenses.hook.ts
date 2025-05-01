@@ -5,7 +5,7 @@ import fetcher from '@/utils/fetcher.utils';
 import { IDepense } from '@/types/depense.type';
 import { depensesEndpoint } from '@/services/api.service';
 
-interface DepensesResponse {
+export interface DepensesResponse {
   depenses: IDepense[];
   pagination: {
     total: number;
@@ -21,6 +21,7 @@ export interface DepenseFilters {
   dateDebut?: string;
   dateFin?: string;
   typeCompte?: string;
+  typeDepense?: string;
   search?: string; 
 }
 

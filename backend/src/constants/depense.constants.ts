@@ -1,11 +1,16 @@
-import { TypeCompte } from '../types/depense.types';
+import { TypeCompte, TypeDepense } from '../types/depense.types';
 
 export const DEPENSE = {
   // Types de comptes disponibles
   TYPES_COMPTE: {
     PERSO: 'Perso' as TypeCompte,
     CONJOINT: 'Conjoint' as TypeCompte,
-    COMMUN: 'Commun' as TypeCompte,
+  },
+
+  // Types de dépenses disponibles
+  TYPES_DEPENSE: {
+    PERSO: 'Perso' as TypeDepense,
+    COMMUNE: 'Commune' as TypeDepense,
   },
   
   // Messages d'erreur
@@ -14,6 +19,7 @@ export const DEPENSE = {
     INVALID_MONTANT: 'Le montant doit être positif',
     INVALID_DATE: 'La date est invalide',
     INVALID_TYPE_COMPTE: 'Type de compte invalide',
+    INVALID_TYPE_DEPENSE: 'Type de dépense invalide',
     CATEGORIE_NOT_FOUND: 'Catégorie non trouvée',
     INVALID_DESCRIPTION: 'La description est invalide',
   },
