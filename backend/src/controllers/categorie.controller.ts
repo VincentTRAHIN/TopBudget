@@ -17,7 +17,9 @@ export const ajouterCategorie = async (
   }
 
   try {
-    const { nom, description, image } = req.body;
+    const { nom: nomInitial, description, image } = req.body;
+    const nom = nomInitial.trim();
+    
 
     // Validation de la longueur du nom
     if (nom.length < CATEGORIE.VALIDATION.MIN_NOM_LENGTH || nom.length > CATEGORIE.VALIDATION.MAX_NOM_LENGTH) {
@@ -32,7 +34,7 @@ export const ajouterCategorie = async (
     }
 
     // Vérification si la catégorie existe déjà
-    const categorieExistante = await Categorie.findOne({ nom: { $regex: new RegExp(nom, 'i') } });
+    const categorieExistante = await Categorie.findOne({ nom: { $regex: new RegExp(`^${nom}$`, 'i') } });
     if (categorieExistante) {
       res.status(400).json({ message: CATEGORIE.ERROR_MESSAGES.CATEGORIE_ALREADY_EXISTS });
       return;
