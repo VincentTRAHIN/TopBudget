@@ -20,7 +20,7 @@ interface TableDepensesProps {
   onEdit: (depense: IDepense) => void;
   onAdd: () => void;
   onAddCategorie: () => void;
-  onFilterChange: (filters: Partial<DepenseFilters>) => void; 
+  onFilterChange: (filters: Partial<DepenseFilters>) => void;
   onSortChange: (sort: Partial<DepenseSort>) => void;
 }
 

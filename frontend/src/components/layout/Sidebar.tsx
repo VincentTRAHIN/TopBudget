@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth.hook";
 import { LogOut } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { Home, CreditCard, Tag } from "lucide-react";
+import { Home, CreditCard, Tag, LayoutDashboard } from "lucide-react";
 
 export default function Sidebar() {
   const { isAuthenticated, logout } = useAuth();
@@ -26,6 +26,18 @@ export default function Sidebar() {
           <Home size={20} />
           <span>Accueil</span>
         </Link>
+        <Link
+          href="/dashboard"
+          className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
+            isActive("/dashboard")
+              ? "bg-indigo-50 text-indigo-600"
+              : ""
+          }`}
+        >
+          <LayoutDashboard size={20} />
+          <span>Tableau de Bord</span>
+        </Link>
+        
         <Link
           href="/expenses"
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${

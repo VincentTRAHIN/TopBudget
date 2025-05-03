@@ -1,6 +1,7 @@
 'use client';
 
 import { useDepenses, DepensesResponse } from '@/hooks/useDepenses.hook';
+import { useRef, useEffect } from 'react';
 import { useCategories } from '@/hooks/useCategories.hook';
 import { IDepense } from '@/types/depense.type';
 import { ICategorie } from '@/types/categorie.type';
@@ -42,6 +43,24 @@ export default function FormDepense({
 }) {
   const { refreshDepenses } = useDepenses();
   const { categories }: { categories: ICategorie[] } = useCategories();
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (formRef.current) {
+        firstInputRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+        if (firstInputRef.current) {
+          firstInputRef.current.focus();
+        }
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const initialValues: DepenseFormValues = existingDepense
     ? {
@@ -145,7 +164,7 @@ export default function FormDepense({
         enableReinitialize
       >
         {({ isSubmitting }) => (
-          <Form className="space-y-4">
+          <Form ref={formRef} className="space-y-4">
             <div>
               <label
                 htmlFor="montant"
@@ -160,6 +179,7 @@ export default function FormDepense({
                 placeholder="10.50"
                 className="input"
                 step="0.01"
+                innerRef={firstInputRef}
               />
               <ErrorMessage
                 name="montant"
