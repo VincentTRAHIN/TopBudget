@@ -5,7 +5,7 @@ import { IDepense } from '@/types/depense.type';
 import { toast } from 'react-hot-toast';
 import fetcher from '@/utils/fetcher.utils';
 import { depensesEndpoint } from '@/services/api.service';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Upload } from 'lucide-react'; 
 import {
   useDepenses,
   DepenseFilters,
@@ -20,6 +20,7 @@ interface TableDepensesProps {
   onEdit: (depense: IDepense) => void;
   onAdd: () => void;
   onAddCategorie: () => void;
+  onImport: () => void; 
   onFilterChange: (filters: Partial<DepenseFilters>) => void;
   onSortChange: (sort: Partial<DepenseSort>) => void;
 }
@@ -31,6 +32,7 @@ export default function TableDepenses({
   onEdit,
   onAdd,
   onAddCategorie,
+  onImport, 
   onFilterChange,
   onSortChange,
 }: TableDepensesProps) {
@@ -213,6 +215,12 @@ export default function TableDepenses({
         >
           + Catégorie
         </button>
+        <button
+          onClick={onImport} 
+          className="btn-secondary px-4 py-2 whitespace-nowrap flex-shrink-0 self-end flex items-center gap-1" 
+        >
+          <Upload size={16} /> Importer CSV
+        </button>
       </div>
 
       {/* Tableau des Dépenses */}
@@ -346,7 +354,7 @@ export default function TableDepenses({
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="text-center py-4 text-gray-500">
+                <td colSpan={8} className="text-center py-4 text-gray-500">
                   Aucune dépense trouvée.
                 </td>
               </tr>

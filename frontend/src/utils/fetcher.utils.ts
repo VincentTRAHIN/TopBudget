@@ -5,19 +5,23 @@ const fetcher = async <T>(url: string, options: RequestInit = {}): Promise<T> =>
 
   const headers = new Headers();
 
+ 
   if (
     options.body &&
+    !(options.body instanceof FormData) && 
     !(
       options.headers instanceof Headers && options.headers.has('Content-Type')
     ) &&
-    !(typeof options.headers === 'object' && 'Content-Type' in options.headers)
+    !(typeof options.headers === 'object' && options.headers && 'Content-Type' in options.headers)
   ) {
     headers.append('Content-Type', 'application/json');
   }
 
   if (options.headers) {
     Object.entries(options.headers).forEach(([key, value]) => {
-      if (value) headers.append(key, value);
+      if (!(options.body instanceof FormData && key.toLowerCase() === 'content-type')) {
+         if (value) headers.append(key, value);
+      }
     });
   }
 

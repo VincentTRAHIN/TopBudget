@@ -5,6 +5,7 @@ import RequireAuth from '@/components/auth/requireAuth.component';
 import TableDepenses from '@/components/expenses/tableDepenses.component';
 import FormDepense from '@/components/expenses/formDepenses.component';
 import FormCategorie from '@/components/categories/formCategorie.component';
+import ImportCsvModal from '@/components/expenses/importCsvModal.component';
 import {
   useDepenses,
   DepenseFilters,
@@ -22,6 +23,7 @@ export default function ExpensesPage() {
   const [selectedDepense, setSelectedDepense] = useState<IDepense | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAddCategorieForm, setShowAddCategorieForm] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [filters, setFilters] = useState<DepenseFilters>({});
   const [sort, setSort] = useState<DepenseSort>({});
   const { depenses, pagination, isLoading, isError } =
@@ -31,15 +33,31 @@ export default function ExpensesPage() {
   const handleEdit = (depense: IDepense) => {
     setSelectedDepense(depense);
     setShowAddForm(true);
+    setShowImportModal(false); 
+    setShowAddCategorieForm(false);
   };
 
   const handleAdd = () => {
     setSelectedDepense(null);
     setShowAddForm(true);
+    setShowImportModal(false);
+    setShowAddCategorieForm(false);
   };
 
   const handleAddCategorie = () => {
     setShowAddCategorieForm(true);
+    setShowAddForm(false); 
+    setShowImportModal(false);
+  };
+
+  const handleOpenImportModal = () => { 
+    setShowImportModal(true);
+    setShowAddForm(false); 
+    setShowAddCategorieForm(false);
+  };
+
+  const handleCloseImportModal = () => { 
+    setShowImportModal(false);
   };
 
   const handleNextPage = () => {
@@ -84,6 +102,7 @@ const handleFilterChange = (newFilters: Partial<DepenseFilters>) => {
       <Layout>
         <div className="space-y-6">
           <h1 className="text-2xl font-bold">Mes dépenses</h1>
+
           {showAddCategorieForm && (
             <FormCategorie
               onClose={() => {
@@ -100,6 +119,9 @@ const handleFilterChange = (newFilters: Partial<DepenseFilters>) => {
               }}
             />
           )}
+          {showImportModal && (
+            <ImportCsvModal onClose={handleCloseImportModal} />
+          )}
           {isLoading && (
             <div className="text-center p-4">Chargement des dépenses...</div>
           )}
@@ -108,6 +130,7 @@ const handleFilterChange = (newFilters: Partial<DepenseFilters>) => {
               Erreur lors du chargement des dépenses.
             </div>
           )}
+
           {!isError && (
             <>
               <TableDepenses
@@ -117,9 +140,9 @@ const handleFilterChange = (newFilters: Partial<DepenseFilters>) => {
                 onEdit={handleEdit}
                 onAdd={handleAdd}
                 onAddCategorie={handleAddCategorie}
+                onImport={handleOpenImportModal}
                 onFilterChange={handleFilterChange}
                 onSortChange={handleSortChange}
-
               />
               {/* --- Section Pagination --- */}
               {pagination && pagination.total > 0 && (

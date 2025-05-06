@@ -6,3 +6,4 @@ export const meEndpoint = `${API_BASE_URL}/auth/me`;
 export const depensesEndpoint = `${API_BASE_URL}/depenses`;
 export const categoriesEndpoint = `${API_BASE_URL}/categories`;
 export const statistiquesEndpoint = `${API_BASE_URL}/statistiques`;
+export const importDepensesEndpoint = `${API_BASE_URL}/depenses/import`;
