@@ -84,6 +84,19 @@
  *         pourcentage:
  *           type: number
  *           description: Pourcentage de variation
+ *     EvolutionMensuelleData:
+ *       type: object
+ *       properties:
+ *         mois:
+ *           type: string
+ *           description: Mois au format YYYY-MM
+ *         totalDepenses:
+ *           type: number
+ *           description: Montant total des dépenses pour le mois
+ *     EvolutionMensuelleResponse:
+ *       type: array
+ *       items:
+ *         $ref: '#/components/schemas/EvolutionMensuelleData'
  */
 
 /**
@@ -320,4 +333,47 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- */ 
+ */
+
+/**
+ * @swagger
+ * /api/statistiques/evolution-mensuelle:
+ *   get:
+ *     summary: Récupère l'évolution mensuelle des dépenses.
+ *     description: Permet de visualiser l'évolution des dépenses sur plusieurs mois.
+ *     tags: [Statistiques]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: nbMois
+ *         schema:
+ *           type: integer
+ *           default: 6
+ *         description: Nombre de mois à afficher (entre 1 et 24), par défaut 6.
+ *     responses:
+ *       200:
+ *         description: Évolution mensuelle des dépenses récupérée avec succès.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/EvolutionMensuelleResponse'
+ *       400:
+ *         description: Paramètre nbMois invalide.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Non autorisé.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erreur serveur.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
