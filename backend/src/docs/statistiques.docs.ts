@@ -313,13 +313,13 @@
  *         schema:
  *           type: string
  *           format: date
- *         description: Mois précédent (format YYYY-MM)
+ *         description: Mois précédent (format YYYY-MM). Si non fourni, le mois précédent sera calculé automatiquement.
  *       - in: query
  *         name: moisCourant
  *         schema:
  *           type: string
  *           format: date
- *         description: Mois courant (format YYYY-MM)
+ *         description: Mois courant (format YYYY-MM). Si non fourni, le mois courant sera calculé automatiquement.
  *     responses:
  *       200:
  *         description: Comparaison des dépenses entre deux mois

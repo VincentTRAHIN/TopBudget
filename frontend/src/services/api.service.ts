@@ -8,3 +8,4 @@ export const categoriesEndpoint = `${API_BASE_URL}/categories`;
 export const statistiquesEndpoint = `${API_BASE_URL}/statistiques`;
 export const importDepensesEndpoint = `${API_BASE_URL}/depenses/import`;
 export const evolutionMensuelleEndpoint = `${API_BASE_URL}/statistiques/evolution-mensuelle`;
+export const comparaisonMoisEndpoint = `${API_BASE_URL}/statistiques/comparaison-mois`;
