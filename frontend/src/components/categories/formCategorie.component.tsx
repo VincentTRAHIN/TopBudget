@@ -42,7 +42,7 @@ export default function FormCategorie({ existingCategorie, onClose }: FormCatego
       }
     }, 100);
     return () => clearTimeout(timer);
-  }, []); // Exécuter seulement au montage
+  }, []);
 
   const initialValues: CategorieFormValues = {
     nom: existingCategorie?.nom || "",

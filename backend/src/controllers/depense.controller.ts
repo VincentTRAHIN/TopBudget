@@ -163,7 +163,6 @@ export const obtenirDepenses = async (
     let depenses;
     let total: number;
 
-    // --- Logique conditionnelle : Agrégation pour tri par catégorie, Find sinon ---
     if (sortBy === "categorie") {
       logger.debug("Utilisation de l'agrégation pour trier par catégorie");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -363,7 +362,6 @@ export const supprimerDepense = async (
   }
 };
 
-// --- importerDepenses (corrigée pour race condition et champs par défaut) ---
 export const importerDepenses = async (
   req: AuthRequest,
   res: Response,
@@ -399,52 +397,45 @@ export const importerDepenses = async (
     const getOrCreateCategorieId = (nomNettoye: string): Promise<mongoose.Types.ObjectId | null> => {
         const nomLower = nomNettoye.toLowerCase();
 
-        // 1. Vérifier le cache initial
         if (categorieMap.has(nomLower)) {
-          return Promise.resolve(categorieMap.get(nomLower)!); // Retourne directement l'ID connu
+          return Promise.resolve(categorieMap.get(nomLower)!); 
         }
 
-        // 2. Vérifier si une promesse est déjà en cours pour ce nom
         if (categoriePromises.has(nomLower)) {
             logger.debug(`Attente de la promesse existante pour '${nomLower}'...`);
             return categoriePromises.get(nomLower)!;
         }
 
-        // 3. Créer et stocker une nouvelle promesse
         logger.debug(`Création d'une nouvelle promesse pour '${nomLower}'`);
         const categoriePromise = (async (): Promise<mongoose.Types.ObjectId | null> => {
           try {
-            // Essayer de créer directement (gère le find+create ou le doublon)
             const categorie = await Categorie.findOneAndUpdate(
-                { nom: { $regex: new RegExp(`^${nomNettoye}$`, "i") } }, // Recherche insensible à la casse
+                { nom: { $regex: new RegExp(`^${nomNettoye}$`, "i") } }, 
                 {
-                    $setOnInsert: { // Ne définit ces valeurs que si le document est inséré
-                        nom: nomNettoye, // Garder la casse originale
+                    $setOnInsert: { 
+                        nom: nomNettoye, 
                         description: CATEGORIE.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE
                     }
                 },
                 {
-                    new: true, // Retourne le document après update/insert
-                    upsert: true, // Crée le document s'il n'existe pas
-                    lean: true // Retourne un objet simple
+                    new: true, 
+                    upsert: true, 
+                    lean: true 
                 }
             );
 
             if (categorie && categorie._id) {
                  logger.info(`Catégorie '${categorie.nom}' (ID: ${categorie._id}) obtenue/créée via findOneAndUpdate.`);
-                 // Mettre à jour la map principale de manière fiable
                  categorieMap.set(nomLower, categorie._id as mongoose.Types.ObjectId);
                  return categorie._id as mongoose.Types.ObjectId;
             } else {
-                // Ce cas ne devrait pas arriver avec upsert: true, mais sécurité
                 logger.error(`Échec de findOneAndUpdate pour la catégorie '${nomNettoye}', aucun document retourné.`);
                 return null;
             }
         } catch (error: unknown) {
             logger.error(`Erreur dans findOneAndUpdate pour '${nomNettoye}':`, error);
-            return null; // Échec
+            return null; 
         } finally {
-            // Retirer la promesse de la map une fois terminée pour libérer la mémoire
              categoriePromises.delete(nomLower);
         }
     })();
@@ -454,7 +445,6 @@ export const importerDepenses = async (
 };
 
 
-// Traitement du stream
 await new Promise<void>((resolve, reject) => {
   readableStream
     .pipe(
@@ -463,13 +453,12 @@ await new Promise<void>((resolve, reject) => {
     .on("data", async (row) => {
         ligneCourante++;
         const currentLine = ligneCourante;
-        readableStream.pause(); // Pause avant traitement async
+        readableStream.pause(); 
 
         logger.debug(`Traitement ligne ${currentLine}: ${JSON.stringify(row)}`);
         try {
             const { date: dateStr, montant: montantStr, categorie: categorieStrRow, description } = row;
 
-            // --- Validation ---
             if (!dateStr || !montantStr || !categorieStrRow) throw new Error("Données manquantes");
             const expectedDateFormat = "dd/MM/yyyy";
             const date = parse(dateStr, expectedDateFormat, new Date());
@@ -479,22 +468,19 @@ await new Promise<void>((resolve, reject) => {
             const categorieNomNettoye = categorieStrRow.trim();
             if (categorieNomNettoye.length < 2 || categorieNomNettoye.length > 50) throw new Error(`Nom catégorie invalide: ${categorieNomNettoye}`);
 
-            // --- Obtenir ID Catégorie ---
             const categorieId = await getOrCreateCategorieId(categorieNomNettoye);
 
-            // Si la promesse a retourné null (erreur interne loggée dans getOrCreate...)
             if (!categorieId) {
                 throw new Error(`Impossible d'obtenir l'ID pour la catégorie '${categorieNomNettoye}'`);
             }
 
-            // --- Assigner valeurs par défaut et ajouter ---
             const typeDepense: TypeDepense = DEPENSE.TYPES_DEPENSE.PERSO;
             const typeCompte: TypeCompte = DEPENSE.TYPES_COMPTE.PERSO;
 
             depensesAImporter.push({
                 date,
                 montant: montantNumerique,
-                categorie: categorieId, // C'est maintenant un ObjectId
+                categorie: categorieId, 
                 description: description ? description.trim() : undefined,
                 utilisateur: new mongoose.Types.ObjectId(userId),
                 typeDepense,
@@ -507,24 +493,22 @@ await new Promise<void>((resolve, reject) => {
             logger.warn(`Erreur ligne ${currentLine}: ${lineError instanceof Error ? lineError.message : 'Erreur inconnue'}`);
             erreursImport.push({ ligne: currentLine, data: row, erreur: lineError instanceof Error ? lineError.message : 'Erreur inconnue' });
         } finally {
-            readableStream.resume(); // Reprendre pour la ligne suivante
+            readableStream.resume(); 
         }
     })
     .on("end", () => { logger.info("Fin du stream CSV."); resolve(); })
     .on("error", (err) => { logger.error("Erreur Stream CSV:", err); reject(err); });
 });
 
-// --- Insertion en base ---
 logger.info(`Fin du parsing. ${depensesAImporter.length} dépenses prêtes pour insertion, ${erreursImport.length} erreurs de ligne.`);
 let importedCount = 0;
 if (depensesAImporter.length > 0) {
-   // ... (logique insertMany et catch comme avant) ...
    logger.info(`Tentative d'insertion de ${depensesAImporter.length} dépenses...`);
     try {
         const result = await Depense.insertMany(depensesAImporter, { ordered: false });
         importedCount = result.length;
         logger.info(`${importedCount} dépenses importées avec succès.`);
-    } catch (dbError: unknown) { /* ... gestion erreur insertMany ... */
+    } catch (dbError: unknown) { 
         const errorMessage = "Erreur inconnue lors de l'insertion en masse";
         const successfulInserts = 0;
         if (dbError instanceof Error)
@@ -535,13 +519,12 @@ if (depensesAImporter.length > 0) {
             errorCount: depensesAImporter.length - successfulInserts + erreursImport.length,
             erreursParsing: erreursImport,
         });
-        return; // Sortir
+        return; 
     }
 } else {
      logger.info("Aucune dépense valide à importer.");
 }
 
-// --- Réponse finale ---
 res.status(200).json({
   message: `Import terminé. ${importedCount} dépenses importées, ${erreursImport.length} lignes ignorées durant le parsing.`,
   totalLignesLues: ligneCourante,

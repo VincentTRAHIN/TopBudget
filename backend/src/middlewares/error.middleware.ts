@@ -28,12 +28,10 @@ export const errorHandler = (err: Error | AppError, req: Request, res: Response)
     message = err.message;
   }
 
-  // En développement, on inclut la stack trace
   if (process.env.NODE_ENV === 'development') {
     stack = err.stack;
   }
 
-  // Log l'erreur
   logger.error(`${statusCode} - ${message}`, {
     url: req.originalUrl,
     method: req.method,
