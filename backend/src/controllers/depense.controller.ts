@@ -375,109 +375,107 @@ export const importerDepenses = async (
   const userId = req.user.id;
   const csvBuffer = req.file.buffer;
 
-  const depensesAImporter: Array<IDepenseInput> = [];
-  const erreursImport: Array<{ligne: number; data: Record<string, string>; erreur: string}> = [];
+  const depensesAImporter: Array<IDepenseInput> = []; 
+  const erreursImport: Array<{ ligne: number; data: Record<string, string>; erreur: string }> = [];
   let ligneCourante = 0;
+  let categoriesNouvellementCrees = 0;
 
-  // Map pour stocker les promesses de récupération/création d'ID de catégorie
-  // Clé: nom de catégorie en minuscule, Valeur: Promesse qui résout vers l'ObjectId ou null si erreur
   const categoriePromises = new Map<string, Promise<mongoose.Types.ObjectId | null>>();
   let categorieMap: Map<string, mongoose.Types.ObjectId>;
 
-
   try {
-     // Pré-charger les catégories existantes
-     const categorieExistantesDocs = await Categorie.find().lean();
-     categorieMap = new Map(categorieExistantesDocs.map((cat) => [cat.nom.toLowerCase(), cat._id as mongoose.Types.ObjectId]));
-     logger.info(`Pré-chargement de ${categorieMap.size} catégories existantes.`);
+    const categorieExistantesDocs = await Categorie.find().lean();
+    categorieMap = new Map(
+      categorieExistantesDocs.map((cat) => [cat.nom.toLowerCase(), cat._id as mongoose.Types.ObjectId])
+    );
+    logger.info(`Pré-chargement de ${categorieMap.size} catégories existantes.`);
 
     const readableStream = Readable.from(csvBuffer);
 
-    // Fonction pour obtenir/créer une catégorie de manière atomique (par nom)
     const getOrCreateCategorieId = (nomNettoye: string): Promise<mongoose.Types.ObjectId | null> => {
-        const nomLower = nomNettoye.toLowerCase();
+      const nomLower = nomNettoye.toLowerCase();
+      if (categorieMap.has(nomLower)) {
+        return Promise.resolve(categorieMap.get(nomLower)!);
+      }
+      if (categoriePromises.has(nomLower)) {
+        return categoriePromises.get(nomLower)!;
+      }
 
-        if (categorieMap.has(nomLower)) {
-          return Promise.resolve(categorieMap.get(nomLower)!); 
-        }
-
-        if (categoriePromises.has(nomLower)) {
-            logger.debug(`Attente de la promesse existante pour '${nomLower}'...`);
-            return categoriePromises.get(nomLower)!;
-        }
-
-        logger.debug(`Création d'une nouvelle promesse pour '${nomLower}'`);
-        const categoriePromise = (async (): Promise<mongoose.Types.ObjectId | null> => {
-          try {
-            const categorie = await Categorie.findOneAndUpdate(
-                { nom: { $regex: new RegExp(`^${nomNettoye}$`, "i") } }, 
-                {
-                    $setOnInsert: { 
-                        nom: nomNettoye, 
-                        description: CATEGORIE.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE
-                    }
-                },
-                {
-                    new: true, 
-                    upsert: true, 
-                    lean: true 
-                }
-            );
-
-            if (categorie && categorie._id) {
-                 logger.info(`Catégorie '${categorie.nom}' (ID: ${categorie._id}) obtenue/créée via findOneAndUpdate.`);
-                 categorieMap.set(nomLower, categorie._id as mongoose.Types.ObjectId);
-                 return categorie._id as mongoose.Types.ObjectId;
-            } else {
-                logger.error(`Échec de findOneAndUpdate pour la catégorie '${nomNettoye}', aucun document retourné.`);
-                return null;
-            }
-        } catch (error: unknown) {
-            logger.error(`Erreur dans findOneAndUpdate pour '${nomNettoye}':`, error);
-            return null; 
-        } finally {
-             categoriePromises.delete(nomLower);
-        }
-    })();
-
-    categoriePromises.set(nomLower, categoriePromise);
-    return categoriePromise;
-};
-
-
-await new Promise<void>((resolve, reject) => {
-  readableStream
-    .pipe(
-      csvParser({ separator: ",", mapHeaders: ({ header }) => header.trim().toLowerCase(), headers: ["date", "montant", "categorie", "description"], skipLines: 0 })
-    )
-    .on("data", async (row) => {
-        ligneCourante++;
-        const currentLine = ligneCourante;
-        readableStream.pause(); 
-
-        logger.debug(`Traitement ligne ${currentLine}: ${JSON.stringify(row)}`);
+      const categoriePromise = (async (): Promise<mongoose.Types.ObjectId | null> => {
         try {
-            const { date: dateStr, montant: montantStr, categorie: categorieStrRow, description } = row;
-
-            if (!dateStr || !montantStr || !categorieStrRow) throw new Error("Données manquantes");
-            const expectedDateFormat = "dd/MM/yyyy";
-            const date = parse(dateStr, expectedDateFormat, new Date());
-            if (!isValid(date)) throw new Error(`Date invalide: ${dateStr}`);
-            const montantNumerique = parseFloat(montantStr.replace(",", "."));
-            if (isNaN(montantNumerique) || montantNumerique <= 0) throw new Error(`Montant invalide: ${montantStr}`);
-            const categorieNomNettoye = categorieStrRow.trim();
-            if (categorieNomNettoye.length < 2 || categorieNomNettoye.length > 50) throw new Error(`Nom catégorie invalide: ${categorieNomNettoye}`);
-
-            const categorieId = await getOrCreateCategorieId(categorieNomNettoye);
-
-            if (!categorieId) {
-                throw new Error(`Impossible d'obtenir l'ID pour la catégorie '${categorieNomNettoye}'`);
+          const categorieDB = await Categorie.findOneAndUpdate(
+            { nom: { $regex: new RegExp(`^${nomNettoye}$`, "i") } },
+            { $setOnInsert: { nom: nomNettoye, description: CATEGORIE.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE } },
+            { new: true, upsert: true, lean: true }
+          );
+          if (categorieDB && categorieDB._id) {
+            const estNouvelle = !categorieExistantesDocs.some(c => 
+              (c._id as mongoose.Types.ObjectId).equals(categorieDB._id as mongoose.Types.ObjectId)
+            );
+            if (estNouvelle) {
+              categoriesNouvellementCrees++;
+              logger.info(`Catégorie NOUVELLEMENT créée '${categorieDB.nom}' (ID: ${categorieDB._id}).`);
+            } else {
+              logger.info(`Catégorie EXISTANTE '${categorieDB.nom}' (ID: ${categorieDB._id}) obtenue/confirmée.`);
             }
+            categorieMap.set(nomLower, categorieDB._id as mongoose.Types.ObjectId);
+            return categorieDB._id as mongoose.Types.ObjectId;
+          }
+          return null;
+        } catch (error: unknown) {
+          logger.error(`Erreur dans findOneAndUpdate pour '${nomNettoye}':`, error);
+          return null;
+        } finally {
+          categoriePromises.delete(nomLower);
+        }
+      })();
+      categoriePromises.set(nomLower, categoriePromise);
+      return categoriePromise;
+    };
 
-            const typeDepense: TypeDepense = DEPENSE.TYPES_DEPENSE.PERSO;
-            const typeCompte: TypeCompte = DEPENSE.TYPES_COMPTE.PERSO;
+    const lineProcessingPromises: Promise<void>[] = [];
 
-            depensesAImporter.push({
+    await new Promise<void>((resolveStream, rejectStream) => {
+      readableStream
+        .pipe(
+          csvParser({
+            separator: ",",
+            mapHeaders: ({ header }) => header.trim().toLowerCase(),
+            headers: ["date", "montant", "categorie", "description"],
+            skipLines: 0,
+          })
+        )
+        .on("data", (row) => {
+          ligneCourante++;
+          const currentLine = ligneCourante;
+
+          const processLine = async () => {
+            logger.debug(`Début traitement ligne ${currentLine}: ${JSON.stringify(row)}`);
+            try {
+              const { date: dateStr, montant: montantStr, categorie: categorieStrRow, description } = row;
+              if (!dateStr || !montantStr || !categorieStrRow) throw new Error("Données manquantes (date, montant, catégorie)");
+              
+              const expectedDateFormat = "dd/MM/yyyy";
+              const date = parse(dateStr, expectedDateFormat, new Date());
+              if (!isValid(date)) throw new Error(`Date invalide: ${dateStr}. Format attendu: ${expectedDateFormat.toUpperCase()}`);
+              
+              const montantNumerique = parseFloat(montantStr.replace(",", "."));
+              if (isNaN(montantNumerique) || montantNumerique <= 0) throw new Error(`${DEPENSE.ERROR_MESSAGES.INVALID_MONTANT}: ${montantStr}`);
+              
+              const categorieNomNettoye = categorieStrRow.trim();
+              if (categorieNomNettoye.length < CATEGORIE.VALIDATION.MIN_NOM_LENGTH || categorieNomNettoye.length > CATEGORIE.VALIDATION.MAX_NOM_LENGTH) {
+                throw new Error(`Nom de catégorie invalide: '${categorieNomNettoye}'. Doit contenir entre ${CATEGORIE.VALIDATION.MIN_NOM_LENGTH} et ${CATEGORIE.VALIDATION.MAX_NOM_LENGTH} caractères.`);
+              }
+
+              const categorieId = await getOrCreateCategorieId(categorieNomNettoye);
+              if (!categorieId) {
+                throw new Error(`Impossible d'obtenir l'ID pour la catégorie '${categorieNomNettoye}'`);
+              }
+
+              const typeDepense: TypeDepense = DEPENSE.TYPES_DEPENSE.PERSO;
+              const typeCompte: TypeCompte = DEPENSE.TYPES_COMPTE.PERSO;
+
+              depensesAImporter.push({
                 date,
                 montant: montantNumerique,
                 categorie: categorieId, 
@@ -485,56 +483,87 @@ await new Promise<void>((resolve, reject) => {
                 utilisateur: new mongoose.Types.ObjectId(userId),
                 typeDepense,
                 typeCompte,
+              });
+              logger.debug(`Ligne ${currentLine}: Dépense ajoutée à depensesAImporter.`);
+
+            } catch (lineError: unknown) {
+              const errorMessage = lineError instanceof Error ? lineError.message : 'Erreur inconnue de traitement de ligne';
+              logger.warn(`Erreur traitement ligne ${currentLine}: ${errorMessage}`);
+              erreursImport.push({ ligne: currentLine, data: row, erreur: errorMessage });
+            }
+          };
+          lineProcessingPromises.push(processLine());
+        })
+        .on("end", () => {
+          logger.info("Fin du stream CSV (événement 'end' reçu).");
+          Promise.allSettled(lineProcessingPromises)
+            .then(() => {
+              logger.info("Toutes les promesses de traitement de ligne sont terminées.");
+              resolveStream(); 
+            })
+            .catch((err) => {
+              logger.error("Erreur inattendue lors de l'attente des promesses de ligne:", err);
+              rejectStream(err);
             });
-             logger.debug(`Ligne ${currentLine}: Dépense ajoutée à la liste d'import.`);
+        })
+        .on("error", (err) => {
+          logger.error("Erreur Stream CSV:", err);
+          rejectStream(err); 
+        });
+    }); 
 
+    logger.info(`Fin du parsing et traitement de toutes les lignes. ${depensesAImporter.length} dépenses prêtes pour insertion, ${erreursImport.length} erreurs de ligne.`);
+    logger.info(`${categoriesNouvellementCrees} nouvelles catégories ont été créées.`);
 
-        } catch (lineError: unknown) {
-            logger.warn(`Erreur ligne ${currentLine}: ${lineError instanceof Error ? lineError.message : 'Erreur inconnue'}`);
-            erreursImport.push({ ligne: currentLine, data: row, erreur: lineError instanceof Error ? lineError.message : 'Erreur inconnue' });
-        } finally {
-            readableStream.resume(); 
-        }
-    })
-    .on("end", () => { logger.info("Fin du stream CSV."); resolve(); })
-    .on("error", (err) => { logger.error("Erreur Stream CSV:", err); reject(err); });
-});
-
-logger.info(`Fin du parsing. ${depensesAImporter.length} dépenses prêtes pour insertion, ${erreursImport.length} erreurs de ligne.`);
-let importedCount = 0;
-if (depensesAImporter.length > 0) {
-   logger.info(`Tentative d'insertion de ${depensesAImporter.length} dépenses...`);
-    try {
+    let importedCount = 0;
+    if (depensesAImporter.length > 0) {
+      logger.info(`Tentative d'insertion de ${depensesAImporter.length} dépenses...`);
+      try {
         const result = await Depense.insertMany(depensesAImporter, { ordered: false });
         importedCount = result.length;
         logger.info(`${importedCount} dépenses importées avec succès.`);
-    } catch (dbError: unknown) { 
-        const errorMessage = "Erreur inconnue lors de l'insertion en masse";
-        const successfulInserts = 0;
-        if (dbError instanceof Error)
+      } catch (dbError: unknown) {
+        let errorMessage = "Erreur inconnue lors de l'insertion en masse";
+        let successfulInserts = 0;
+        if (dbError instanceof Error) {
+            errorMessage = dbError.message;
+            logger.error(`Erreur Mongoose/Mongo lors de l'insertion en masse: ${errorMessage}`, dbError);
+            if (typeof dbError === 'object' && dbError !== null) {
+                if ('result' in dbError && typeof (dbError as { result?: unknown }).result === 'object' && (dbError as { result?: unknown }).result !== null) {
+                    const resultObj = (dbError as { result: Record<string, unknown> }).result;
+                    if ('nInserted' in resultObj && typeof resultObj.nInserted === 'number') {
+                       successfulInserts = resultObj.nInserted;
+                    }
+                }
+            }
+        } else {
+          logger.error("Erreur inattendue lors de l'insertion en masse:", dbError);
+        }
         res.status(500).json({
-            message: "Erreur lors de l'enregistrement.",
-            details: errorMessage,
-            importedCount: successfulInserts,
-            errorCount: depensesAImporter.length - successfulInserts + erreursImport.length,
-            erreursParsing: erreursImport,
+          message: "Erreur lors de l'enregistrement des dépenses.",
+          details: errorMessage,
+          importedCount: successfulInserts,
+          errorCount: depensesAImporter.length - successfulInserts + erreursImport.length,
+          erreursParsing: erreursImport,
+          categoriesCrees: categoriesNouvellementCrees
         });
-        return; 
+        return;
+      }
+    } else {
+      logger.info("Aucune dépense valide à importer.");
     }
-} else {
-     logger.info("Aucune dépense valide à importer.");
-}
 
-res.status(200).json({
-  message: `Import terminé. ${importedCount} dépenses importées, ${erreursImport.length} lignes ignorées durant le parsing.`,
-  totalLignesLues: ligneCourante,
-  importedCount,
-  errorCount: erreursImport.length,
-  erreurs: erreursImport,
-});
+    res.status(200).json({
+      message: `Import terminé. ${importedCount} dépenses importées. ${erreursImport.length} lignes avec erreurs. ${categoriesNouvellementCrees} nouvelles catégories créées.`,
+      totalLignesLues: ligneCourante,
+      importedCount,
+      errorCount: erreursImport.length,
+      erreurs: erreursImport,
+      categoriesCrees: categoriesNouvellementCrees,
+    });
 
-} catch (error) {
-logger.error("Erreur générale pendant l'import:", error);
-next(error);
-}
+  } catch (error) {
+    logger.error("Erreur générale pendant l'import:", error);
+    next(error);
+  }
 };

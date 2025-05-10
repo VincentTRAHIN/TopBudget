@@ -228,7 +228,6 @@ export default function TableDepenses({
         <table className="table w-full text-sm">
           <thead>
             <tr className="bg-gray-100">
-              {/* En-têtes cliquables pour le tri */}
               <th
                 className="px-4 py-2 text-left cursor-pointer"
                 onClick={() => handleSort('date')}
@@ -310,13 +309,11 @@ export default function TableDepenses({
             </tr>
           </thead>
           <tbody>
-            {/* Affiche les dépenses reçues (déjà triées/filtrées par le backend) */}
             {depenses.length > 0 ? (
               depenses.map((depense) => (
                 <tr key={depense._id} className="border-b hover:bg-gray-50">
                   <td className="px-4 py-2 whitespace-nowrap">
                     {' '}
-                    {/* Empêche le retour à la ligne */}
                     {new Date(depense.date).toLocaleDateString('fr-FR')}
                   </td>
                   <td className="px-4 py-2">{depense.description}</td>
