@@ -96,13 +96,11 @@ export default function FormDepense({
     const method = isEditing ? 'PUT' : 'POST';
 
     try {
-      // Attendre la réponse de l'API qui devrait contenir la dépense créée/mise à jour
       const updatedOrNewDepense = await fetcher<IDepense>(url, {
         method,
         body: JSON.stringify(values),
       });
 
-      // Mise à jour du cache SWR
       refreshDepenses(
         (
           currentData: DepensesResponse | undefined,

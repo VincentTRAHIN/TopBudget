@@ -26,7 +26,7 @@ ChartJS.register(
 
 
 export const MonthlyExpensesChart: React.FC = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState<number>(6); // Default to 6 months
+  const [selectedPeriod, setSelectedPeriod] = useState<number>(6); 
   const { data, isLoading, isError, errorMessage } = useMonthlyExpensesEvolution(selectedPeriod);
 
   const handlePeriodChange = (event: React.ChangeEvent<HTMLSelectElement>) => {

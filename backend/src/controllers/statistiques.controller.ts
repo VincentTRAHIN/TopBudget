@@ -77,7 +77,7 @@ export const repartitionParCategorie = async (
     const depenses = await Depense.aggregate([
       {
         $match: {
-          utilisateur: req.user.id,
+          utilisateur: new mongoose.Types.ObjectId(req.user.id),
           date: {
             $gte: new Date(`${annee}-${mois}-01`),
             $lte: new Date(`${annee}-${mois}-31`),
@@ -89,6 +89,27 @@ export const repartitionParCategorie = async (
           _id: "$categorie",
           total: { $sum: "$montant" },
         },
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "_id",
+          foreignField: "_id",
+          as: "categorieDetails"
+        }
+      },
+      {
+        $unwind: {
+          path: "$categorieDetails",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          total: 1,
+          nom: "$categorieDetails.nom" 
+        }
       },
       {
         $sort: { total: -1 },

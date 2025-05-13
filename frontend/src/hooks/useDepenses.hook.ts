@@ -15,7 +15,6 @@ export interface DepensesResponse {
   }
 }
 
-// Définir une interface pour les filtres et le tri
 export interface DepenseFilters {
   categorie?: string;
   dateDebut?: string;

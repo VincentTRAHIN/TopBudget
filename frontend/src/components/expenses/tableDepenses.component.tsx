@@ -61,7 +61,6 @@ export default function TableDepenses({
     }
   };
 
-  // Fonction pour déclencher le tri via le parent
   const handleSort = (field: string) => {
     const newOrder =
       currentSort.sortBy === field && currentSort.order === 'asc'
