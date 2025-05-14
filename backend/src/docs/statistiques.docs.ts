@@ -232,18 +232,21 @@
  *         name: mois
  *         schema:
  *           type: string
- *           format: date
- *         description: Mois spécifique (format YYYY-MM)
+ *           format: MM
+ *         required: false
+ *         description: Mois spécifique (format MM). Si non fourni, utilise le mois actuel.
  *       - in: query
  *         name: annee
  *         schema:
  *           type: string
- *           format: date
- *         description: Année spécifique (format YYYY)
+ *           format: yyyy
+ *         required: false
+ *         description: Année spécifique (format YYYY). Si non fournie, utilise l'année actuelle.
  *       - in: query
  *         name: categorie
  *         schema:
  *           type: string
+ *         required: false
  *         description: Filtrer par catégorie
  *     responses:
  *       200:

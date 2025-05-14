@@ -22,7 +22,16 @@ export const totalDepensesMensuelles = async (
       return;
     }
 
-    const { mois, annee, categorie } = req.query;
+    let { mois, annee } = req.query;
+    const { categorie } = req.query;
+    
+    // Si mois et année ne sont pas fournis, utiliser le mois et l'année actuels
+    if (!mois || !annee) {
+      const dateActuelle = new Date();
+      mois = format(dateActuelle, "MM");
+      annee = format(dateActuelle, "yyyy");
+      logger.debug(`Utilisation des valeurs par défaut: mois=${mois}, année=${annee}`);
+    }
 
     const match: {
       utilisateur: string;
