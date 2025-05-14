@@ -25,7 +25,6 @@ export const totalDepensesMensuelles = async (
     let { mois, annee } = req.query;
     const { categorie } = req.query;
     
-    // Si mois et année ne sont pas fournis, utiliser le mois et l'année actuels
     if (!mois || !annee) {
       const dateActuelle = new Date();
       mois = format(dateActuelle, "MM");
