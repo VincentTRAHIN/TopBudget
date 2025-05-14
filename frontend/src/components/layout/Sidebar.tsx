@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth.hook";
 import { LogOut } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { Home, CreditCard, Tag, LayoutDashboard } from "lucide-react";
+import { Home, CreditCard, Tag, LayoutDashboard, BarChart2 } from "lucide-react";
 
 export default function Sidebar() {
   const { isAuthenticated, logout } = useAuth();
@@ -59,6 +59,17 @@ export default function Sidebar() {
         >
           <Tag size={20} />
           <span>Catégories</span>
+        </Link>
+        <Link
+          href="/statistiques"
+          className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
+            isActive("/statistiques")
+              ? "bg-indigo-50 text-indigo-600"
+              : ""
+          }`}
+        >
+          <BarChart2 size={20} />
+          <span>Statistiques</span>
         </Link>
       </nav>
 

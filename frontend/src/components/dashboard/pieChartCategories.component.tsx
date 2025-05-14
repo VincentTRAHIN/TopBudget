@@ -131,7 +131,7 @@ export default function PieChartCategories() {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h3 className="text-lg font-semibold mb-4 text-center">Répartition des dépenses</h3>
+      <h3 className="text-lg font-semibold mb-4">Répartition des dépenses</h3>
       
       <div className="flex justify-center mb-4">
         <div className="inline-flex items-center gap-6">
