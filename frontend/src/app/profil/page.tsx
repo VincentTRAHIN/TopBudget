@@ -136,7 +136,30 @@ export default function ProfilPage() {
       setAvatarFile(null);
       mutateAuth();
     } catch (error: unknown) {
-      toast.error((error instanceof Error && error.message) || "Erreur lors de l'upload de l'avatar");
+      let message = "Erreur lors de l'upload de l'avatar";
+      if (error instanceof Error && error.message) {
+        // Gestion des erreurs HTTP (404, 500, etc.)
+        if (error.message.includes("404")) {
+          message = "Impossible de téléverser l'avatar (ressource non trouvée). Merci de réessayer plus tard.";
+        } else if (error.message.includes("413")) {
+          message = "Fichier trop volumineux. Choisis une image de moins de 2 Mo.";
+        } else if (error.message.includes("415")) {
+          message = "Format de fichier non supporté. Choisis une image JPEG, PNG ou GIF.";
+        } else if (error.message.match(/\b4\d\d\b/)) {
+          message = "Erreur de requête. Merci de vérifier le fichier et réessayer.";
+        } else if (error.message.match(/\b5\d\d\b/)) {
+          message = "Erreur serveur. Merci de réessayer plus tard.";
+        } else {
+          // Si le backend retourne un message d'erreur JSON
+          try {
+            const errObj = JSON.parse(error.message);
+            if (errObj.message) message = errObj.message;
+          } catch {
+            message = error.message;
+          }
+        }
+      }
+      toast.error(message);
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -153,48 +176,57 @@ export default function ProfilPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Colonne Avatar + Infos */}
             <div className="md:col-span-1 bg-white p-6 rounded-lg shadow">
-              {/* Avatar avec fallback */}
-              <div className="mx-auto w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center mb-4">
+              {/* Avatar avec overlay upload */}
+              <div className="relative mx-auto w-32 h-32 mb-2 group">
                 {user.avatarUrl ? (
                   <Image 
                     src={user.avatarUrl} 
                     alt={`Avatar de ${user.nom}`}
-                    className="rounded-full object-cover"
+                    className="rounded-full object-cover w-32 h-32 border-2 border-gray-200 shadow"
                     width={128}
                     height={128}
                   />
                 ) : (
-                  <UserCircle className="w-16 h-16 text-gray-500" />
+                  <UserCircle className="w-32 h-32 text-gray-400 bg-gray-200 rounded-full border-2 border-gray-200 shadow" />
                 )}
-              </div>
-              <h2 className="text-xl font-semibold text-center">{user.nom}</h2>
-              <p className="text-gray-600 text-center mb-4">{user.email}</p>
-              {/* Upload avatar */}
-              <div className="flex flex-col items-center gap-2">
+                {/* Overlay cliquable */}
                 <input
                   type="file"
                   accept="image/*"
                   id="avatar-upload"
-                  className="hidden"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                   onChange={handleAvatarChange}
                   disabled={isUploadingAvatar}
                 />
-                <label htmlFor="avatar-upload" className="btn-secondary text-sm cursor-pointer w-full text-center">
-                  Choisir un nouvel avatar
-                </label>
-                {avatarFile && (
-                  <div className="w-full flex flex-col items-center gap-2 mt-2">
-                    <span className="text-xs text-gray-700 truncate max-w-full">{avatarFile.name}</span>
-                    <button
-                      className="btn-primary w-full text-sm"
-                      onClick={handleAvatarUpload}
-                      disabled={isUploadingAvatar}
-                    >
-                      {isUploadingAvatar ? "Upload..." : "Confirmer l'upload"}
-                    </button>
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition flex items-center justify-center rounded-full z-10 pointer-events-none">
+                  <svg className="text-white text-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l1.536 1.536A2 2 0 0120 8.268V17a2 2 0 01-2 2H6a2 2 0 01-2-2V8.268a2 2 0 01.586-1.414l1.536-1.536A2 2 0 017.768 4h8.464a2 2 0 011.414.586zM12 11a3 3 0 100 6 3 3 0 000-6z" />
+                  </svg>
+                </div>
+                {isUploadingAvatar && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60 rounded-full z-30">
+                    <span className="text-primary font-bold animate-pulse">Upload...</span>
                   </div>
                 )}
               </div>
+              {/* Nom et email sous l'avatar */}
+              <div className="text-center mb-4">
+                <h2 className="text-xl font-semibold">{user.nom}</h2>
+                <p className="text-gray-600 text-sm">{user.email}</p>
+              </div>
+              {/* Affichage du nom du fichier et bouton de confirmation */}
+              {avatarFile && (
+                <div className="w-full flex flex-col items-center gap-2 mt-2">
+                  <span className="text-xs text-gray-700 truncate max-w-full">{avatarFile.name}</span>
+                  <button
+                    className="btn-primary w-full text-sm"
+                    onClick={handleAvatarUpload}
+                    disabled={isUploadingAvatar}
+                  >
+                    {isUploadingAvatar ? "Upload..." : "Confirmer l'upload"}
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Colonne Formulaires */}
