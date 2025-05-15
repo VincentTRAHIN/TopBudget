@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth.hook";
-import { LogIn, LogOut, User } from "lucide-react";
+import { LogIn, LogOut } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { getAvatarColor, getInitials } from "@/utils/avatar.utils";
+import Image from "next/image";
 
 export default function HomeHeader() {
   const { user, logout } = useAuth();
@@ -29,9 +31,26 @@ export default function HomeHeader() {
           <div className="flex items-center gap-4">
             {user ? (
               <>
-                <div className="flex items-center gap-2 text-gray-700">
-                  <User size={20} />
-                  <span>{user.email}</span>
+                <div className="flex items-center gap-3">
+                  <Link href="/profil" className="hover:opacity-80 transition-opacity rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" title={`Profil de ${user.nom}`}>
+                    {user.avatarUrl ? (
+                      <Image 
+                        src={user.avatarUrl} 
+                        alt={`Avatar de ${user.nom}`} 
+                        width={36} 
+                        height={36}
+                        className="w-9 h-9 rounded-full object-cover border-2 border-gray-100 shadow-sm"
+                      />
+                    ) : (
+                      <div 
+                        className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm border-2 border-gray-200 ${getAvatarColor(user.nom)}`}
+                        aria-label={`Profil de ${user.nom}`}
+                      >
+                        {getInitials(user.nom)}
+                      </div>
+                    )}
+                  </Link>
+                  <span className="font-medium text-gray-800">{user.nom}</span>
                 </div>
                 <button
                   onClick={handleLogout}
@@ -55,4 +74,4 @@ export default function HomeHeader() {
       </div>
     </header>
   );
-} 
+}

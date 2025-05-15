@@ -104,3 +104,57 @@
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
+
+/**
+ * @swagger
+ * /api/profile/me/change-password:
+ *   put:
+ *     summary: Changer le mot de passe de l'utilisateur
+ *     description: Permet à l'utilisateur connecté de changer son mot de passe.
+ *     tags: [Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: Mot de passe actuel
+ *               newPassword:
+ *                 type: string
+ *                 description: Nouveau mot de passe
+ *               confirmPassword:
+ *                 type: string
+ *                 description: Confirmation du nouveau mot de passe
+ *     responses:
+ *       200:
+ *         description: Mot de passe mis à jour avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Mot de passe mis à jour avec succès.
+ *       400:
+ *         description: Validation échouée (mots de passe ne correspondent pas ou complexité insuffisante)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Mot de passe actuel incorrect
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */

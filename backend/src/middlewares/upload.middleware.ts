@@ -22,4 +22,22 @@ const uploadCSV = multer({
   }
 }).single('csvFile');
 
+// Multer pour l'upload d'avatar utilisateur
+const avatarStorage = multer.memoryStorage();
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
+
+const avatarFileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  if (ACCEPTED_IMAGE_TYPES.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Type de fichier invalide. Seules les images JPEG, PNG ou GIF sont autorisées.', 400));
+  }
+};
+
+export const uploadAvatar = multer({
+  storage: avatarStorage,
+  fileFilter: avatarFileFilter,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2 Mo
+}).single('avatar');
+
 export default uploadCSV;

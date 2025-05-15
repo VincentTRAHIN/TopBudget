@@ -8,6 +8,8 @@ import { toast } from "react-hot-toast";
 import { UserCircle } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
+import fetcher from "@/utils/fetcher.utils";
+import { profileAvatarEndpoint, profileChangePasswordEndpoint } from "@/services/api.service";
 
 // Schéma de validation pour les informations personnelles
 const ProfileSchema = Yup.object().shape({
@@ -29,6 +31,8 @@ const PartnerSchema = Yup.object().shape({
 export default function ProfilPage() {
   const { user, isLoading, mutate: mutateAuth } = useAuth();
   const [unlinkPartner, setUnlinkPartner] = useState(false);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   if (isLoading || !user) {
     return <Layout><p>Chargement du profil...</p></Layout>;
@@ -111,6 +115,33 @@ export default function ProfilPage() {
     }
   };
 
+  // Gestion upload avatar
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setAvatarFile(e.target.files[0]);
+    }
+  };
+
+  const handleAvatarUpload = async () => {
+    if (!avatarFile) return;
+    setIsUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append("avatar", avatarFile);
+      await fetcher(profileAvatarEndpoint, {
+        method: "POST",
+        body: formData,
+      });
+      toast.success("Avatar mis à jour !");
+      setAvatarFile(null);
+      mutateAuth();
+    } catch (error: unknown) {
+      toast.error((error instanceof Error && error.message) || "Erreur lors de l'upload de l'avatar");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
   // Déterminer si l'utilisateur a un partenaire en vérifiant si partenaireId est un objet (après population)
   const hasPartner = user.partenaireId && typeof user.partenaireId === 'object';
 
@@ -138,8 +169,32 @@ export default function ProfilPage() {
               </div>
               <h2 className="text-xl font-semibold text-center">{user.nom}</h2>
               <p className="text-gray-600 text-center mb-4">{user.email}</p>
-              {/* Bouton pour changer avatar (logique d'upload à implémenter plus tard) */}
-              <button className="w-full btn-secondary text-sm">Changer l&apos;avatar (Bientôt)</button>
+              {/* Upload avatar */}
+              <div className="flex flex-col items-center gap-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="avatar-upload"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                  disabled={isUploadingAvatar}
+                />
+                <label htmlFor="avatar-upload" className="btn-secondary text-sm cursor-pointer w-full text-center">
+                  Choisir un nouvel avatar
+                </label>
+                {avatarFile && (
+                  <div className="w-full flex flex-col items-center gap-2 mt-2">
+                    <span className="text-xs text-gray-700 truncate max-w-full">{avatarFile.name}</span>
+                    <button
+                      className="btn-primary w-full text-sm"
+                      onClick={handleAvatarUpload}
+                      disabled={isUploadingAvatar}
+                    >
+                      {isUploadingAvatar ? "Upload..." : "Confirmer l'upload"}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Colonne Formulaires */}
@@ -284,6 +339,86 @@ export default function ProfilPage() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Formulaire Changement de mot de passe */}
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h3 className="text-lg font-semibold mb-4">Changer de Mot de Passe</h3>
+                <Formik
+                  initialValues={{
+                    currentPassword: "",
+                    newPassword: "",
+                    confirmPassword: "",
+                  }}
+                  validationSchema={Yup.object({
+                    currentPassword: Yup.string().required("Mot de passe actuel requis"),
+                    newPassword: Yup.string()
+                      .required("Nouveau mot de passe requis")
+                      .min(8, "8 caractères minimum")
+                      .matches(/[A-Z]/, "Au moins une majuscule")
+                      .matches(/[0-9]/, "Au moins un chiffre"),
+                    confirmPassword: Yup.string()
+                      .oneOf([Yup.ref('newPassword')], "Les mots de passe ne correspondent pas")
+                      .required("Confirmation requise"),
+                  })}
+                  onSubmit={async (values, { setSubmitting, resetForm }) => {
+                    try {
+                      await fetcher(profileChangePasswordEndpoint, {
+                        method: "PUT",
+                        body: JSON.stringify(values),
+                        headers: { "Content-Type": "application/json" },
+                      });
+                      toast.success("Mot de passe mis à jour avec succès");
+                      resetForm();
+                    } catch (error: unknown) {
+                      toast.error((error instanceof Error && error.message) || "Erreur lors du changement de mot de passe");
+                    } finally {
+                      setSubmitting(false);
+                    }
+                  }}
+                >
+                  {({ isSubmitting }) => (
+                    <Form className="space-y-4">
+                      <div>
+                        <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">Mot de passe actuel</label>
+                        <Field
+                          type="password"
+                          name="currentPassword"
+                          id="currentPassword"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <ErrorMessage name="currentPassword" component="div" className="text-red-500 text-sm mt-1" />
+                      </div>
+                      <div>
+                        <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe</label>
+                        <Field
+                          type="password"
+                          name="newPassword"
+                          id="newPassword"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <ErrorMessage name="newPassword" component="div" className="text-red-500 text-sm mt-1" />
+                      </div>
+                      <div>
+                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">Confirmer le nouveau mot de passe</label>
+                        <Field
+                          type="password"
+                          name="confirmPassword"
+                          id="confirmPassword"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="btn-primary w-full"
+                      >
+                        {isSubmitting ? "Changement..." : "Changer le mot de passe"}
+                      </button>
+                    </Form>
+                  )}
+                </Formik>
               </div>
             </div>
           </div>
