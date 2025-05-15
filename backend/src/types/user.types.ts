@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document, Schema } from 'mongoose';
 
 export type UserRole = 'Perso' | 'Conjoint' | 'Admin';
 
@@ -8,6 +8,8 @@ export interface IUser extends Document {
   motDePasse: string;
   dateCreation: Date;
   role: UserRole;
+  avatarUrl?: string;
+  partenaireId?: Schema.Types.ObjectId;
   comparerMotDePasse(motDePasse: string): Promise<boolean>;
 }
 
@@ -29,4 +31,13 @@ export interface IUserResponse {
   email: string;
   role: UserRole;
   dateCreation: Date;
+  avatarUrl?: string;
+  partenaireId?: string | null;
+}
+
+export interface IUserProfileUpdateInput {
+  nom?: string;
+  email?: string;
+  avatarUrl?: string;
+  partenaireId?: string | null;
 } 

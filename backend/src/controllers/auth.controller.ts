@@ -102,11 +102,17 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
+    // Peupler le partenaire s'il existe
+    await utilisateur.populate({ path: 'partenaireId', select: 'nom email avatarUrl _id' });
+
     res.status(200).json({
       _id: utilisateur._id,
       nom: utilisateur.nom,
       email: utilisateur.email,
       role: utilisateur.role,
+      dateCreation: utilisateur.dateCreation,
+      avatarUrl: utilisateur.avatarUrl,
+      partenaireId: utilisateur.partenaireId,
     });
   } catch (error) {
     logger.error("Erreur dans getMe:", error);

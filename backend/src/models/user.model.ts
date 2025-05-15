@@ -8,6 +8,8 @@ const UserSchema = new Schema<IUser>({
   motDePasse: { type: String, required: true },
   dateCreation: { type: Date, default: Date.now },
   role: { type: String, enum: ['Perso', 'Conjoint', 'Admin'] as UserRole[], default: 'Perso' },
+  avatarUrl: { type: String, required: false },
+  partenaireId: { type: Schema.Types.ObjectId, ref: 'User', required: false, unique: true, sparse: true },
 });
 
 // Hash du mot de passe avant save
