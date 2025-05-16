@@ -13,3 +13,4 @@ export const statistiquesParCategorieEndpoint = `${API_BASE_URL}/statistiques/pa
 export const totalMensuelEndpoint = `${API_BASE_URL}/statistiques/total-mensuel`;
 export const profileAvatarEndpoint = `${API_BASE_URL}/profile/avatar`;
 export const profileChangePasswordEndpoint = `${API_BASE_URL}/profile/me/change-password`;
+export const profileUpdateEndpoint = `${API_BASE_URL}/profile`;

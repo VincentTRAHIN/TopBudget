@@ -9,7 +9,7 @@ import { UserCircle } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 import fetcher from "@/utils/fetcher.utils";
-import { profileAvatarEndpoint, profileChangePasswordEndpoint } from "@/services/api.service";
+import { profileAvatarEndpoint, profileChangePasswordEndpoint, profileUpdateEndpoint } from "@/services/api.service";
 
 // Schéma de validation pour les informations personnelles
 const ProfileSchema = Yup.object().shape({
@@ -41,25 +41,16 @@ export default function ProfilPage() {
   // Gestion soumission des informations personnelles
   const handleProfileSubmit = async (values: { nom: string; email: string }, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
     try {
-      const response = await fetch('/api/profile/me', {
+      await fetcher(profileUpdateEndpoint, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           nom: values.nom,
           email: values.email,
         }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Erreur lors de la mise à jour du profil");
-      }
-
       // Réussite
       toast.success("Profil mis à jour avec succès");
-      // Rafraîchir les données utilisateur
       mutateAuth();
     } catch (error) {
       if (error instanceof Error) {
