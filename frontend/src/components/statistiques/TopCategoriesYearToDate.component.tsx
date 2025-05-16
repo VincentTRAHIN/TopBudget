@@ -17,7 +17,18 @@ ChartJS.register(
   Legend
 );
 
-export default function TopCategoriesYearToDate() {
+// Move backgroundColors outside the component to avoid reference changes on each render
+const BACKGROUND_COLORS = [
+  'rgba(54, 162, 235, 0.6)',
+  'rgba(255, 99, 132, 0.6)',
+  'rgba(255, 206, 86, 0.6)',
+  'rgba(75, 192, 192, 0.6)',
+  'rgba(153, 102, 255, 0.6)',
+  'rgba(255, 159, 64, 0.6)',
+  'rgba(199, 199, 199, 0.6)'
+];
+
+export default function TopCategoriesYearToDate({ statsContext = 'moi' }: { statsContext?: 'moi' | 'couple' }) {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
   
@@ -30,18 +41,7 @@ export default function TopCategoriesYearToDate() {
   const [totalAmount, setTotalAmount] = useState<number>(0);
   
   // Nous demandons les données jusqu'au mois actuel
-  const { categoryDistribution, isLoading, isError } = useCategoryDistribution(currentYear, currentMonth);
-
-  // Couleurs pour le graphique
-  const backgroundColors = [
-    'rgba(54, 162, 235, 0.6)',
-    'rgba(255, 99, 132, 0.6)',
-    'rgba(255, 206, 86, 0.6)',
-    'rgba(75, 192, 192, 0.6)',
-    'rgba(153, 102, 255, 0.6)',
-    'rgba(255, 159, 64, 0.6)',
-    'rgba(199, 199, 199, 0.6)'
-  ];
+  const { categoryDistribution, isLoading, isError } = useCategoryDistribution(currentYear, currentMonth, statsContext);
 
   useEffect(() => {
     if (!isLoading && !isError && categoryDistribution && categoryDistribution.length > 0) {
@@ -57,7 +57,7 @@ export default function TopCategoriesYearToDate() {
       
       const labels: string[] = mainCategories.map(cat => cat.nom);
       const values: number[] = mainCategories.map(cat => cat.total);
-      const colors: string[] = backgroundColors.slice(0, mainCategories.length);
+      const colors: string[] = BACKGROUND_COLORS.slice(0, mainCategories.length);
       
       if (otherCategories.length > 0) {
         labels.push('Autres');

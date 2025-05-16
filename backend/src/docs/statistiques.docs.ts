@@ -248,6 +248,13 @@
  *           type: string
  *         required: false
  *         description: Filtrer par catégorie
+ *       - in: query
+ *         name: contexte
+ *         schema:
+ *           type: string
+ *           enum: [moi, couple]
+ *         required: false
+ *         description: Contexte d'analyse ('moi' = dépenses personnelles, 'couple' = dépenses du couple)
  *     responses:
  *       200:
  *         description: Total des dépenses mensuelles
@@ -285,6 +292,19 @@
  *           type: string
  *           format: date
  *         description: Mois spécifique (format YYYY-MM)
+ *       - in: query
+ *         name: annee
+ *         schema:
+ *           type: string
+ *           format: yyyy
+ *         description: Année spécifique (format YYYY)
+ *       - in: query
+ *         name: contexte
+ *         schema:
+ *           type: string
+ *           enum: [moi, couple]
+ *         required: false
+ *         description: Contexte d'analyse ('moi' = dépenses personnelles, 'couple' = dépenses communes du couple)
  *     responses:
  *       200:
  *         description: Répartition des dépenses par catégorie
@@ -323,6 +343,13 @@
  *           type: string
  *           format: date
  *         description: Mois courant (format YYYY-MM). Si non fourni, le mois courant sera calculé automatiquement.
+ *       - in: query
+ *         name: contexte
+ *         schema:
+ *           type: string
+ *           enum: [moi, couple]
+ *         required: false
+ *         description: Contexte d'analyse ('moi' = dépenses personnelles, 'couple' = dépenses du couple)
  *     responses:
  *       200:
  *         description: Comparaison des dépenses entre deux mois
@@ -354,6 +381,13 @@
  *           type: integer
  *           default: 6
  *         description: Nombre de mois à afficher (entre 1 et 24), par défaut 6.
+ *       - in: query
+ *         name: contexte
+ *         schema:
+ *           type: string
+ *           enum: [moi, couple]
+ *         required: false
+ *         description: Contexte d'analyse ('moi' = dépenses personnelles, 'couple' = dépenses communes du couple)
  *     responses:
  *       200:
  *         description: Évolution mensuelle des dépenses récupérée avec succès.

@@ -24,10 +24,16 @@ ChartJS.register(
   Legend
 );
 
+const YEAR_COLORS: { [key: string]: string } = {
+  '2023': 'rgba(255, 159, 64, 0.6)',
+  '2024': 'rgba(54, 162, 235, 0.6)',
+  '2025': 'rgba(75, 192, 192, 0.6)',
+};
+const DEFAULT_BAR_COLOR = 'rgba(153, 102, 255, 0.6)';
 
-export const MonthlyExpensesChart: React.FC = () => {
+export const MonthlyExpensesChart: React.FC<{ statsContext?: 'moi' | 'couple' }> = ({ statsContext = 'moi' }) => {
   const [selectedPeriod, setSelectedPeriod] = useState<number>(6); 
-  const { data, isLoading, isError, errorMessage } = useMonthlyExpensesEvolution(selectedPeriod);
+  const { data, isLoading, isError, errorMessage } = useMonthlyExpensesEvolution(selectedPeriod, statsContext);
 
   const handlePeriodChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedPeriod(Number(event.target.value));
@@ -57,15 +63,9 @@ export const MonthlyExpensesChart: React.FC = () => {
 
   const dataValues = data.map(item => item.totalDepenses);
 
-  const yearColors: { [key: string]: string } = {
-    '2023': 'rgba(255, 159, 64, 0.6)',
-    '2024': 'rgba(54, 162, 235, 0.6)',
-    '2025': 'rgba(75, 192, 192, 0.6)',
-  };
-
   const backgroundColors = data.map(item => {
     const year = item.mois.split('-')[0];
-    return yearColors[year] || 'rgba(153, 102, 255, 0.6)';
+    return YEAR_COLORS[year] || DEFAULT_BAR_COLOR;
   });
 
   const borderColors = backgroundColors.map(color => color.replace('0.6', '1'));

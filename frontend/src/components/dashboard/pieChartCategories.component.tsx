@@ -9,29 +9,29 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend, ChartOptions } from "cha
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export default function PieChartCategories() {
+// Move BACKGROUND_COLORS outside the component to avoid reference changes
+const BACKGROUND_COLORS = [
+  'rgba(54, 162, 235, 0.6)',
+  'rgba(255, 99, 132, 0.6)',
+  'rgba(255, 206, 86, 0.6)',
+  'rgba(75, 192, 192, 0.6)',
+  'rgba(153, 102, 255, 0.6)',
+  'rgba(255, 159, 64, 0.6)',
+  'rgba(199, 199, 199, 0.6)',
+  'rgba(83, 102, 255, 0.6)',
+  'rgba(40, 159, 64, 0.6)',
+  'rgba(210, 105, 30, 0.6)',
+  'rgba(128, 0, 128, 0.6)',
+  'rgba(0, 128, 128, 0.6)',
+];
+
+export default function PieChartCategories({ statsContext = 'moi' }: { statsContext?: 'moi' | 'couple' }) {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   
   const { categories } = useCategories();
   const { depenses } = useDepenses(); 
-  const { categoryDistribution, isLoading, isError } = useCategoryDistribution(selectedYear, selectedMonth);
-
-  // Tableau de couleurs pour le graphique
-  const backgroundColors = [
-    'rgba(54, 162, 235, 0.6)',
-    'rgba(255, 99, 132, 0.6)',
-    'rgba(255, 206, 86, 0.6)',
-    'rgba(75, 192, 192, 0.6)',
-    'rgba(153, 102, 255, 0.6)',
-    'rgba(255, 159, 64, 0.6)',
-    'rgba(199, 199, 199, 0.6)',
-    'rgba(83, 102, 255, 0.6)',
-    'rgba(40, 159, 64, 0.6)',
-    'rgba(210, 105, 30, 0.6)',
-    'rgba(128, 0, 128, 0.6)',
-    'rgba(0, 128, 128, 0.6)',
-  ];
+  const { categoryDistribution, isLoading, isError } = useCategoryDistribution(selectedYear, selectedMonth, statsContext);
 
   // Initialisation des données du graphique
   let labels: string[] = [];
@@ -51,8 +51,8 @@ export default function PieChartCategories() {
     datasets: [{
       label: 'Dépenses par Catégorie',
       data: [],
-      backgroundColor: backgroundColors,
-      borderColor: backgroundColors.map(color => color.replace('0.6', '1')),
+      backgroundColor: BACKGROUND_COLORS,
+      borderColor: BACKGROUND_COLORS.map(color => color.replace('0.6', '1')),
       borderWidth: 1,
     }]
   };
@@ -66,8 +66,8 @@ export default function PieChartCategories() {
       datasets: [{
         label: 'Dépenses par Catégorie',
         data: dataValues,
-        backgroundColor: backgroundColors,
-        borderColor: backgroundColors.map(color => color.replace('0.6', '1')),
+        backgroundColor: BACKGROUND_COLORS,
+        borderColor: BACKGROUND_COLORS.map(color => color.replace('0.6', '1')),
         borderWidth: 1,
       }]
     };
@@ -122,8 +122,8 @@ export default function PieChartCategories() {
       datasets: [{
         label: 'Dépenses par Catégorie',
         data: dataValues,
-        backgroundColor: backgroundColors,
-        borderColor: backgroundColors.map(color => color.replace('0.6', '1')),
+        backgroundColor: BACKGROUND_COLORS,
+        borderColor: BACKGROUND_COLORS.map(color => color.replace('0.6', '1')),
         borderWidth: 1,
       }]
     };

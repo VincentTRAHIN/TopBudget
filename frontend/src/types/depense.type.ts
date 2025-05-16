@@ -13,7 +13,7 @@ export interface IDepense {
   typeDepense: TypeDepense;
   recurrence?: boolean;
   categorie: ICategorie | string;
-  utilisateur: string;
+  utilisateur: { _id: string; nom: string } | string;
   createdAt?: string;
   updatedAt?: string;
 }

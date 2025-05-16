@@ -10,10 +10,17 @@ export interface CategoryDistributionDataPoint {
   total: number;
 }
 
-export const useCategoryDistribution = (year: number, month: number) => {
+export const useCategoryDistribution = (
+  year: number,
+  month: number,
+  contexte?: 'moi' | 'couple'
+) => {
   const formattedMonth = String(month).padStart(2, '0');
-  const url = `${statistiquesParCategorieEndpoint}?annee=${year}&mois=${formattedMonth}`;
-
+  let url = `${statistiquesParCategorieEndpoint}?annee=${year}&mois=${formattedMonth}`;
+  // Correction : n'ajoute le paramètre que si contexte est exactement 'couple'
+  if (contexte && contexte === 'couple') {
+    url += `&contexte=couple`;
+  }
   const { data, error, isLoading, mutate } = useSWR<CategoryDistributionDataPoint[]>(
     url,
     fetcher,

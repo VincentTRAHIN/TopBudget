@@ -1,4 +1,5 @@
 import { Response } from "express";
+import mongoose from "mongoose";
 import Depense from "../models/depense.model";
 import logger from "../utils/logger.utils";
 import { AuthRequest } from "../middlewares/auth.middleware";
@@ -10,7 +11,7 @@ import {
   eachMonthOfInterval,
   format,
 } from "date-fns";
-import mongoose from "mongoose";
+import { DEPENSE } from "../constants/depense.constants";
 
 export const totalDepensesMensuelles = async (
   req: AuthRequest,
@@ -23,8 +24,8 @@ export const totalDepensesMensuelles = async (
     }
 
     let { mois, annee } = req.query;
+    const contexte = req.query.contexte;
     const { categorie } = req.query;
-    
     if (!mois || !annee) {
       const dateActuelle = new Date();
       mois = format(dateActuelle, "MM");
@@ -32,20 +33,31 @@ export const totalDepensesMensuelles = async (
       logger.debug(`Utilisation des valeurs par défaut: mois=${mois}, année=${annee}`);
     }
 
-    const match: {
-      utilisateur: string;
-      date: { $gte: Date; $lte: Date };
-      categorie?: string;
-    } = {
-      utilisateur: req.user.id,
+    // Gestion du contexte (moi/couple)
+    const match: Record<string, unknown> = {
       date: {
         $gte: new Date(`${annee}-${mois}-01`),
         $lte: new Date(`${annee}-${mois}-31`),
       },
     };
-
     if (categorie) {
       match.categorie = categorie as string;
+    }
+    if (contexte === 'couple') {
+      // Charger le user complet pour avoir le partenaireId
+      const User = (await import('../models/user.model')).default;
+      const fullCurrentUser = await User.findById(req.user.id);
+      if (fullCurrentUser && fullCurrentUser.partenaireId) {
+        match.utilisateur = { $in: [
+          String(fullCurrentUser._id),
+          String(fullCurrentUser.partenaireId)
+        ].map(id => new mongoose.Types.ObjectId(id)) };
+        // Pour stats couple, on ne filtre pas sur typeDepense ici (total toutes dépenses)
+      } else {
+        match.utilisateur = new mongoose.Types.ObjectId(req.user.id);
+      }
+    } else {
+      match.utilisateur = new mongoose.Types.ObjectId(req.user.id);
     }
 
     const depenses = await Depense.find(match);
@@ -74,24 +86,38 @@ export const repartitionParCategorie = async (
     }
 
     const { mois, annee } = req.query;
-
+    const contexte = req.query.contexte;
     if (!mois || !annee) {
       res
         .status(400)
         .json({ message: "Les paramètres mois et année sont requis" });
       return;
     }
+    // Gestion du contexte (moi/couple)
+    const match: Record<string, unknown> = {
+      date: {
+        $gte: new Date(`${annee}-${mois}-01`),
+        $lte: new Date(`${annee}-${mois}-31`),
+      },
+    };
+    if (contexte === 'couple') {
+      const User = (await import('../models/user.model')).default;
+      const fullCurrentUser = await User.findById(req.user.id);
+      if (fullCurrentUser && fullCurrentUser.partenaireId) {
+        match.utilisateur = { $in: [
+          String(fullCurrentUser._id),
+          String(fullCurrentUser.partenaireId)
+        ].map(id => new mongoose.Types.ObjectId(id)) };
+        match.typeDepense = DEPENSE.TYPES_DEPENSE.COMMUNE; // Pour stats couple, on ne veut que les communes
+      } else {
+        match.utilisateur = new mongoose.Types.ObjectId(req.user.id);
+      }
+    } else {
+      match.utilisateur = new mongoose.Types.ObjectId(req.user.id);
+    }
 
     const depenses = await Depense.aggregate([
-      {
-        $match: {
-          utilisateur: new mongoose.Types.ObjectId(req.user.id),
-          date: {
-            $gte: new Date(`${annee}-${mois}-01`),
-            $lte: new Date(`${annee}-${mois}-31`),
-          },
-        },
-      },
+      { $match: match },
       {
         $group: {
           _id: "$categorie",
@@ -142,10 +168,22 @@ export const comparaisonMois = async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    const userId = new mongoose.Types.ObjectId(req.user.id);
+    const { contexte } = req.query;
+    // userIds peut être un ObjectId ou un filtre $in
+    let userIds: mongoose.Types.ObjectId | { $in: mongoose.Types.ObjectId[] } = new mongoose.Types.ObjectId(req.user.id);
+    if (contexte === 'couple') {
+      const User = (await import('../models/user.model')).default;
+      const fullCurrentUser = await User.findById(req.user.id);
+      if (fullCurrentUser && fullCurrentUser.partenaireId) {
+        userIds = { $in: [
+          String(fullCurrentUser._id),
+          String(fullCurrentUser.partenaireId)
+        ].map(id => new mongoose.Types.ObjectId(id)) };
+      }
+    }
+
     let dateQueryActuelle: Date;
     let dateQueryPrecedente: Date;
-
     const {
       moisActuel: moisActuelQuery,
       anneeActuelle: anneeActuelleQuery,
@@ -176,24 +214,10 @@ export const comparaisonMois = async (req: AuthRequest, res: Response) => {
     const debutMoisPrecedent = startOfMonth(dateQueryPrecedente);
     const finMoisPrecedent = endOfMonth(dateQueryPrecedente);
 
-    logger.debug(`Utilisateur ID: ${userId}`);
-    logger.debug(
-      `Période actuelle: ${format(debutMoisActuel, "yyyy-MM-dd")} à ${format(
-        finMoisActuel,
-        "yyyy-MM-dd"
-      )}`
-    );
-    logger.debug(
-      `Période précédente: ${format(
-        debutMoisPrecedent,
-        "yyyy-MM-dd"
-      )} à ${format(finMoisPrecedent, "yyyy-MM-dd")}`
-    );
-
     const depensesActuelles = await Depense.aggregate([
       {
         $match: {
-          utilisateur: userId,
+          utilisateur: userIds,
           date: {
             $gte: debutMoisActuel,
             $lte: finMoisActuel,
@@ -211,7 +235,7 @@ export const comparaisonMois = async (req: AuthRequest, res: Response) => {
     const depensesPassees = await Depense.aggregate([
       {
         $match: {
-          utilisateur: userId,
+          utilisateur: userIds,
           date: {
             $gte: debutMoisPrecedent,
             $lte: finMoisPrecedent,
@@ -235,10 +259,6 @@ export const comparaisonMois = async (req: AuthRequest, res: Response) => {
         : totalMoisActuel > 0
         ? Infinity
         : 0;
-
-    logger.debug(
-      `Total Actuel: ${totalMoisActuel}, Total Précédent: ${totalMoisPrecedent}, Diff: ${difference}, %Var: ${pourcentageVariation}`
-    );
 
     res.json({
       totalMoisActuel,
@@ -264,7 +284,7 @@ export const getEvolutionDepensesMensuelles = async (
 
     const nbMoisQuery = req.query.nbMois as string | undefined;
     let nbMois = 6;
-
+    const { contexte } = req.query;
     if (nbMoisQuery) {
       const parsedNbMois = parseInt(nbMoisQuery, 10);
       if (!isNaN(parsedNbMois) && parsedNbMois >= 1 && parsedNbMois <= 24) {
@@ -283,22 +303,30 @@ export const getEvolutionDepensesMensuelles = async (
     const dateFin = endOfMonth(dateActuelle);
     const dateDebut = startOfMonth(subMonths(dateActuelle, nbMois - 1));
 
-    const userId = req.user.id;
-    logger.debug(`Utilisateur ID (string): ${userId}`);
-    logger.debug(
-      `Calcul dateDebut: ${dateDebut.toISOString()}, dateFin: ${dateFin.toISOString()} pour nbMois: ${nbMois}`
-    );
+    const match: Record<string, unknown> = {
+      date: {
+        $gte: dateDebut,
+        $lte: dateFin,
+      },
+    };
+    if (contexte === 'couple') {
+      const User = (await import('../models/user.model')).default;
+      const fullCurrentUser = await User.findById(req.user.id);
+      if (fullCurrentUser && fullCurrentUser.partenaireId) {
+        match.utilisateur = { $in: [
+          String(fullCurrentUser._id),
+          String(fullCurrentUser.partenaireId)
+        ].map(id => new mongoose.Types.ObjectId(id)) };
+        match.typeDepense = DEPENSE.TYPES_DEPENSE.COMMUNE; // Pour stats couple, on ne veut que les communes
+      } else {
+        match.utilisateur = new mongoose.Types.ObjectId(req.user.id);
+      }
+    } else {
+      match.utilisateur = new mongoose.Types.ObjectId(req.user.id);
+    }
 
     const aggregatedResults = await Depense.aggregate([
-      {
-        $match: {
-          utilisateur: new mongoose.Types.ObjectId(userId),
-          date: {
-            $gte: dateDebut,
-            $lte: dateFin,
-          },
-        },
-      },
+      { $match: match },
       {
         $project: {
           annee: { $year: "$date" },
@@ -335,9 +363,7 @@ export const getEvolutionDepensesMensuelles = async (
         },
       },
     ]);
-    logger.debug(
-      `Résultat brut de l'agrégation: ${JSON.stringify(aggregatedResults)}`
-    );
+    console.log('DEBUG evolution-mensuelle:', JSON.stringify(aggregatedResults, null, 2));
 
     const finalResults = [];
     const monthsInInterval = eachMonthOfInterval({

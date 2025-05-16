@@ -5,9 +5,9 @@ import { useMonthlyExpensesEvolution } from '@/hooks/useMonthlyExpensesEvolution
 import { useCurrentMonthTotal } from '@/hooks/useCurrentMonthTotal.hook';
 import { TrendingUp, TrendingDown, ArrowDownRight, ArrowUpRight, Activity } from 'lucide-react';
 
-export default function StatsSummary() {
-  const { data: evolutionData, isLoading: evolutionLoading } = useMonthlyExpensesEvolution(12);
-  const { total: currentMonthTotal, isLoading: currentMonthLoading } = useCurrentMonthTotal();
+export default function StatsSummary({ statsContext = 'moi' }: { statsContext?: 'moi' | 'couple' }) {
+  const { data: evolutionData, isLoading: evolutionLoading } = useMonthlyExpensesEvolution(12, statsContext);
+  const { total: currentMonthTotal, isLoading: currentMonthLoading } = useCurrentMonthTotal(statsContext);
   const [stats, setStats] = useState({
     average: 0,
     minimum: { value: 0, month: '' },

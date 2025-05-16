@@ -272,6 +272,11 @@ export default function TableDepenses({
                   : ''}
               </th>
               <th
+                className="px-4 py-2 text-left"
+              >
+                Payé par
+              </th>
+              <th
                 className="px-4 py-2 text-left cursor-pointer"
                 onClick={() => handleSort('typeCompte')}
               >
@@ -321,6 +326,11 @@ export default function TableDepenses({
                     {typeof depense.categorie === 'object' &&
                     depense.categorie !== null
                       ? depense.categorie.nom
+                      : 'N/A'}
+                  </td>
+                  <td className="px-4 py-2">
+                    {typeof depense.utilisateur === 'object' && depense.utilisateur !== null && 'nom' in depense.utilisateur
+                      ? depense.utilisateur.nom
                       : 'N/A'}
                   </td>
                   <td className="px-4 py-2">{depense.typeCompte}</td>

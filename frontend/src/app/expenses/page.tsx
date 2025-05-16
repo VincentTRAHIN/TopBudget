@@ -12,6 +12,7 @@ import {
   DepenseSort,
 } from '@/hooks/useDepenses.hook';
 import { useCategories } from '@/hooks/useCategories.hook';
+import { useAuth } from '@/hooks/useAuth.hook';
 import { useState } from 'react';
 import { IDepense } from '@/types/depense.type';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -19,6 +20,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const ITEMS_PER_PAGE = 25;
 
 export default function ExpensesPage() {
+  const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedDepense, setSelectedDepense] = useState<IDepense | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -26,8 +28,9 @@ export default function ExpensesPage() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [filters, setFilters] = useState<DepenseFilters>({});
   const [sort, setSort] = useState<DepenseSort>({});
+  const [selectedVue, setSelectedVue] = useState<'moi' | 'partenaire' | 'couple_complet'>('moi');
   const { depenses, pagination, isLoading, isError } =
-    useDepenses(currentPage, ITEMS_PER_PAGE, filters, sort);
+    useDepenses(currentPage, ITEMS_PER_PAGE, filters, sort, selectedVue);
   const { categories } = useCategories();
 
   const handleEdit = (depense: IDepense) => {
@@ -97,11 +100,36 @@ const handleFilterChange = (newFilters: Partial<DepenseFilters>) => {
     handleFilterOrSortChange(newFilters, undefined); 
 };
 
+// Ajout du sélecteur de vue
+const handleVueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  setSelectedVue(e.target.value as 'moi' | 'partenaire' | 'couple_complet');
+  setCurrentPage(1);
+};
+
   return (
     <RequireAuth>
       <Layout>
         <div className="space-y-6">
           <h1 className="text-2xl font-bold">Mes dépenses</h1>
+
+          {/* Sélecteur de vue */}
+          <div className="mb-4">
+            <label htmlFor="vue-select" className="mr-2 font-medium">Vue :</label>
+            <select
+              id="vue-select"
+              value={selectedVue}
+              onChange={handleVueChange}
+              className="border rounded px-2 py-1"
+            >
+              <option value="moi">Mes Dépenses</option>
+              {user?.partenaireId && typeof user.partenaireId === 'object' && (
+                <option value="partenaire">Dépenses de {user.partenaireId.nom}</option>
+              )}
+              {user?.partenaireId && (
+                <option value="couple_complet">Toutes les Dépenses du Couple</option>
+              )}
+            </select>
+          </div>
 
           {showAddCategorieForm && (
             <FormCategorie

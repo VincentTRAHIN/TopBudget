@@ -13,16 +13,6 @@ import { parse, isValid } from "date-fns";
 import { TypeCompte, TypeDepense, IDepenseInput } from "../types/depense.types";
 import { ICategorie } from "../types/categorie.types";
 
-// Interface pour typer le filtre matchFilter plus précisément
-interface MatchFilter {
-  utilisateur: mongoose.Types.ObjectId;
-  categorie?: mongoose.Types.ObjectId;
-  date?: { $gte?: Date; $lte?: Date };
-  typeCompte?: TypeCompte;
-  typeDepense?: TypeDepense;
-  $or?: Array<{ [key: string]: { $regex: string; $options: string } }>;
-}
-
 export const ajouterDepense = async (
   req: AuthRequest,
   res: Response
@@ -112,6 +102,35 @@ export const obtenirDepenses = async (
       return;
     }
 
+    // Ajout du paramètre de vue (moi, partenaire, couple_complet)
+    const vue = typeof req.query.vue === 'string' ? req.query.vue : 'moi';
+    // On recharge l'utilisateur complet pour avoir le partenaireId
+    const User = (await import('../models/user.model')).default;
+    const fullCurrentUser = await User.findById(req.user.id);
+    if (!fullCurrentUser) {
+      res.status(404).json({ message: 'Utilisateur non trouvé' });
+      return;
+    }
+
+    // Utilisation de Record<string, unknown> pour le typage du filtre
+    const matchFilter: Record<string, unknown> = {};
+    // Gestion du filtre utilisateur selon la vue
+    if (vue === 'partenaire') {
+      if (!fullCurrentUser.partenaireId) {
+        res.status(400).json({ message: 'Aucun partenaire lié' });
+        return;
+      }
+      matchFilter.utilisateur = fullCurrentUser.partenaireId;
+    } else if (vue === 'couple_complet') {
+      if (!fullCurrentUser.partenaireId) {
+        matchFilter.utilisateur = fullCurrentUser._id;
+      } else {
+        matchFilter.utilisateur = { $in: [fullCurrentUser._id, fullCurrentUser.partenaireId] };
+      }
+    } else { // vue par défaut: moi
+      matchFilter.utilisateur = fullCurrentUser._id;
+    }
+
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || DEPENSE.PAGINATION.DEFAULT_LIMIT;
     const {
@@ -128,10 +147,18 @@ export const obtenirDepenses = async (
     const skip = (page - 1) * limit;
     const orderValue = order === "asc" ? 1 : -1;
 
-    // --- Construction du filtre $match (commun à find et aggregate) ---
-    const matchFilter: MatchFilter = {
-      utilisateur: new mongoose.Types.ObjectId(req.user.id),
-    };
+    // Ajout du filtrage typeDepense selon la vue
+    if (vue === 'moi') {
+      // Perso (de l'utilisateur) ou Commune (payée par l'utilisateur)
+      if (typeof typeDepense === 'string' && typeDepense) {
+        matchFilter.typeDepense = typeDepense as TypeDepense;
+      }
+    } else if (vue === 'partenaire') {
+      // Perso (du partenaire) ou Commune (payée par le partenaire)
+      if (typeof typeDepense === 'string' && typeDepense) {
+        matchFilter.typeDepense = typeDepense as TypeDepense;
+      }
+    } // Pour couple_complet, on ne filtre pas sur typeDepense ici (le frontend pourra filtrer visuellement)
 
     if (typeof categorie === "string" && categorie) {
       // S'assurer que l'ID est valide avant de l'utiliser dans le filtre
@@ -146,14 +173,11 @@ export const obtenirDepenses = async (
     }
     if (dateDebut || dateFin) {
       matchFilter.date = {};
-      if (dateDebut) matchFilter.date.$gte = new Date(dateDebut as string);
-      if (dateFin) matchFilter.date.$lte = new Date(dateFin as string);
+      if (dateDebut) (matchFilter.date as Record<string, Date>)["$gte"] = new Date(dateDebut as string);
+      if (dateFin) (matchFilter.date as Record<string, Date>)["$lte"] = new Date(dateFin as string);
     }
     if (typeof typeCompte === "string" && typeCompte) {
       matchFilter.typeCompte = typeCompte as TypeCompte;
-    }
-    if (typeof typeDepense === "string" && typeDepense) {
-      matchFilter.typeDepense = typeDepense as TypeDepense;
     }
     if (typeof search === "string" && search.trim()) {
       const regex = { $regex: search.trim(), $options: "i" };
@@ -189,6 +213,15 @@ export const obtenirDepenses = async (
         },
         { $sort: { lowerCaseCatName: orderValue, _id: 1 } },
         {
+          $lookup: {
+            from: "users",
+            localField: "utilisateur",
+            foreignField: "_id",
+            as: "utilisateurDetails"
+          }
+        },
+        { $unwind: { path: "$utilisateurDetails", preserveNullAndEmptyArrays: true } },
+        {
           $facet: {
             paginatedResults: [
               { $skip: skip },
@@ -203,7 +236,10 @@ export const obtenirDepenses = async (
                   typeCompte: 1,
                   typeDepense: 1,
                   recurrence: 1,
-                  utilisateur: 1,
+                  utilisateur: {
+                    _id: "$utilisateurDetails._id",
+                    nom: "$utilisateurDetails.nom"
+                  },
                   createdAt: 1,
                   updatedAt: 1,
                   categorie: {
@@ -238,6 +274,10 @@ export const obtenirDepenses = async (
         .populate<{
           categorie: Pick<ICategorie, "_id" | "nom" | "description" | "image">;
         }>("categorie", "nom description image")
+        .populate({
+          path: "utilisateur",
+          select: "nom"
+        })
         .sort(sortOptions)
         .skip(skip)
         .limit(limit)
@@ -529,11 +569,10 @@ export const importerDepenses = async (
             errorMessage = dbError.message;
             logger.error(`Erreur Mongoose/Mongo lors de l'insertion en masse: ${errorMessage}`, dbError);
             if (typeof dbError === 'object' && dbError !== null) {
-                if ('result' in dbError && typeof (dbError as { result?: unknown }).result === 'object' && (dbError as { result?: unknown }).result !== null) {
-                    const resultObj = (dbError as { result: Record<string, unknown> }).result;
-                    if ('nInserted' in resultObj && typeof resultObj.nInserted === 'number') {
-                       successfulInserts = resultObj.nInserted;
-                    }
+                // Correction du typage de resultObj
+                const resultObj = (dbError as { result?: { nInserted?: number } }).result;
+                if (resultObj && typeof resultObj.nInserted === 'number') {
+                   successfulInserts = resultObj.nInserted;
                 }
             }
         } else {

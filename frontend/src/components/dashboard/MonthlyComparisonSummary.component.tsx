@@ -4,8 +4,8 @@ import React from 'react';
 import { useMonthlyComparison } from '../../hooks/useMonthlyComparison.hook';
 import { Calendar, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
-const MonthlyComparisonSummary: React.FC = () => {
-  const { data, isLoading, isError } = useMonthlyComparison();
+const MonthlyComparisonSummary: React.FC<{ statsContext?: 'moi' | 'couple' }> = ({ statsContext = 'moi' }) => {
+  const { data, isLoading, isError } = useMonthlyComparison(statsContext);
 
   if (isLoading) {
     return (

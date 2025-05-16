@@ -29,7 +29,13 @@ export interface DepenseSort {
   order?: 'asc' | 'desc';
 }
 
-export const useDepenses = (page: number = 1, limit: number = 25, filters: DepenseFilters = {}, sort: DepenseSort = {}) => {
+export const useDepenses = (
+  page: number = 1,
+  limit: number = 25,
+  filters: DepenseFilters = {},
+  sort: DepenseSort = {},
+  vue: 'moi' | 'partenaire' | 'couple_complet' = 'moi'
+) => {
   const queryParams = new URLSearchParams({
     page: String(page),
     limit: String(limit),
@@ -41,9 +47,13 @@ export const useDepenses = (page: number = 1, limit: number = 25, filters: Depen
     }
   });
 
-  if(sort.sortBy) {
+  if (sort.sortBy) {
     queryParams.append('sortBy', sort.sortBy);
     queryParams.append('order', sort.order || 'asc');
+  }
+
+  if (vue && vue !== 'moi') {
+    queryParams.append('vue', vue);
   }
 
   const url = `${depensesEndpoint}?${queryParams.toString()}`;
