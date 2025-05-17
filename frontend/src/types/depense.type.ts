@@ -16,6 +16,7 @@ export interface IDepense {
   utilisateur: { _id: string; nom: string } | string;
   createdAt?: string;
   updatedAt?: string;
+  estChargeFixe?: boolean;
 }
 
 export type DepensePayload = Omit<

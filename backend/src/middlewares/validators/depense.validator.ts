@@ -13,4 +13,5 @@ export const creerDepenseValidator = [
   body('date').isISO8601().toDate().withMessage('La date est invalide (format ISO8601 attendu)'),
   body('description').optional().isString().isLength({ max: DEPENSE.VALIDATION.MAX_DESCRIPTION_LENGTH }).withMessage(`La description ne doit pas dépasser ${DEPENSE.VALIDATION.MAX_DESCRIPTION_LENGTH} caractères.`),
   body('commentaire').optional().isString().isLength({ max: DEPENSE.VALIDATION.MAX_COMMENTAIRE_LENGTH }).withMessage(`Le commentaire ne doit pas dépasser ${DEPENSE.VALIDATION.MAX_COMMENTAIRE_LENGTH} caractères.`),
+  body('estChargeFixe').optional().isBoolean().withMessage('Le champ estChargeFixe doit être un booléen.'),
 ];

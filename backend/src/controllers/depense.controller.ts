@@ -33,6 +33,7 @@ export const ajouterDepense = async (
       recurrence,
       categorie,
       description,
+      estChargeFixe = false,
     } = req.body;
 
     // Validation du montant
@@ -78,6 +79,7 @@ export const ajouterDepense = async (
       categorie,
       description,
       utilisateur: req.user ? req.user.id : null,
+      estChargeFixe,
     });
 
     const populatedDepense = await Depense.findById(nouvelleDepense._id)
@@ -523,6 +525,7 @@ export const importerDepenses = async (
                 utilisateur: new mongoose.Types.ObjectId(userId),
                 typeDepense,
                 typeCompte,
+                estChargeFixe: false, // Valeur par défaut pour les imports CSV en V1
               });
               logger.debug(`Ligne ${currentLine}: Dépense ajoutée à depensesAImporter.`);
 

@@ -56,33 +56,7 @@ export const MonthlyExpensesChart: React.FC<{ statsContext?: 'moi' | 'couple' }>
     return <div className="bg-white p-4 rounded shadow-md h-96 flex items-center justify-center">Aucune donnée disponible pour afficher le graphique.</div>;
   }
 
-  const labels = data.map(item => {
-    const date = new Date(item.mois + '-01');
-    return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
-  });
-
-  const dataValues = data.map(item => item.totalDepenses);
-
-  const backgroundColors = data.map(item => {
-    const year = item.mois.split('-')[0];
-    return YEAR_COLORS[year] || DEFAULT_BAR_COLOR;
-  });
-
-  const borderColors = backgroundColors.map(color => color.replace('0.6', '1'));
-
-  const chartData: ChartData<'bar', number[], string> = {
-    labels,
-    datasets: [
-      {
-        label: 'Dépenses Mensuelles',
-        data: dataValues,
-        backgroundColor: backgroundColors,
-        borderColor: borderColors,
-        borderWidth: 1,
-      },
-    ],
-  };
-
+  let chartData: ChartData<'bar', number[], string>;
   const chartOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -118,6 +92,72 @@ export const MonthlyExpensesChart: React.FC<{ statsContext?: 'moi' | 'couple' }>
       },
     },
   };
+
+  if (statsContext === 'couple' && data.length > 0 && data[0].depensesPersoUserA !== undefined) {
+    // Mode barres empilées pour le couple
+    const labels = data.map(item => {
+      const date = new Date(item.mois + '-01');
+      return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
+    });
+    const datasetA = {
+      label: 'Dépenses Perso Utilisateur',
+      data: data.map(item => item.depensesPersoUserA || 0),
+      backgroundColor: 'rgba(54, 162, 235, 0.7)',
+      stack: 'Stack 0',
+    };
+    const datasetB = {
+      label: 'Dépenses Perso Partenaire',
+      data: data.map(item => item.depensesPersoUserB || 0),
+      backgroundColor: 'rgba(255, 99, 132, 0.7)',
+      stack: 'Stack 0',
+    };
+    const datasetC = {
+      label: 'Dépenses Communes',
+      data: data.map(item => item.depensesCommunes || 0),
+      backgroundColor: 'rgba(255, 206, 86, 0.7)',
+      stack: 'Stack 0',
+    };
+    chartData = {
+      labels,
+      datasets: [datasetA, datasetB, datasetC],
+    };
+    chartOptions.scales = {
+      x: { stacked: true },
+      y: { stacked: true, beginAtZero: true, ticks: { callback: (value) => `${typeof value === 'number' ? value.toLocaleString('fr-FR') : value}€` } },
+    };
+    chartOptions.plugins = {
+      ...chartOptions.plugins,
+      legend: { display: true },
+      title: { display: true, text: `Évolution des Dépenses du Couple (${selectedPeriod} derniers mois)` },
+    };
+  } else {
+    const labels = data.map(item => {
+      const date = new Date(item.mois + '-01');
+      return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
+    });
+
+    const dataValues = data.map(item => item.totalDepenses);
+
+    const backgroundColors = data.map(item => {
+      const year = item.mois.split('-')[0];
+      return YEAR_COLORS[year] || DEFAULT_BAR_COLOR;
+    });
+
+    const borderColors = backgroundColors.map(color => color.replace('0.6', '1'));
+
+    chartData = {
+      labels,
+      datasets: [
+        {
+          label: 'Dépenses Mensuelles',
+          data: dataValues,
+          backgroundColor: backgroundColors,
+          borderColor: borderColors,
+          borderWidth: 1,
+        },
+      ],
+    };
+  }
 
   return (
     <div className="bg-white p-4 rounded shadow-md">

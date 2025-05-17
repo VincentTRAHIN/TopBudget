@@ -290,11 +290,7 @@ export const getEvolutionDepensesMensuelles = async (
       if (!isNaN(parsedNbMois) && parsedNbMois >= 1 && parsedNbMois <= 24) {
         nbMois = parsedNbMois;
       } else {
-        res
-          .status(400)
-          .json({
-            message: "Le paramètre nbMois doit être un nombre entre 1 et 24.",
-          });
+        res.status(400).json({ message: "Le paramètre nbMois doit être un nombre entre 1 et 24." });
         return;
       }
     }
@@ -303,28 +299,122 @@ export const getEvolutionDepensesMensuelles = async (
     const dateFin = endOfMonth(dateActuelle);
     const dateDebut = startOfMonth(subMonths(dateActuelle, nbMois - 1));
 
+    if (contexte === 'couple') {
+      const User = (await import('../models/user.model')).default;
+      const fullCurrentUser = await User.findById(req.user.id);
+      if (!fullCurrentUser || !fullCurrentUser.partenaireId) {
+        res.status(400).json({ message: "Aucun partenaire lié." });
+        return;
+      }
+      // Correction ObjectId : utilise toString() pour garantir la compatibilité
+      const currentUserObjectId = typeof fullCurrentUser._id === 'string' ? new mongoose.Types.ObjectId(fullCurrentUser._id) : fullCurrentUser._id;
+      const partenaireObjectId = typeof fullCurrentUser.partenaireId === 'string' ? new mongoose.Types.ObjectId(fullCurrentUser.partenaireId) : fullCurrentUser.partenaireId;
+
+      // Pipeline pour barres empilées : perso A, perso B, communes
+      const pipeline: mongoose.PipelineStage[] = [
+        { $match: {
+            utilisateur: { $in: [currentUserObjectId, partenaireObjectId] },
+            date: { $gte: dateDebut, $lte: dateFin }
+        }},
+        { $project: {
+            annee: { $year: "$date" },
+            mois: { $month: "$date" },
+            montant: "$montant",
+            typeDepense: "$typeDepense",
+            utilisateur: "$utilisateur"
+        }},
+        { $group: {
+            _id: {
+              annee: "$annee",
+              mois: "$mois",
+              typeDepense: "$typeDepense",
+              payeur: "$utilisateur"
+            },
+            totalParTypeEtPayeur: { $sum: "$montant" }
+        }},
+        { $group: {
+            _id: { annee: "$_id.annee", mois: "$_id.mois" },
+            depensesPersoUserA: {
+              $sum: {
+                $cond: [
+                  { $and: [
+                    { $eq: ["$_id.typeDepense", "Perso"] },
+                    { $eq: ["$_id.payeur", currentUserObjectId] }
+                  ] },
+                  "$totalParTypeEtPayeur",
+                  0
+                ]
+              }
+            },
+            depensesPersoUserB: {
+              $sum: {
+                $cond: [
+                  { $and: [
+                    { $eq: ["$_id.typeDepense", "Perso"] },
+                    { $eq: ["$_id.payeur", partenaireObjectId] }
+                  ] },
+                  "$totalParTypeEtPayeur",
+                  0
+                ]
+              }
+            },
+            depensesCommunes: {
+              $sum: {
+                $cond: [
+                  { $eq: ["$_id.typeDepense", "Commune"] },
+                  "$totalParTypeEtPayeur",
+                  0
+                ]
+              }
+            }
+        }},
+        { $sort: { '_id.annee': 1, '_id.mois': 1 } },
+        { $project: {
+            _id: 0,
+            mois: {
+              $concat: [
+                { $toString: "$_id.annee" },
+                "-",
+                {
+                  $cond: {
+                    if: { $lt: ["$_id.mois", 10] },
+                    then: { $concat: ["0", { $toString: "$_id.mois" }] },
+                    else: { $toString: "$_id.mois" }
+                  }
+                }
+              ]
+            },
+            depensesPersoUserA: 1,
+            depensesPersoUserB: 1,
+            depensesCommunes: 1
+        }}
+      ];
+
+      const aggregatedResults = await Depense.aggregate(pipeline);
+      // Générer la liste complète des mois de la période
+      const monthsInInterval = eachMonthOfInterval({ start: dateDebut, end: dateFin });
+      const finalResults = monthsInInterval.map(month => {
+        const formattedMonth = format(month, "yyyy-MM");
+        const found = aggregatedResults.find(e => e.mois === formattedMonth);
+        return found || {
+          mois: formattedMonth,
+          depensesPersoUserA: 0,
+          depensesPersoUserB: 0,
+          depensesCommunes: 0
+        };
+      });
+      res.json(finalResults);
+      return;
+    }
+
+    // Cas classique (hors couple)
     const match: Record<string, unknown> = {
       date: {
         $gte: dateDebut,
         $lte: dateFin,
       },
+      utilisateur: new mongoose.Types.ObjectId(req.user.id),
     };
-    if (contexte === 'couple') {
-      const User = (await import('../models/user.model')).default;
-      const fullCurrentUser = await User.findById(req.user.id);
-      if (fullCurrentUser && fullCurrentUser.partenaireId) {
-        match.utilisateur = { $in: [
-          String(fullCurrentUser._id),
-          String(fullCurrentUser.partenaireId)
-        ].map(id => new mongoose.Types.ObjectId(id)) };
-        match.typeDepense = DEPENSE.TYPES_DEPENSE.COMMUNE; // Pour stats couple, on ne veut que les communes
-      } else {
-        match.utilisateur = new mongoose.Types.ObjectId(req.user.id);
-      }
-    } else {
-      match.utilisateur = new mongoose.Types.ObjectId(req.user.id);
-    }
-
     const aggregatedResults = await Depense.aggregate([
       { $match: match },
       {
@@ -363,37 +453,150 @@ export const getEvolutionDepensesMensuelles = async (
         },
       },
     ]);
-    console.log('DEBUG evolution-mensuelle:', JSON.stringify(aggregatedResults, null, 2));
-
-    const finalResults = [];
-    const monthsInInterval = eachMonthOfInterval({
-      start: dateDebut,
-      end: dateFin,
-    });
-
-    for (const month of monthsInInterval) {
+    // Générer la liste complète des mois de la période
+    const monthsInInterval = eachMonthOfInterval({ start: dateDebut, end: dateFin });
+    const finalResults = monthsInInterval.map(month => {
       const formattedMonth = format(month, "yyyy-MM");
-      const existingEntry = aggregatedResults.find(
-        (entry) => entry.mois === formattedMonth
-      );
-
-      if (existingEntry) {
-        finalResults.push(existingEntry);
-      } else {
-        finalResults.push({ mois: formattedMonth, totalDepenses: 0 });
-      }
-    }
-
+      const found = aggregatedResults.find(e => e.mois === formattedMonth);
+      return found || { mois: formattedMonth, totalDepenses: 0 };
+    });
     res.json(finalResults);
   } catch (error) {
-    logger.error(
-      `Erreur lors de la récupération de l'évolution des dépenses mensuelles: ${error}`
-    );
-    res
-      .status(500)
-      .json({
-        message:
-          "Erreur lors de la récupération de l'évolution des dépenses mensuelles",
-      });
+    logger.error(`Erreur lors de la récupération de l'évolution des dépenses mensuelles: ${error}`);
+    res.status(500).json({ message: "Erreur lors de la récupération de l'évolution des dépenses mensuelles" });
+  }
+};
+
+export const getCoupleContributionsSummary = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: AUTH.ERROR_MESSAGES.UNAUTHORIZED });
+      return;
+    }
+    // Récupérer l'utilisateur et le partenaire
+    const User = (await import('../models/user.model')).default;
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser || !currentUser.partenaireId) {
+      res.status(400).json({ message: "Aucun partenaire lié." });
+      return;
+    }
+    // Correction typage ObjectId robuste
+    const currentUserId = new mongoose.Types.ObjectId(String(currentUser._id));
+    const partenaireId = new mongoose.Types.ObjectId(String(currentUser.partenaireId));
+
+    // Récupérer mois/annee
+    let { mois, annee } = req.query;
+    const now = new Date();
+    if (!mois || typeof mois !== 'string') {
+      mois = (now.getMonth() + 1).toString().padStart(2, '0');
+    }
+    if (!annee || typeof annee !== 'string') {
+      annee = now.getFullYear().toString();
+    }
+    const dateDebutMois = new Date(`${annee}-${mois}-01T00:00:00.000Z`);
+    const dateFinMois = new Date(`${annee}-${mois}-31T23:59:59.999Z`);
+
+    // Pipeline d'agrégation
+    const pipeline: mongoose.PipelineStage[] = [
+      { $match: {
+          utilisateur: { $in: [currentUserId, partenaireId] },
+          typeDepense: DEPENSE.TYPES_DEPENSE.COMMUNE,
+          date: { $gte: dateDebutMois, $lte: dateFinMois }
+      }},
+      { $group: {
+          _id: "$utilisateur",
+          totalPayeParUtilisateur: { $sum: "$montant" }
+      }}
+    ];
+    const aggregation = await Depense.aggregate(pipeline);
+    // Extraction des totaux
+    let payeParMoiPourCommunes = 0;
+    let payeParPartenairePourCommunes = 0;
+    for (const entry of aggregation) {
+      if (entry._id.toString() === currentUserId.toString()) {
+        payeParMoiPourCommunes = entry.totalPayeParUtilisateur;
+      } else if (entry._id.toString() === partenaireId.toString()) {
+        payeParPartenairePourCommunes = entry.totalPayeParUtilisateur;
+      }
+    }
+    const totalDepensesCommunes = payeParMoiPourCommunes + payeParPartenairePourCommunes;
+    const partTheorique = totalDepensesCommunes / 2;
+    const ecartUtilisateurActuel = payeParMoiPourCommunes - partTheorique;
+    res.json({
+      totalDepensesCommunes,
+      contributionUtilisateurActuel: payeParMoiPourCommunes,
+      contributionPartenaire: payeParPartenairePourCommunes,
+      ecartUtilisateurActuel
+    });
+  } catch (error) {
+    logger.error("Erreur dans getCoupleContributionsSummary:", error);
+    res.status(500).json({ message: "Erreur lors du calcul du résumé des contributions du couple." });
+  }
+};
+
+export const getCoupleFixedCharges = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: AUTH.ERROR_MESSAGES.UNAUTHORIZED });
+      return;
+    }
+    // Récupérer l'utilisateur et le partenaire
+    const User = (await import('../models/user.model')).default;
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser || !currentUser.partenaireId) {
+      res.status(400).json({ message: "Aucun partenaire lié." });
+      return;
+    }
+    const currentUserId = new mongoose.Types.ObjectId(String(currentUser._id));
+    const partenaireId = new mongoose.Types.ObjectId(String(currentUser.partenaireId));
+
+    // Récupérer mois/annee
+    let { mois, annee } = req.query;
+    const now = new Date();
+    if (!mois || typeof mois !== 'string') {
+      mois = (now.getMonth() + 1).toString().padStart(2, '0');
+    }
+    if (!annee || typeof annee !== 'string') {
+      annee = now.getFullYear().toString();
+    }
+    const dateDebutMois = new Date(`${annee}-${mois}-01T00:00:00.000Z`);
+    const dateFinMois = new Date(`${annee}-${mois}-31T23:59:59.999Z`);
+
+    // Pipeline d'agrégation
+    const pipeline: mongoose.PipelineStage[] = [
+      { $match: {
+          utilisateur: { $in: [currentUserId, partenaireId] },
+          typeDepense: DEPENSE.TYPES_DEPENSE.COMMUNE,
+          estChargeFixe: true,
+          date: { $gte: dateDebutMois, $lte: dateFinMois }
+      }},
+      { $lookup: {
+          from: 'categories',
+          localField: 'categorie',
+          foreignField: '_id',
+          as: 'categorieDetails'
+      }},
+      { $unwind: { path: '$categorieDetails', preserveNullAndEmptyArrays: true } },
+      { $lookup: {
+          from: 'users',
+          localField: 'utilisateur',
+          foreignField: '_id',
+          as: 'payeurDetails'
+      }},
+      { $unwind: { path: '$payeurDetails', preserveNullAndEmptyArrays: true } },
+      { $project: {
+          montant: 1,
+          categorieNom: '$categorieDetails.nom',
+          payePar: '$payeurDetails.nom',
+          description: 1,
+          date: 1
+      }}
+    ];
+    const listeChargesFixes = await Depense.aggregate(pipeline);
+    const totalChargesFixesCommunes = listeChargesFixes.reduce((sum, charge) => sum + (charge.montant || 0), 0);
+    res.json({ listeChargesFixes, totalChargesFixesCommunes });
+  } catch (error) {
+    logger.error("Erreur dans getCoupleFixedCharges:", error);
+    res.status(500).json({ message: "Erreur lors de la récupération des charges fixes communes du couple." });
   }
 };

@@ -1,6 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express'; // Importer Request, Response, NextFunction
 import { proteger } from '../middlewares/auth.middleware';
-import { totalDepensesMensuelles, repartitionParCategorie, comparaisonMois, getEvolutionDepensesMensuelles } from '../controllers/statistiques.controller';
+import { totalDepensesMensuelles, repartitionParCategorie, comparaisonMois, getEvolutionDepensesMensuelles, getCoupleContributionsSummary, getCoupleFixedCharges } from '../controllers/statistiques.controller';
 
 const router = express.Router();
 
@@ -18,5 +18,7 @@ router.get(
     proteger,
     getEvolutionDepensesMensuelles
 );
+router.get('/couple/resume-contributions', proteger, getCoupleContributionsSummary);
+router.get('/couple/charges-fixes', proteger, getCoupleFixedCharges);
 
 export default router;

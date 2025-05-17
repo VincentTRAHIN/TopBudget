@@ -93,10 +93,29 @@
  *         totalDepenses:
  *           type: number
  *           description: Montant total des dépenses pour le mois
+ *     EvolutionMensuelleDataCouple:
+ *       type: object
+ *       properties:
+ *         mois:
+ *           type: string
+ *           description: Mois au format YYYY-MM
+ *         depensesPersoUserA:
+ *           type: number
+ *           description: Dépenses personnelles de l'utilisateur A (utilisateur authentifié)
+ *         depensesPersoUserB:
+ *           type: number
+ *           description: Dépenses personnelles du partenaire
+ *         depensesCommunes:
+ *           type: number
+ *           description: Dépenses communes du couple
  *     EvolutionMensuelleResponse:
- *       type: array
- *       items:
- *         $ref: '#/components/schemas/EvolutionMensuelleData'
+ *       oneOf:
+ *         - type: array
+ *           items:
+ *             $ref: '#/components/schemas/EvolutionMensuelleData'
+ *         - type: array
+ *           items:
+ *             $ref: '#/components/schemas/EvolutionMensuelleDataCouple'
  */
 
 /**
@@ -409,6 +428,144 @@
  *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Erreur serveur.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
+ * /api/statistiques/couple/resume-contributions:
+ *   get:
+ *     summary: Récapitulatif des contributions de chaque membre du couple pour les dépenses communes d'un mois donné
+ *     tags: [Statistiques]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: mois
+ *         schema:
+ *           type: string
+ *           format: MM
+ *         required: false
+ *         description: Mois concerné (format MM, ex: "05"). Si non fourni, le mois courant est utilisé.
+ *       - in: query
+ *         name: annee
+ *         schema:
+ *           type: string
+ *           format: YYYY
+ *         required: false
+ *         description: Année concernée (format YYYY). Si non fournie, l'année courante est utilisée.
+ *     responses:
+ *       200:
+ *         description: Résumé des contributions du couple pour les dépenses communes du mois sélectionné
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalDepensesCommunes:
+ *                   type: number
+ *                   description: Total des dépenses communes du couple pour la période
+ *                 contributionUtilisateurActuel:
+ *                   type: number
+ *                   description: Montant payé par l'utilisateur authentifié pour les dépenses communes
+ *                 contributionPartenaire:
+ *                   type: number
+ *                   description: Montant payé par le partenaire pour les dépenses communes
+ *                 ecartUtilisateurActuel:
+ *                   type: number
+ *                   description: Différence entre la contribution réelle de l'utilisateur et la part théorique (positive = l'utilisateur a trop payé, négative = il doit de l'argent à son partenaire)
+ *       400:
+ *         description: Erreur de paramètre ou couple non lié
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Non autorisé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erreur serveur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
+ * /api/statistiques/couple/charges-fixes:
+ *   get:
+ *     summary: Liste les charges fixes communes du couple pour un mois donné
+ *     tags: [Statistiques]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: mois
+ *         schema:
+ *           type: string
+ *           format: MM
+ *         required: false
+ *         description: Mois concerné (format MM, ex: "05"). Si non fourni, le mois courant est utilisé.
+ *       - in: query
+ *         name: annee
+ *         schema:
+ *           type: string
+ *           format: YYYY
+ *         required: false
+ *         description: Année concernée (format YYYY). Si non fournie, l'année courante est utilisée.
+ *     responses:
+ *       200:
+ *         description: Liste des charges fixes communes du couple pour la période sélectionnée
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 listeChargesFixes:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       montant:
+ *                         type: number
+ *                         description: Montant de la charge fixe
+ *                       categorieNom:
+ *                         type: string
+ *                         description: Nom de la catégorie
+ *                       payePar:
+ *                         type: string
+ *                         description: Nom du payeur
+ *                       description:
+ *                         type: string
+ *                         description: Description de la charge fixe
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                         description: Date de la charge fixe
+ *                 totalChargesFixesCommunes:
+ *                   type: number
+ *                   description: Total des charges fixes communes du couple pour la période
+ *       400:
+ *         description: Erreur de paramètre ou couple non lié
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Non autorisé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erreur serveur
  *         content:
  *           application/json:
  *             schema:

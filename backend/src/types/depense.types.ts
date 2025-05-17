@@ -14,6 +14,7 @@ export interface IDepense extends Document {
   recurrence: boolean;
   categorie: Types.ObjectId;
   utilisateur: Types.ObjectId;
+  estChargeFixe: boolean;
 }
 
 export interface IDepenseInput {
@@ -26,6 +27,7 @@ export interface IDepenseInput {
   categorie: Types.ObjectId;
   description?: string;
   utilisateur: Types.ObjectId;
+  estChargeFixe?: boolean;
 }
 
 export interface IDepenseResponse {
@@ -45,6 +47,7 @@ export interface IDepenseResponse {
     id: string;
     nom: string;
   };
+  estChargeFixe: boolean;
   createdAt: Date;
   updatedAt: Date;
-} 
+}

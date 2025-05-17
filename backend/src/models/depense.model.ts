@@ -11,6 +11,7 @@ const DepenseSchema = new Schema<IDepense>({
   recurrence: { type: Boolean, default: false },
   categorie: { type: mongoose.Schema.Types.ObjectId, ref: 'Categorie', required: true },
   utilisateur: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  estChargeFixe: { type: Boolean, default: false, required: true },
 }, { timestamps: true });
 
 export default mongoose.model<IDepense>('Depense', DepenseSchema);

@@ -38,6 +38,9 @@
  *         categorie:
  *           type: string
  *           description: ID de la catégorie
+ *         estChargeFixe:
+ *           type: boolean
+ *           description: Indique si la dépense est une charge fixe (ex : loyer, abonnement, etc.) (optionnel)
  *     DepenseResponse:
  *       type: object
  *       properties:
@@ -86,6 +89,9 @@
  *             nom:
  *               type: string
  *               description: Nom de l'utilisateur
+ *         estChargeFixe:
+ *           type: boolean
+ *           description: Indique si la dépense est une charge fixe (ex : loyer, abonnement, etc.)
  *         createdAt:
  *           type: string
  *           format: date-time

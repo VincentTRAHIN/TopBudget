@@ -66,34 +66,33 @@ export default function ProfilPage() {
   // Gestion soumission liaison partenaire
   const handlePartnerSubmit = async (values: { partenaireIdentifier?: string }, { setSubmitting, resetForm }: { setSubmitting: (isSubmitting: boolean) => void, resetForm: () => void }) => {
     try {
-      // Mise à jour du profil avec le nouveau partenaireId ou null si déliaison
-      const response = await fetch('/api/profile/me', {
+      let partenaireIdToSend = null;
+      if (!unlinkPartner && values.partenaireIdentifier) {
+        // Recherche l'utilisateur par email ou nom
+        const userFound = await fetcher<{ _id: string; nom: string; email: string }>(`/api/users/search?query=${encodeURIComponent(values.partenaireIdentifier)}`);
+        partenaireIdToSend = userFound._id;
+      }
+      // Mise à jour du profil avec le bon partenaireId
+      const response = await fetch(profileUpdateEndpoint, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          partenaireId: unlinkPartner ? null : values.partenaireIdentifier,
+          partenaireId: unlinkPartner ? null : partenaireIdToSend,
         }),
       });
-
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Erreur lors de la liaison avec le partenaire");
       }
-
-      // Réussite
       toast.success(unlinkPartner 
         ? "Partenaire délié avec succès" 
         : "Partenaire lié avec succès");
-      
-      // Réinitialiser le formulaire après la déliaison
       if (unlinkPartner) {
         setUnlinkPartner(false);
         resetForm();
       }
-      
-      // Rafraîchir les données utilisateur
       mutateAuth();
     } catch (error) {
       if (error instanceof Error) {

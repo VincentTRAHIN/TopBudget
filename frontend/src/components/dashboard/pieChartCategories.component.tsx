@@ -25,13 +25,16 @@ const BACKGROUND_COLORS = [
   'rgba(0, 128, 128, 0.6)',
 ];
 
-export default function PieChartCategories({ statsContext = 'moi' }: { statsContext?: 'moi' | 'couple' }) {
+export default function PieChartCategories({ statsContext = 'moi', customTitle }: { statsContext?: 'moi' | 'couple', customTitle?: string }) {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   
   const { categories } = useCategories();
   const { depenses } = useDepenses(); 
   const { categoryDistribution, isLoading, isError } = useCategoryDistribution(selectedYear, selectedMonth, statsContext);
+
+  // Remplace le titre dynamiquement
+  const chartTitle = customTitle || 'Répartition des dépenses';
 
   // Initialisation des données du graphique
   let labels: string[] = [];
@@ -78,8 +81,8 @@ export default function PieChartCategories({ statsContext = 'moi' }: { statsCont
       plugins: {
         legend: { position: 'top' as const },
         title: { 
-          display: true, 
-          text: `Répartition - ${new Date(selectedYear, selectedMonth - 1).toLocaleString('fr-FR', { month: 'long', year: 'numeric' })}` 
+          display: true,
+          text: chartTitle,
         },
         tooltip: {
           callbacks: {

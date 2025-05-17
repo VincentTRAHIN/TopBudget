@@ -10,6 +10,7 @@ import depenseRoutes from './routes/depense.route';
 import categorieRoutes from './routes/categorie.route';
 import statistiquesRoutes from './routes/statistiques.route';
 import profileRoutes from './routes/profile.route';
+import userRoutes from './routes/user.route';
 import logger from './utils/logger.utils';
 import { swaggerSpec } from './docs/swagger.config';
 import { errorHandler, AppError } from './middlewares/error.middleware';
@@ -70,6 +71,7 @@ app.use('/api/depenses', depenseRoutes);
 app.use('/api/categories', categorieRoutes);
 app.use('/api/statistiques', statistiquesRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/users', userRoutes);
 
 // Gestion des erreurs 404
 app.use((_req, _res, next) => {

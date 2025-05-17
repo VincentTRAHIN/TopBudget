@@ -7,6 +7,8 @@ import MonthlyExpensesChart from '@/components/dashboard/MonthlyExpensesChart.co
 import MonthlyComparisonSummary from '@/components/dashboard/MonthlyComparisonSummary.component';
 import StatsSummary from '@/components/statistiques/StatsSummary.component';
 import TopCategoriesYearToDate from '@/components/statistiques/TopCategoriesYearToDate.component';
+import CoupleContributionsSummary from '@/components/statistiques/CoupleContributionsSummary.component';
+import CoupleFixedChargesList from '@/components/statistiques/CoupleFixedChargesList.component';
 import { useAuth } from '@/hooks/useAuth.hook';
 import { useState } from 'react';
 
@@ -45,14 +47,36 @@ export default function StatistiquesPage() {
             </div>
           </div>
 
+          {/* Gestion du contexte couple pour PieChartCategories */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="col-span-1">
-              <PieChartCategories statsContext={statsContext} />
+              <PieChartCategories
+                statsContext={statsContext}
+                customTitle={statsContext === 'couple' ? 'Répartition des Dépenses Communes par Catégorie' : undefined}
+              />
             </div>
             <div className="col-span-1">
               <TopCategoriesYearToDate statsContext={statsContext} />
             </div>
           </div>
+
+          {/* Résumé des contributions du couple */}
+          {statsContext === 'couple' && (
+            <div className="mb-6">
+              <CoupleContributionsSummary />
+            </div>
+          )}
+
+          {/* Section dédiée aux statistiques du couple */}
+          {user?.partenaireId && (
+            <section className="mb-8">
+              <h2 className="text-xl font-bold mb-4">Statistiques du Couple</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <CoupleContributionsSummary />
+                <CoupleFixedChargesList />
+              </div>
+            </section>
+          )}
 
           <div className="grid grid-cols-1 gap-6">
             <div className="bg-white p-6 rounded-lg shadow-md">

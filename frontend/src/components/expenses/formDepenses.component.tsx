@@ -22,6 +22,7 @@ const DepenseSchema = Yup.object().shape({
   categorie: Yup.string().required('Requis'),
   description: Yup.string().max(500, 'Doit contenir moins de 500 caractères'),
   commentaire: Yup.string(),
+  estChargeFixe: Yup.boolean(),
 });
 
 interface DepenseFormValues {
@@ -32,6 +33,7 @@ interface DepenseFormValues {
   categorie: string;
   description: string;
   commentaire: string;
+  estChargeFixe: boolean;
 }
 
 export default function FormDepense({
@@ -74,6 +76,7 @@ export default function FormDepense({
             : existingDepense.categorie._id,
         commentaire: existingDepense.commentaire || '',
         description: existingDepense.description || '',
+        estChargeFixe: existingDepense?.estChargeFixe ?? false,
       }
     : {
         montant: '',
@@ -83,6 +86,7 @@ export default function FormDepense({
         categorie: '',
         commentaire: '',
         description: '',
+        estChargeFixe: false,
       };
 
   const handleSubmit = async (
@@ -314,6 +318,11 @@ export default function FormDepense({
                 component="div"
                 className="text-red-500 text-sm mt-1"
               />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Field type="checkbox" name="estChargeFixe" id="estChargeFixe" className="form-checkbox h-5 w-5 text-indigo-600" />
+              <label htmlFor="estChargeFixe" className="ml-2 text-sm text-gray-900">Marquer comme charge fixe</label>
             </div>
 
             <div className="flex gap-4">
