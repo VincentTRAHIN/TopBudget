@@ -2,6 +2,7 @@
 import Layout from "@/components/layout/Layout";
 import RequireAuth from "@/components/auth/requireAuth.component";
 import { useAuth } from "@/hooks/useAuth.hook";
+import { IUser } from "@/types/user.type";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-hot-toast";
@@ -9,7 +10,7 @@ import { UserCircle } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 import fetcher from "@/utils/fetcher.utils";
-import { profileAvatarEndpoint, profileChangePasswordEndpoint, profileUpdateEndpoint } from "@/services/api.service";
+import { profileAvatarEndpoint, profileChangePasswordEndpoint, profileUpdateEndpoint, searchUserEndpoint } from "@/services/api.service";
 
 // Schéma de validation pour les informations personnelles
 const ProfileSchema = Yup.object().shape({
@@ -69,11 +70,11 @@ export default function ProfilPage() {
       let partenaireIdToSend = null;
       if (!unlinkPartner && values.partenaireIdentifier) {
         // Recherche l'utilisateur par email ou nom
-        const userFound = await fetcher<{ _id: string; nom: string; email: string }>(`/api/users/search?query=${encodeURIComponent(values.partenaireIdentifier)}`);
+        const userFound = await fetcher<{ _id: string; nom: string; email: string }>(`${searchUserEndpoint}?query=${encodeURIComponent(values.partenaireIdentifier)}`);
         partenaireIdToSend = userFound._id;
       }
       // Mise à jour du profil avec le bon partenaireId
-      const response = await fetch(profileUpdateEndpoint, {
+      await fetcher<IUser>(profileUpdateEndpoint, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -82,10 +83,7 @@ export default function ProfilPage() {
           partenaireId: unlinkPartner ? null : partenaireIdToSend,
         }),
       });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Erreur lors de la liaison avec le partenaire");
-      }
+
       toast.success(unlinkPartner 
         ? "Partenaire délié avec succès" 
         : "Partenaire lié avec succès");
