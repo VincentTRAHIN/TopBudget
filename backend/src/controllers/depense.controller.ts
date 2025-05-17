@@ -149,18 +149,10 @@ export const obtenirDepenses = async (
     const skip = (page - 1) * limit;
     const orderValue = order === "asc" ? 1 : -1;
 
-    // Ajout du filtrage typeDepense selon la vue
-    if (vue === 'moi') {
-      // Perso (de l'utilisateur) ou Commune (payée par l'utilisateur)
-      if (typeof typeDepense === 'string' && typeDepense) {
-        matchFilter.typeDepense = typeDepense as TypeDepense;
-      }
-    } else if (vue === 'partenaire') {
-      // Perso (du partenaire) ou Commune (payée par le partenaire)
-      if (typeof typeDepense === 'string' && typeDepense) {
-        matchFilter.typeDepense = typeDepense as TypeDepense;
-      }
-    } // Pour couple_complet, on ne filtre pas sur typeDepense ici (le frontend pourra filtrer visuellement)
+    // Ajout du filtrage typeDepense TOUJOURS si fourni et valide
+    if (typeof typeDepense === 'string' && typeDepense && ['Perso', 'Commune'].includes(typeDepense)) {
+      matchFilter.typeDepense = typeDepense as TypeDepense;
+    }
 
     if (typeof categorie === "string" && categorie) {
       // S'assurer que l'ID est valide avant de l'utiliser dans le filtre
@@ -278,7 +270,7 @@ export const obtenirDepenses = async (
         }>("categorie", "nom description image")
         .populate({
           path: "utilisateur",
-          select: "nom"
+          select: "nom _id"
         })
         .sort(sortOptions)
         .skip(skip)

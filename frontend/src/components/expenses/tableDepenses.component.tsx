@@ -5,7 +5,7 @@ import { IDepense } from '@/types/depense.type';
 import { toast } from 'react-hot-toast';
 import fetcher from '@/utils/fetcher.utils';
 import { depensesEndpoint } from '@/services/api.service';
-import { Edit, Trash2, Upload } from 'lucide-react'; 
+import { Edit, Trash2, Upload, Pin } from 'lucide-react'; 
 import {
   useDepenses,
   DepenseFilters,
@@ -23,6 +23,8 @@ interface TableDepensesProps {
   onImport: () => void; 
   onFilterChange: (filters: Partial<DepenseFilters>) => void;
   onSortChange: (sort: Partial<DepenseSort>) => void;
+  currentUserId?: string;
+  partenaireId?: string;
 }
 
 export default function TableDepenses({
@@ -35,6 +37,7 @@ export default function TableDepenses({
   onImport, 
   onFilterChange,
   onSortChange,
+  currentUserId,
 }: TableDepensesProps) {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -272,9 +275,26 @@ export default function TableDepenses({
                   : ''}
               </th>
               <th
-                className="px-4 py-2 text-left"
+                className="px-4 py-2 text-left cursor-pointer"
+                onClick={() => handleSort('utilisateur')}
               >
-                Payé par
+                Payé par{' '}
+                {currentSort.sortBy === 'utilisateur'
+                  ? currentSort.order === 'asc'
+                    ? '↑'
+                    : '↓'
+                  : ''}
+              </th>
+              <th
+                className="px-4 py-2 text-center cursor-pointer"
+                onClick={() => handleSort('estChargeFixe')}
+              >
+                Charge Fixe{' '}
+                {currentSort.sortBy === 'estChargeFixe'
+                  ? currentSort.order === 'asc'
+                    ? '↑'
+                    : '↓'
+                  : ''}
               </th>
               <th
                 className="px-4 py-2 text-left cursor-pointer"
@@ -333,6 +353,9 @@ export default function TableDepenses({
                       ? depense.utilisateur.nom
                       : 'N/A'}
                   </td>
+                  <td className="px-4 py-2 text-center">
+                    {depense.estChargeFixe ? <Pin size={16} className="text-blue-500 mx-auto" /> : '-'}
+                  </td>
                   <td className="px-4 py-2">{depense.typeCompte}</td>
                   <td className="px-4 py-2">{depense.typeDepense}</td>
                   <td className="px-4 py-2 text-right font-medium whitespace-nowrap">
@@ -342,15 +365,17 @@ export default function TableDepenses({
                     <div className="flex gap-2 justify-center">
                       <button
                         onClick={() => handleEdit(depense)}
-                        className="p-1 text-blue-600 hover:text-blue-800"
+                        className={`p-1 text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed`}
                         aria-label="Modifier"
+                        disabled={currentUserId !== (typeof depense.utilisateur === 'object' ? depense.utilisateur._id : depense.utilisateur)}
                       >
                         <Edit size={16} />
                       </button>
                       <button
                         onClick={() => handleDelete(depense._id)}
-                        className="p-1 text-red-600 hover:text-red-800"
+                        className={`p-1 text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed`}
                         aria-label="Supprimer"
+                        disabled={currentUserId !== (typeof depense.utilisateur === 'object' ? depense.utilisateur._id : depense.utilisateur)}
                       >
                         <Trash2 size={16} />
                       </button>

@@ -28,7 +28,12 @@ const MonthlyComparisonSummary: React.FC<{ statsContext?: 'moi' | 'couple' }> = 
     return <div className="bg-white p-6 rounded-lg shadow-md">Aucune donnée disponible.</div>;
   }
 
-  const { totalMoisActuel, totalMoisPrecedent, difference, pourcentageVariation } = data;
+  const {
+    totalMoisActuel = 0,
+    totalMoisPrecedent = 0,
+    difference = 0,
+    pourcentageVariation = 0
+  } = data;
   
   // Détermine l'icône et la couleur en fonction de la différence
   const TrendIcon = difference === 0 ? Minus : difference > 0 ? TrendingUp : TrendingDown;
@@ -50,8 +55,8 @@ const MonthlyComparisonSummary: React.FC<{ statsContext?: 'moi' | 'couple' }> = 
             <Calendar className="text-blue-600 mr-2" size={20} />
             <h4 className="text-md font-medium text-blue-700">Dépenses Mensuelles</h4>
           </div>
-          <p className="text-gray-700">{currentMonth}: <span className="font-bold">{totalMoisActuel.toFixed(2)}€</span></p>
-          <p className="text-gray-700">{prevMonth}: <span className="font-bold">{totalMoisPrecedent.toFixed(2)}€</span></p>
+          <p className="text-gray-700">{currentMonth}: <span className="font-bold">{(totalMoisActuel || 0).toFixed(2)}€</span></p>
+          <p className="text-gray-700">{prevMonth}: <span className="font-bold">{(totalMoisPrecedent || 0).toFixed(2)}€</span></p>
         </div>
         
         <div className={`border rounded-lg p-4 ${trendBg}`}>
@@ -61,7 +66,7 @@ const MonthlyComparisonSummary: React.FC<{ statsContext?: 'moi' | 'couple' }> = 
           </div>
           <div className="flex items-center">
             <span className={`${trendColor} font-semibold`}>
-              {difference.toFixed(2)}€ ({pourcentageVariation.toFixed(1)}%)
+              {(difference || 0).toFixed(2)}€ ({(pourcentageVariation || 0).toFixed(1)}%)
             </span>
           </div>
           <p className={`text-sm mt-1 ${trendColor}`}>{trendText}</p>

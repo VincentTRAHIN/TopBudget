@@ -171,6 +171,8 @@ const handleVueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
                 onImport={handleOpenImportModal}
                 onFilterChange={handleFilterChange}
                 onSortChange={handleSortChange}
+                currentUserId={user?._id}
+                partenaireId={user?.partenaireId && typeof user.partenaireId === 'object' ? user.partenaireId._id : undefined}
               />
               {/* --- Section Pagination --- */}
               {pagination && pagination.total > 0 && (

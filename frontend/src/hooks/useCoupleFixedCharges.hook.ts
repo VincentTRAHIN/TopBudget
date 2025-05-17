@@ -1,5 +1,6 @@
 import useSWR from 'swr';
 import fetcher from '@/utils/fetcher.utils';
+import { API_BASE_URL } from '@/services/api.service';
 
 export interface CoupleFixedCharge {
   _id: string;
@@ -15,7 +16,7 @@ export interface CoupleFixedChargesResponse {
 }
 
 export const useCoupleFixedCharges = (annee: string, mois: string) => {
-  const url = `/api/statistiques/couple/charges-fixes?annee=${annee}&mois=${mois}`;
+  const url = `${API_BASE_URL}/statistiques/couple/charges-fixes?annee=${annee}&mois=${mois}`;
   const { data, error, isLoading, mutate } = useSWR<CoupleFixedChargesResponse>(url, fetcher);
   return {
     data,
