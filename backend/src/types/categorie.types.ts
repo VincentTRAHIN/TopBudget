@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document } from "mongoose";
 
 export interface ICategorie extends Document {
   nom: string;
@@ -19,4 +19,4 @@ export interface ICategorieResponse {
   image?: string;
   createdAt: Date;
   updatedAt: Date;
-} 
+}

@@ -10,12 +10,14 @@ const generateToken = (id: string) => {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET non défini");
   }
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: AUTH.JWT_EXPIRES_IN });
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: AUTH.JWT_EXPIRES_IN,
+  });
 };
 
 export const inscription = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   const erreurs = validationResult(req);
   if (!erreurs.isEmpty()) {
@@ -27,7 +29,9 @@ export const inscription = async (
   try {
     const userExistant = await User.findOne({ email });
     if (userExistant) {
-      res.status(400).json({ message: AUTH.ERROR_MESSAGES.EMAIL_ALREADY_EXISTS });
+      res
+        .status(400)
+        .json({ message: AUTH.ERROR_MESSAGES.EMAIL_ALREADY_EXISTS });
       return;
     }
 
@@ -49,10 +53,12 @@ export const inscription = async (
 export const connexion = async (req: Request, res: Response): Promise<void> => {
   logger.info("Requête reçue sur /api/auth/login");
   logger.info(`Corps de la requête: ${JSON.stringify(req.body)}`);
-  
+
   const erreurs = validationResult(req);
   if (!erreurs.isEmpty()) {
-    logger.warn(`Erreurs de validation login: ${JSON.stringify(erreurs.array())}`);
+    logger.warn(
+      `Erreurs de validation login: ${JSON.stringify(erreurs.array())}`,
+    );
     res.status(400).json({ erreurs: erreurs.array() });
     return;
   }
@@ -63,7 +69,9 @@ export const connexion = async (req: Request, res: Response): Promise<void> => {
     const utilisateur = await User.findOne({ email });
     if (!utilisateur) {
       logger.warn(`Utilisateur non trouvé pour email: ${email}`);
-      res.status(400).json({ message: AUTH.ERROR_MESSAGES.INVALID_CREDENTIALS });
+      res
+        .status(400)
+        .json({ message: AUTH.ERROR_MESSAGES.INVALID_CREDENTIALS });
       return;
     }
     logger.info(`Utilisateur trouvé: ${utilisateur.email}`);
@@ -71,7 +79,9 @@ export const connexion = async (req: Request, res: Response): Promise<void> => {
     const motDePasseValide = await utilisateur.comparerMotDePasse(motDePasse);
     if (!motDePasseValide) {
       logger.warn(`Mot de passe invalide pour utilisateur: ${email}`);
-      res.status(400).json({ message: AUTH.ERROR_MESSAGES.INVALID_CREDENTIALS });
+      res
+        .status(400)
+        .json({ message: AUTH.ERROR_MESSAGES.INVALID_CREDENTIALS });
       return;
     }
     logger.info(`Connexion réussie pour utilisateur: ${email}`);
@@ -83,7 +93,7 @@ export const connexion = async (req: Request, res: Response): Promise<void> => {
       token: generateToken(utilisateur._id as string),
     });
   } catch (error) {
-    logger.error('Erreur interne lors de la connexion:', error);
+    logger.error("Erreur interne lors de la connexion:", error);
     res.status(500).json({ message: "Erreur lors de la connexion" });
   }
 };
@@ -103,7 +113,10 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
     }
 
     // Peupler le partenaire s'il existe
-    await utilisateur.populate({ path: 'partenaireId', select: 'nom email avatarUrl _id' });
+    await utilisateur.populate({
+      path: "partenaireId",
+      select: "nom email avatarUrl _id",
+    });
 
     res.status(200).json({
       _id: utilisateur._id,

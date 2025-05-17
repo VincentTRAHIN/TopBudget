@@ -1,8 +1,7 @@
-import { Document, Types } from 'mongoose';
+import { Document, Types } from "mongoose";
 
-export type TypeCompte = 'Perso' |'Conjoint';
-export type TypeDepense = 'Perso' | 'Commune';
-
+export type TypeCompte = "Perso" | "Conjoint";
+export type TypeDepense = "Perso" | "Commune";
 
 export interface IDepense extends Document {
   montant: number;

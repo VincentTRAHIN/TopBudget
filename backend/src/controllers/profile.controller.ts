@@ -15,7 +15,10 @@ import { AppError } from "../middlewares/error.middleware";
  * @route PUT /api/profile
  * @access Privé
  */
-export const updateUserProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+export const updateUserProfile = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     if (!req.user) {
       res.status(401).json({ message: AUTH.ERROR_MESSAGES.UNAUTHORIZED });
@@ -24,10 +27,14 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
 
     // Récupérer l'ID de l'utilisateur authentifié
     const userId = req.user.id;
-    
+
     // Récupérer les données du corps de la requête
-    const { nom, email, partenaireId: partenaireIdInput } = req.body as IUserProfileUpdateInput;
-    
+    const {
+      nom,
+      email,
+      partenaireId: partenaireIdInput,
+    } = req.body as IUserProfileUpdateInput;
+
     // Rechercher l'utilisateur actuel
     const currentUser = await User.findById(userId);
     if (!currentUser) {
@@ -43,93 +50,111 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
     // Mise à jour de l'email si fourni
     if (email !== undefined && email !== currentUser.email) {
       // Vérifier que l'email n'est pas déjà utilisé par un autre utilisateur
-      const emailExistant = await User.findOne({ 
-        email, 
-        _id: { $ne: currentUser._id } 
+      const emailExistant = await User.findOne({
+        email,
+        _id: { $ne: currentUser._id },
       });
-      
+
       if (emailExistant) {
-        res.status(400).json({ message: USER.ERROR_MESSAGES.EMAIL_ALREADY_EXISTS });
+        res
+          .status(400)
+          .json({ message: USER.ERROR_MESSAGES.EMAIL_ALREADY_EXISTS });
         return;
       }
-      
+
       currentUser.email = email;
     }
 
     // Gestion de la liaison ou déliaison de partenaire
     if (partenaireIdInput !== undefined) {
       // Cas de la déliaison (partenaireId est null ou chaîne vide)
-      if (partenaireIdInput === null || partenaireIdInput === '') {
+      if (partenaireIdInput === null || partenaireIdInput === "") {
         // Si l'utilisateur avait un partenaire, le délier
         if (currentUser.partenaireId) {
-          const ancienPartenaire = await User.findById(currentUser.partenaireId);
+          const ancienPartenaire = await User.findById(
+            currentUser.partenaireId,
+          );
           if (ancienPartenaire) {
             // Mettre le partenaireId de l'ancien partenaire à null
             ancienPartenaire.partenaireId = undefined;
             await ancienPartenaire.save();
           }
-          
+
           // Mettre le partenaireId de l'utilisateur courant à null
           currentUser.partenaireId = undefined;
         }
       } else {
         // Cas de la liaison (partenaireId n'est pas null/vide)
-        
+
         // Vérifier si partenaireIdInput est un ObjectId valide
         if (!mongoose.Types.ObjectId.isValid(partenaireIdInput)) {
           res.status(400).json({ message: "ID de partenaire invalide" });
           return;
         }
-        
+
         // Vérifier que l'utilisateur ne tente pas de se lier à lui-même
         if (partenaireIdInput === userId) {
-          res.status(400).json({ message: "Vous ne pouvez pas vous lier à vous-même" });
+          res
+            .status(400)
+            .json({ message: "Vous ne pouvez pas vous lier à vous-même" });
           return;
         }
-        
+
         // Rechercher le partenaire potentiel
         const potentialPartner = await User.findById(partenaireIdInput);
         if (!potentialPartner) {
           res.status(404).json({ message: "Partenaire non trouvé" });
           return;
         }
-        
+
         // Vérifier si le partenaire est déjà lié à un autre utilisateur (qui n'est pas l'utilisateur actuel)
-        if (potentialPartner.partenaireId && 
-            potentialPartner.partenaireId.toString() !== String(currentUser._id)) {
-          res.status(400).json({ message: "Ce partenaire est déjà lié à un autre utilisateur" });
+        if (
+          potentialPartner.partenaireId &&
+          potentialPartner.partenaireId.toString() !== String(currentUser._id)
+        ) {
+          res
+            .status(400)
+            .json({
+              message: "Ce partenaire est déjà lié à un autre utilisateur",
+            });
           return;
         }
-        
+
         // Si l'utilisateur actuel était déjà lié à un autre partenaire (différent du nouveau)
-        if (currentUser.partenaireId && 
-            currentUser.partenaireId.toString() !== String(potentialPartner._id)) {
+        if (
+          currentUser.partenaireId &&
+          currentUser.partenaireId.toString() !== String(potentialPartner._id)
+        ) {
           // Récupérer et délier l'ancien partenaire
-          const ancienPartenaire = await User.findById(currentUser.partenaireId);
+          const ancienPartenaire = await User.findById(
+            currentUser.partenaireId,
+          );
           if (ancienPartenaire) {
             ancienPartenaire.partenaireId = undefined;
             await ancienPartenaire.save();
           }
         }
-        
+
         // Lier les deux utilisateurs avec une assertion de type
-        currentUser.partenaireId = potentialPartner._id as mongoose.Schema.Types.ObjectId;
-        potentialPartner.partenaireId = currentUser._id as mongoose.Schema.Types.ObjectId;
-        
+        currentUser.partenaireId =
+          potentialPartner._id as mongoose.Schema.Types.ObjectId;
+        potentialPartner.partenaireId =
+          currentUser._id as mongoose.Schema.Types.ObjectId;
+
         // Sauvegarder le partenaire
         await potentialPartner.save();
       }
     }
-    
+
     // Sauvegarder l'utilisateur courant avec ses modifications
     await currentUser.save();
-    
+
     // Populer le partenaire pour la réponse
     await currentUser.populate({
-      path: 'partenaireId',
-      select: 'nom email avatarUrl'
+      path: "partenaireId",
+      select: "nom email avatarUrl",
     });
-    
+
     // Renvoyer une réponse avec les informations mises à jour
     res.status(200).json({
       _id: currentUser._id,
@@ -138,11 +163,13 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
       role: currentUser.role,
       dateCreation: currentUser.dateCreation,
       avatarUrl: currentUser.avatarUrl,
-      partenaireId: currentUser.partenaireId
+      partenaireId: currentUser.partenaireId,
     });
   } catch (error) {
     logger.error("Erreur lors de la mise à jour du profil:", error);
-    res.status(500).json({ message: "Erreur lors de la mise à jour du profil" });
+    res
+      .status(500)
+      .json({ message: "Erreur lors de la mise à jour du profil" });
   }
 };
 
@@ -151,7 +178,11 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
  * @route POST /api/profile/avatar
  * @access Privé
  */
-export const uploadUserAvatar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+export const uploadUserAvatar = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     if (!req.user) {
       return next(new AppError("Non autorisé", 401));
@@ -169,7 +200,7 @@ export const uploadUserAvatar = async (req: AuthRequest, res: Response, next: Ne
     const mimeToExt: Record<string, string> = {
       "image/jpeg": "jpg",
       "image/png": "png",
-      "image/gif": "gif"
+      "image/gif": "gif",
     };
     const ext = mimeToExt[req.file.mimetype];
     if (!ext) {
@@ -178,7 +209,7 @@ export const uploadUserAvatar = async (req: AuthRequest, res: Response, next: Ne
     const fileName = `user-${userId}-${Date.now()}.${ext}`;
     const filePath = path.join(uploadDir, fileName);
     // Utiliser l'URL du service Docker si présente, sinon fallback localhost
-    const apiBaseUrl = process.env.API_BASE_URL || 'http://backend:5001';
+    const apiBaseUrl = process.env.API_BASE_URL || "http://backend:5001";
     const fileUrl = `${apiBaseUrl}/uploads/avatars/${fileName}`;
 
     // Écrire le fichier sur le disque
@@ -191,7 +222,10 @@ export const uploadUserAvatar = async (req: AuthRequest, res: Response, next: Ne
     }
     user.avatarUrl = fileUrl;
     await user.save();
-    await user.populate({ path: "partenaireId", select: "nom email avatarUrl" });
+    await user.populate({
+      path: "partenaireId",
+      select: "nom email avatarUrl",
+    });
 
     res.status(200).json({
       _id: user._id,
@@ -200,7 +234,7 @@ export const uploadUserAvatar = async (req: AuthRequest, res: Response, next: Ne
       role: user.role,
       dateCreation: user.dateCreation,
       avatarUrl: user.avatarUrl,
-      partenaireId: user.partenaireId
+      partenaireId: user.partenaireId,
     });
   } catch (error) {
     next(error);
@@ -212,7 +246,11 @@ export const uploadUserAvatar = async (req: AuthRequest, res: Response, next: Ne
  * @route PUT /api/profile/me/change-password
  * @access Privé
  */
-export const changeUserPassword = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+export const changeUserPassword = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     if (!req.user) {
       res.status(401).json({ message: AUTH.ERROR_MESSAGES.UNAUTHORIZED });
@@ -226,7 +264,9 @@ export const changeUserPassword = async (req: AuthRequest, res: Response, next: 
       return;
     }
     if (newPassword !== confirmPassword) {
-      res.status(400).json({ message: "Les nouveaux mots de passe ne correspondent pas." });
+      res
+        .status(400)
+        .json({ message: "Les nouveaux mots de passe ne correspondent pas." });
       return;
     }
     // Validation complexité
@@ -236,9 +276,15 @@ export const changeUserPassword = async (req: AuthRequest, res: Response, next: 
       (rules.REQUIRE_UPPERCASE && !/[A-Z]/.test(newPassword)) ||
       (rules.REQUIRE_LOWERCASE && !/[a-z]/.test(newPassword)) ||
       (rules.REQUIRE_NUMBER && !/[0-9]/.test(newPassword)) ||
-      (rules.REQUIRE_SPECIAL_CHAR && !/[!@#$%^&*(),.?":{}|<>]/.test(newPassword))
+      (rules.REQUIRE_SPECIAL_CHAR &&
+        !/[!@#$%^&*(),.?":{}|<>]/.test(newPassword))
     ) {
-      res.status(400).json({ message: "Le nouveau mot de passe ne respecte pas les règles de sécurité." });
+      res
+        .status(400)
+        .json({
+          message:
+            "Le nouveau mot de passe ne respecte pas les règles de sécurité.",
+        });
       return;
     }
     const user = await User.findById(userId);

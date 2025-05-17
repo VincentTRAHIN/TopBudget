@@ -1,6 +1,6 @@
-import { Document, Schema } from 'mongoose';
+import { Document, Schema } from "mongoose";
 
-export type UserRole = 'Perso' | 'Conjoint' | 'Admin';
+export type UserRole = "Perso" | "Conjoint" | "Admin";
 
 export interface IUser extends Document {
   nom: string;
@@ -40,4 +40,4 @@ export interface IUserProfileUpdateInput {
   email?: string;
   avatarUrl?: string;
   partenaireId?: string | null;
-} 
+}

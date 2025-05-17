@@ -239,4 +239,4 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- */ 
+ */

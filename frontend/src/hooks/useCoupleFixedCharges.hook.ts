@@ -11,13 +11,16 @@ export interface CoupleFixedCharge {
 }
 
 export interface CoupleFixedChargesResponse {
-  chargesFixes: CoupleFixedCharge[];
+  listeChargesFixes: CoupleFixedCharge[];
   totalChargesFixesCommunes: number;
 }
 
 export const useCoupleFixedCharges = (annee: string, mois: string) => {
   const url = `${API_BASE_URL}/statistiques/couple/charges-fixes?annee=${annee}&mois=${mois}`;
-  const { data, error, isLoading, mutate } = useSWR<CoupleFixedChargesResponse>(url, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<CoupleFixedChargesResponse>(
+    url,
+    fetcher,
+  );
   return {
     data,
     isLoading,

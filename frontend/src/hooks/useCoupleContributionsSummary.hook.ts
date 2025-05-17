@@ -11,7 +11,10 @@ export interface CoupleContributionsSummary {
 
 export const useCoupleContributionsSummary = (annee: string, mois: string) => {
   const url = `${API_BASE_URL}/statistiques/couple/resume-contributions?annee=${annee}&mois=${mois}`;
-  const { data, error, isLoading, mutate } = useSWR<CoupleContributionsSummary>(url, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<CoupleContributionsSummary>(
+    url,
+    fetcher,
+  );
   return {
     data,
     isLoading,

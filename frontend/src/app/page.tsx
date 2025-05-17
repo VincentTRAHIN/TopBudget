@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import HomeHeader from "@/components/home/HomeHeader.component";
-import { useAuth } from "@/hooks/useAuth.hook";
-import Link from "next/link";
+import HomeHeader from '@/components/home/HomeHeader.component';
+import { useAuth } from '@/hooks/useAuth.hook';
+import Link from 'next/link';
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -39,7 +39,7 @@ export default function HomePage() {
               >
                 S&apos;inscrire
               </Link>
-            </div>  
+            </div>
           )}
         </div>
       </main>

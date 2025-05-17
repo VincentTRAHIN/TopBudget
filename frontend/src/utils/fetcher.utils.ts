@@ -1,26 +1,37 @@
-const fetcher = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
+const fetcher = async <T>(
+  url: string,
+  options: RequestInit = {},
+): Promise<T> => {
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
   const isAuthMeEndpoint = url.includes('/auth/me');
 
   const headers = new Headers();
 
- 
   if (
     options.body &&
-    !(options.body instanceof FormData) && 
+    !(options.body instanceof FormData) &&
     !(
       options.headers instanceof Headers && options.headers.has('Content-Type')
     ) &&
-    !(typeof options.headers === 'object' && options.headers && 'Content-Type' in options.headers)
+    !(
+      typeof options.headers === 'object' &&
+      options.headers &&
+      'Content-Type' in options.headers
+    )
   ) {
     headers.append('Content-Type', 'application/json');
   }
 
   if (options.headers) {
     Object.entries(options.headers).forEach(([key, value]) => {
-      if (!(options.body instanceof FormData && key.toLowerCase() === 'content-type')) {
-         if (value) headers.append(key, value);
+      if (
+        !(
+          options.body instanceof FormData &&
+          key.toLowerCase() === 'content-type'
+        )
+      ) {
+        if (value) headers.append(key, value);
       }
     });
   }
@@ -80,10 +91,17 @@ const fetcher = async <T>(url: string, options: RequestInit = {}): Promise<T> =>
     }
     return response.json();
   } catch (error) {
-    if (!(error instanceof Error && (error as { status?: number }).status === 401 && isAuthMeEndpoint && !token)) {
+    if (
+      !(
+        error instanceof Error &&
+        (error as { status?: number }).status === 401 &&
+        isAuthMeEndpoint &&
+        !token
+      )
+    ) {
       console.error(`Erreur lors du fetch vers ${url}:`, error);
-   }
-   throw error;
+    }
+    throw error;
   }
 };
 

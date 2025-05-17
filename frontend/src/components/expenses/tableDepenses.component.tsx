@@ -5,7 +5,7 @@ import { IDepense } from '@/types/depense.type';
 import { toast } from 'react-hot-toast';
 import fetcher from '@/utils/fetcher.utils';
 import { depensesEndpoint } from '@/services/api.service';
-import { Edit, Trash2, Upload, Pin } from 'lucide-react'; 
+import { Edit, Trash2, Upload, Pin } from 'lucide-react';
 import {
   useDepenses,
   DepenseFilters,
@@ -20,7 +20,7 @@ interface TableDepensesProps {
   onEdit: (depense: IDepense) => void;
   onAdd: () => void;
   onAddCategorie: () => void;
-  onImport: () => void; 
+  onImport: () => void;
   onFilterChange: (filters: Partial<DepenseFilters>) => void;
   onSortChange: (sort: Partial<DepenseSort>) => void;
   currentUserId?: string;
@@ -34,7 +34,7 @@ export default function TableDepenses({
   onEdit,
   onAdd,
   onAddCategorie,
-  onImport, 
+  onImport,
   onFilterChange,
   onSortChange,
   currentUserId,
@@ -218,8 +218,8 @@ export default function TableDepenses({
           + Catégorie
         </button>
         <button
-          onClick={onImport} 
-          className="btn-secondary px-4 py-2 whitespace-nowrap flex-shrink-0 self-end flex items-center gap-1" 
+          onClick={onImport}
+          className="btn-secondary px-4 py-2 whitespace-nowrap flex-shrink-0 self-end flex items-center gap-1"
         >
           <Upload size={16} /> Importer CSV
         </button>
@@ -349,12 +349,18 @@ export default function TableDepenses({
                       : 'N/A'}
                   </td>
                   <td className="px-4 py-2">
-                    {typeof depense.utilisateur === 'object' && depense.utilisateur !== null && 'nom' in depense.utilisateur
+                    {typeof depense.utilisateur === 'object' &&
+                    depense.utilisateur !== null &&
+                    'nom' in depense.utilisateur
                       ? depense.utilisateur.nom
                       : 'N/A'}
                   </td>
                   <td className="px-4 py-2 text-center">
-                    {depense.estChargeFixe ? <Pin size={16} className="text-blue-500 mx-auto" /> : '-'}
+                    {depense.estChargeFixe ? (
+                      <Pin size={16} className="text-blue-500 mx-auto" />
+                    ) : (
+                      '-'
+                    )}
                   </td>
                   <td className="px-4 py-2">{depense.typeCompte}</td>
                   <td className="px-4 py-2">{depense.typeDepense}</td>
@@ -367,7 +373,12 @@ export default function TableDepenses({
                         onClick={() => handleEdit(depense)}
                         className={`p-1 text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed`}
                         aria-label="Modifier"
-                        disabled={currentUserId !== (typeof depense.utilisateur === 'object' ? depense.utilisateur._id : depense.utilisateur)}
+                        disabled={
+                          currentUserId !==
+                          (typeof depense.utilisateur === 'object'
+                            ? depense.utilisateur._id
+                            : depense.utilisateur)
+                        }
                       >
                         <Edit size={16} />
                       </button>
@@ -375,7 +386,12 @@ export default function TableDepenses({
                         onClick={() => handleDelete(depense._id)}
                         className={`p-1 text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed`}
                         aria-label="Supprimer"
-                        disabled={currentUserId !== (typeof depense.utilisateur === 'object' ? depense.utilisateur._id : depense.utilisateur)}
+                        disabled={
+                          currentUserId !==
+                          (typeof depense.utilisateur === 'object'
+                            ? depense.utilisateur._id
+                            : depense.utilisateur)
+                        }
                       >
                         <Trash2 size={16} />
                       </button>

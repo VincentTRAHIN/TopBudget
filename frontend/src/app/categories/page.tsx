@@ -1,16 +1,18 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Layout from "@/components/layout/Layout";
-import RequireAuth from "@/components/auth/requireAuth.component";
-import CategoriesList from "@/components/categories/CategoriesList.component";
-import FormCategorie from "@/components/categories/formCategorie.component";
-import { useCategories } from "@/hooks/useCategories.hook";
-import { ICategorie } from "@/types/categorie.type";
+import { useState } from 'react';
+import Layout from '@/components/layout/Layout';
+import RequireAuth from '@/components/auth/requireAuth.component';
+import CategoriesList from '@/components/categories/CategoriesList.component';
+import FormCategorie from '@/components/categories/formCategorie.component';
+import { useCategories } from '@/hooks/useCategories.hook';
+import { ICategorie } from '@/types/categorie.type';
 
 export default function CategoriesPage() {
   const { categories, refreshCategories } = useCategories();
-  const [selectedCategorie, setSelectedCategorie] = useState<ICategorie | null>(null);
+  const [selectedCategorie, setSelectedCategorie] = useState<ICategorie | null>(
+    null,
+  );
   const [showAddForm, setShowAddForm] = useState(false);
 
   const handleEdit = (categorie: ICategorie) => {
@@ -45,9 +47,9 @@ export default function CategoriesPage() {
             />
           )}
 
-          <CategoriesList 
-            categories={categories} 
-            onEdit={handleEdit} 
+          <CategoriesList
+            categories={categories}
+            onEdit={handleEdit}
             onDelete={handleDelete}
             onAdd={handleAdd}
           />
@@ -55,4 +57,4 @@ export default function CategoriesPage() {
       </Layout>
     </RequireAuth>
   );
-} 
+}

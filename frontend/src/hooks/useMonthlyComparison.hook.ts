@@ -5,7 +5,10 @@ import { MonthlyComparisonData } from '../types/statistiques.type';
 
 export const useMonthlyComparison = (contexte: 'moi' | 'couple' = 'moi') => {
   const url = `${comparaisonMoisEndpoint}${contexte !== 'moi' ? `?contexte=${contexte}` : ''}`;
-  const { data, error, isLoading, mutate } = useSWR<MonthlyComparisonData>(url, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<MonthlyComparisonData>(
+    url,
+    fetcher,
+  );
 
   return {
     data,

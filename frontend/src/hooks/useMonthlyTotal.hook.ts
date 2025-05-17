@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import useSWR from 'swr';
 import fetcher from '@/utils/fetcher.utils';
@@ -12,7 +12,7 @@ export interface MonthlyTotalResponse {
 
 export const useMonthlyTotal = (year?: number, month?: number) => {
   let url = totalMensuelEndpoint;
-  
+
   if (year && month) {
     const formattedMonth = String(month).padStart(2, '0');
     url = `${url}?annee=${year}&mois=${formattedMonth}`;
@@ -23,9 +23,9 @@ export const useMonthlyTotal = (year?: number, month?: number) => {
     fetcher,
     {
       shouldRetryOnError: false,
-      refreshInterval: 0, 
-      revalidateOnFocus: true, 
-    }
+      refreshInterval: 0,
+      revalidateOnFocus: true,
+    },
   );
 
   return {

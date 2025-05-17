@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useDepenses } from "@/hooks/useDepenses.hook";
+import { useDepenses } from '@/hooks/useDepenses.hook';
 
 export default function LastDepenses() {
   const { depenses, isLoading } = useDepenses();
@@ -19,7 +19,7 @@ export default function LastDepenses() {
       <ul className="space-y-2">
         {derniereDepenses.map((depense) => (
           <li key={depense._id} className="flex justify-between">
-            <span>{new Date(depense.date).toLocaleDateString("fr-FR")}</span>
+            <span>{new Date(depense.date).toLocaleDateString('fr-FR')}</span>
             <span className="font-bold">{depense.montant.toFixed(2)} €</span>
           </li>
         ))}

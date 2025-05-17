@@ -1,37 +1,39 @@
-import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerJsdoc from "swagger-jsdoc";
 
 const options: swaggerJsdoc.Options = {
   definition: {
-    openapi: '3.0.0',
+    openapi: "3.0.0",
     info: {
-      title: 'TopBudget API',
-      version: '1.0.0',
-      description: 'API pour l\'application de gestion de budget TopBudget',
+      title: "TopBudget API",
+      version: "1.0.0",
+      description: "API pour l'application de gestion de budget TopBudget",
       contact: {
-        name: 'Support TopBudget',
-        email: 'support@topbudget.com'
-      }
+        name: "Support TopBudget",
+        email: "support@topbudget.com",
+      },
     },
     servers: [
       {
-        url: 'http://localhost:5001',
-        description: 'Serveur de développement'
-      }
+        url: "http://localhost:5001",
+        description: "Serveur de développement",
+      },
     ],
     components: {
       securitySchemes: {
         bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT'
-        }
-      }
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
     },
-    security: [{
-      bearerAuth: []
-    }]
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
-  apis: ['./src/docs/*.docs.ts']
+  apis: ["./src/docs/*.docs.ts"],
 };
 
-export const swaggerSpec = swaggerJsdoc(options); 
+export const swaggerSpec = swaggerJsdoc(options);

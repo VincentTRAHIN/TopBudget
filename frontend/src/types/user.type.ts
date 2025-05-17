@@ -8,12 +8,15 @@ export interface IUser {
   token?: string;
   createdAt?: string;
   avatarUrl?: string;
-  partenaireId?: {
-    _id: string;
-    nom: string;
-    email: string;
-    avatarUrl?: string;
-  } | string | null;
+  partenaireId?:
+    | {
+        _id: string;
+        nom: string;
+        email: string;
+        avatarUrl?: string;
+      }
+    | string
+    | null;
 }
 
 export type UserRegisterPayload = {

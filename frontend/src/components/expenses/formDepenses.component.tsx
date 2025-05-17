@@ -321,8 +321,18 @@ export default function FormDepense({
             </div>
 
             <div className="flex items-center gap-2">
-              <Field type="checkbox" name="estChargeFixe" id="estChargeFixe" className="form-checkbox h-5 w-5 text-indigo-600" />
-              <label htmlFor="estChargeFixe" className="ml-2 text-sm text-gray-900">Marquer comme charge fixe</label>
+              <Field
+                type="checkbox"
+                name="estChargeFixe"
+                id="estChargeFixe"
+                className="form-checkbox h-5 w-5 text-indigo-600"
+              />
+              <label
+                htmlFor="estChargeFixe"
+                className="ml-2 text-sm text-gray-900"
+              >
+                Marquer comme charge fixe
+              </label>
             </div>
 
             <div className="flex gap-4">

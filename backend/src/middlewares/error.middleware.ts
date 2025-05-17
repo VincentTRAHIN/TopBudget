@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import logger from '../utils/logger.utils';
+import { Request, Response } from "express";
+import logger from "../utils/logger.utils";
 
 // Interface pour les erreurs personnalisées
 export class AppError extends Error {
@@ -10,7 +10,7 @@ export class AppError extends Error {
   constructor(message: string, statusCode: number) {
     super(message);
     this.statusCode = statusCode;
-    this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+    this.status = `${statusCode}`.startsWith("4") ? "fail" : "error";
     this.isOperational = true;
 
     Error.captureStackTrace(this, this.constructor);
@@ -18,9 +18,13 @@ export class AppError extends Error {
 }
 
 // Middleware de gestion des erreurs
-export const errorHandler = (err: Error | AppError, req: Request, res: Response) => {
+export const errorHandler = (
+  err: Error | AppError,
+  req: Request,
+  res: Response,
+) => {
   let statusCode = 500;
-  let message = 'Erreur interne du serveur';
+  let message = "Erreur interne du serveur";
   let stack: string | undefined;
 
   if (err instanceof AppError) {
@@ -28,7 +32,7 @@ export const errorHandler = (err: Error | AppError, req: Request, res: Response)
     message = err.message;
   }
 
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     stack = err.stack;
   }
 
@@ -40,10 +44,10 @@ export const errorHandler = (err: Error | AppError, req: Request, res: Response)
   });
 
   res.status(statusCode).json({
-    status: 'error',
+    status: "error",
     message,
     ...(stack && { stack }),
-    ...(process.env.NODE_ENV === 'development' && {
+    ...(process.env.NODE_ENV === "development" && {
       request: {
         method: req.method,
         url: req.originalUrl,
@@ -51,4 +55,4 @@ export const errorHandler = (err: Error | AppError, req: Request, res: Response)
       },
     }),
   });
-}; 
+};

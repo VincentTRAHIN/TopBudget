@@ -1,15 +1,14 @@
 import mongoose from "mongoose";
 import { faker } from "@faker-js/faker";
 import dotenv from "dotenv";
-import DepenseModel  from "../src/models/depense.model";
-import CategorieModel  from "../src/models/categorie.model";
-import UserModel  from "../src/models/user.model";
+import DepenseModel from "../src/models/depense.model";
+import CategorieModel from "../src/models/categorie.model";
+import UserModel from "../src/models/user.model";
 
 dotenv.config();
 
-const mongoUri = process.env.MONGO_URI_SEED || "mongodb://localhost:27017/topbudget";
-
-
+const mongoUri =
+  process.env.MONGO_URI_SEED || "mongodb://localhost:27017/topbudget";
 
 async function seedDatabase() {
   try {
@@ -24,12 +23,12 @@ async function seedDatabase() {
     console.log("🧹 Base nettoyée");
 
     // Créer un utilisateur fictif
-    const user = await UserModel.create({
+    const user = (await UserModel.create({
       nom: "Test User",
       email: faker.internet.email(),
-      motDePasse: faker.internet.password(), 
+      motDePasse: faker.internet.password(),
       role: "Perso",
-    }) as { _id: mongoose.Types.ObjectId };
+    })) as { _id: mongoose.Types.ObjectId };
 
     // Créer 6-8 catégories aléatoires
     const categories: Array<typeof CategorieModel.prototype> = [];
@@ -67,7 +66,7 @@ async function seedDatabase() {
 
     console.log(`🟢 ${depenses.length} dépenses créées`);
 
-    process.exit(0); 
+    process.exit(0);
   } catch (error) {
     console.error("❌ Erreur seed :", error);
     process.exit(1);

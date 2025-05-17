@@ -4,9 +4,12 @@ import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { useRouter } from 'next/navigation';
 import fetcher from '@/utils/fetcher.utils';
-import { loginEndpoint, registerEndpoint, meEndpoint } from '@/services/api.service';
+import {
+  loginEndpoint,
+  registerEndpoint,
+  meEndpoint,
+} from '@/services/api.service';
 import { IUser } from '@/types/user.type';
-
 
 export const useAuth = () => {
   const router = useRouter();
@@ -14,8 +17,8 @@ export const useAuth = () => {
   const {
     data: user,
     error,
-    mutate, 
-    isLoading: isUserLoading, 
+    mutate,
+    isLoading: isUserLoading,
   } = useSWR<IUser | null>(meEndpoint, fetcher, {
     shouldRetryOnError: false,
     onError: (err) => {
@@ -23,7 +26,7 @@ export const useAuth = () => {
         localStorage.removeItem('authToken');
         mutate(null, false);
       }
-    }
+    },
   });
 
   const [loadingAction, setLoadingAction] = useState(false);
@@ -82,7 +85,7 @@ export const useAuth = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || 'Erreur lors de l\'inscription');
+        throw new Error(data.message || "Erreur lors de l'inscription");
       }
 
       if (!data.token) {

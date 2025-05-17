@@ -1,15 +1,16 @@
-import path from "path";
-import { NextConfig } from "next";
+import path from 'path';
+import { NextConfig } from 'next';
 
 // URL du backend pour les images
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001';
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001';
 
 const nextConfig: NextConfig = {
   webpack(config) {
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
     return config;
   },
-  output: "standalone",
+  output: 'standalone',
   // Configuration pour rediriger les requêtes d'images
   images: {
     domains: ['localhost', 'backend'],

@@ -40,9 +40,9 @@ L’utilisateur pourra ajouter une dépense avec les informations suivantes :
 
 - Affichage sous forme de **liste chronologique** ou triée par **catégorie**,
 - **Filtres** disponibles :
-    - Par catégorie,
-    - Par date (journalière, hebdomadaire, mensuelle),
-    - Par type de compte (perso, conjoint, commun).
+  - Par catégorie,
+  - Par date (journalière, hebdomadaire, mensuelle),
+  - Par type de compte (perso, conjoint, commun).
 
 ---
 
@@ -59,7 +59,7 @@ L’utilisateur pourra ajouter une dépense avec les informations suivantes :
 - Visualisation globale des dépenses journalières et mensuelles,
 - Comparaison des contributions respectives au budget commun,
 - Analyse des **charges fixes communes** pour assurer une répartition équitable.
-    - Fonctionnalité pour calculer les écarts et indiquer qui doit combien à l’autre.
+  - Fonctionnalité pour calculer les écarts et indiquer qui doit combien à l’autre.
 
 #### **Synthèse mensuelle :**
 
@@ -71,8 +71,8 @@ L’utilisateur pourra ajouter une dépense avec les informations suivantes :
 ### **2.3. Partage et synchronisation**
 
 - Accès partagé à l’application permettant aux deux utilisateurs (toi et ta femme) :
-    - De consulter les budgets en temps réel,
-    - D’ajouter ou modifier des dépenses instantanément.
+  - De consulter les budgets en temps réel,
+  - D’ajouter ou modifier des dépenses instantanément.
 
 ---
 
@@ -86,7 +86,7 @@ L’utilisateur pourra ajouter une dépense avec les informations suivantes :
 ### **3.2. Récapitulatif automatisé**
 
 - Génération d’un rapport financier mensuel en PDF pour une vision claire de vos finances.
-    - Détail des contributions personnelles et des dépenses communes.
+  - Détail des contributions personnelles et des dépenses communes.
 
 ### **3.3. Comparaison des dépenses entre utilisateurs**
 
@@ -95,9 +95,9 @@ L’utilisateur pourra ajouter une dépense avec les informations suivantes :
 ### **3.4. Widget d’accueil**
 
 - Affichage rapide des données clés sur l’écran d’accueil :
-    - Dépenses journalières,
-    - Récapitulatif mensuel,
-    - Budget restant pour le mois.
+  - Dépenses journalières,
+  - Récapitulatif mensuel,
+  - Budget restant pour le mois.
 
 ---
 
@@ -111,17 +111,18 @@ Next.js est un framework basé sur React qui permet de développer des applicati
 
 - Une meilleure performance grâce au SSR, idéal pour optimiser le SEO.
 - Une expérience utilisateur fluide et rapide grâce à son architecture moderne.
+
 1. **Tailwind CSS**
-    - Framework CSS utilitaire pour concevoir des interfaces modernes rapidement.
-    - Facile à intégrer avec Next.js pour un design réactif et élégant.
+   - Framework CSS utilitaire pour concevoir des interfaces modernes rapidement.
+   - Facile à intégrer avec Next.js pour un design réactif et élégant.
 2. **React Query**
-    - Gestion des données côté client pour synchroniser facilement ton front-end avec ton back-end.
-    - Idéal pour les requêtes API et la mise en cache automatique
+   - Gestion des données côté client pour synchroniser facilement ton front-end avec ton back-end.
+   - Idéal pour les requêtes API et la mise en cache automatique
 
 ### **Outils complémentaires (facultatifs) :**
 
 1. **Formik + Yup**
-    - Gestion des formulaires avec Formik (simplicité) et validation des données avec Yup (puissant et facile à utiliser).
+   - Gestion des formulaires avec Formik (simplicité) et validation des données avec Yup (puissant et facile à utiliser).
 
 ---
 
@@ -135,24 +136,24 @@ Next.js est un framework basé sur React qui permet de développer des applicati
 ### **Recommandations pour l’authentification et la sécurité :**
 
 1. **JWT (JSON Web Tokens)**
-    - Gestion des sessions utilisateurs via des tokens sécurisés.
-    - Avantage : léger, efficace, et parfaitement compatible avec Node.js.
+   - Gestion des sessions utilisateurs via des tokens sécurisés.
+   - Avantage : léger, efficace, et parfaitement compatible avec Node.js.
 2. **bcrypt**
-    - Hachage des mots de passe pour assurer leur sécurité avant de les stocker dans la base de données.
+   - Hachage des mots de passe pour assurer leur sécurité avant de les stocker dans la base de données.
 3. **Helmet.js**
-    - Améliore la sécurité des en-têtes HTTP pour protéger l’application contre des attaques comme XSS ou les attaques CSRF.
+   - Améliore la sécurité des en-têtes HTTP pour protéger l’application contre des attaques comme XSS ou les attaques CSRF.
 4. **Express-validator**
-    - Valide les entrées des utilisateurs pour éviter les injections SQL ou autres attaques basées sur des données malveillantes.
+   - Valide les entrées des utilisateurs pour éviter les injections SQL ou autres attaques basées sur des données malveillantes.
 5. **Mongoose**
-    - ORM pour faciliter la gestion des interactions entre Node.js et MongoDB.
-    - Simplifie la création des schémas de données.
+   - ORM pour faciliter la gestion des interactions entre Node.js et MongoDB.
+   - Simplifie la création des schémas de données.
 6. **Winston ou Morgan**
-    - Gestion des logs pour suivre les activités de ton application et détecter d’éventuelles anomalies.
+   - Gestion des logs pour suivre les activités de ton application et détecter d’éventuelles anomalies.
 
 ### **Outils complémentaires (facultatifs) :**
 
 1. **Rate-limiter-flexible**
-    - Limite le nombre de requêtes provenant d’une même IP pour prévenir les attaques par déni de service (DDoS).
+   - Limite le nombre de requêtes provenant d’une même IP pour prévenir les attaques par déni de service (DDoS).
 
 ---
 
@@ -175,10 +176,10 @@ Heroku offre une solution clé en main pour héberger ton application Node.js av
 ### **Outils complémentaires (facultatifs) :**
 
 1. **Cloudflare**
-    - Ajout d’une couche de protection contre les attaques DDoS.
-    - Accélération des performances via un CDN.
+   - Ajout d’une couche de protection contre les attaques DDoS.
+   - Accélération des performances via un CDN.
 2. **PM2 (Process Manager)**
-    - Gestion des processus Node.js en production pour garantir une haute disponibilité.
+   - Gestion des processus Node.js en production pour garantir une haute disponibilité.
 
 ---
 
@@ -192,9 +193,9 @@ Heroku offre une solution clé en main pour héberger ton application Node.js av
 ### **Outils complémentaires (facultatifs) :**
 
 1. **React-chartjs-2**
-    - Wrapper React pour Chart.js, simplifiant l’intégration dans une application Next.js.
+   - Wrapper React pour Chart.js, simplifiant l’intégration dans une application Next.js.
 2. **D3.js** (si besoin de graphiques très personnalisés)
-    - Librairie puissante pour concevoir des visualisations complexes.
+   - Librairie puissante pour concevoir des visualisations complexes.
 
 ---
 
@@ -214,24 +215,24 @@ Heroku offre une solution clé en main pour héberger ton application Node.js av
 
 ### **6.1. User Stories**
 
-| Fonctionnalité               | En tant que ...                                  | Je souhaite ...                                                         | Afin de ...                                         |
-|------------------------------|--------------------------------------------------|-------------------------------------------------------------------------|---------------------------------------------------|
-| **Ajout d’une dépense**      | Utilisateur                                     | Ajouter une dépense avec un montant, une catégorie, une date, et un compte associé | Mieux suivre mes dépenses                         |
-|                              | Utilisateur                                     | Ajouter un commentaire à chaque dépense                                | Noter des détails spécifiques                     |
-| **Modification d’une dépense** | Utilisateur                                    | Modifier les informations d’une dépense existante                      | Corriger des erreurs ou mettre à jour les détails |
-| **Suppression d’une dépense** | Utilisateur                                    | Supprimer une dépense enregistrée par erreur ou devenue obsolète       | Maintenir la liste des dépenses propre            |
-| **Consultation des dépenses**| Utilisateur                                     | Consulter mes dépenses sous forme de liste                             | Visualiser toutes les informations rapidement     |
-|                              | Utilisateur                                     | Filtrer mes dépenses par catégorie, date ou type de compte             | Retrouver des informations spécifiques            |
-| **Visualisation des statistiques** | Utilisateur                               | Voir une répartition graphique de mes dépenses par catégorie           | Identifier les catégories les plus dépensières    |
-|                              | Utilisateur                                     | Comparer mes dépenses entre différents mois                            | Observer les variations dans mes dépenses         |
-| **Synthèse rapide**          | Utilisateur                                     | Voir les 3 indicateurs les plus importants sur le tableau de bord       | Effectuer un suivi rapide                         |
-| **Partage et synchronisation** | Utilisateur                                   | Accéder à l’application depuis mon compte personnel                    | Voir mes données synchronisées                    |
-| **Navigation et UI**         | Utilisateur                                     | Basculer facilement entre mes dépenses personnelles et communes via un menu dropdown | Naviguer rapidement                               |
-|                              | Utilisateur                                     | Un tableau clair et organisé pour afficher mes dépenses                | Visualiser les colonnes comme libellé, montant, etc. |
-| **Gestion des catégories**   | Utilisateur                                     | Ajouter une nouvelle catégorie de dépenses                             | Personnaliser le suivi de mes dépenses            |
-|                              | Utilisateur                                     | Modifier ou supprimer des catégories existantes                        | Maintenir une liste propre et pertinente          |
-| **Sécurité et authentification** | Utilisateur                                 | Me connecter de manière sécurisée avec mon compte                      | Protéger mes données                              |
-|                              | Utilisateur                                     | Être automatiquement déconnecté après une période d’inactivité         | Garantir la sécurité                              |
+| Fonctionnalité                     | En tant que ... | Je souhaite ...                                                                      | Afin de ...                                          |
+| ---------------------------------- | --------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| **Ajout d’une dépense**            | Utilisateur     | Ajouter une dépense avec un montant, une catégorie, une date, et un compte associé   | Mieux suivre mes dépenses                            |
+|                                    | Utilisateur     | Ajouter un commentaire à chaque dépense                                              | Noter des détails spécifiques                        |
+| **Modification d’une dépense**     | Utilisateur     | Modifier les informations d’une dépense existante                                    | Corriger des erreurs ou mettre à jour les détails    |
+| **Suppression d’une dépense**      | Utilisateur     | Supprimer une dépense enregistrée par erreur ou devenue obsolète                     | Maintenir la liste des dépenses propre               |
+| **Consultation des dépenses**      | Utilisateur     | Consulter mes dépenses sous forme de liste                                           | Visualiser toutes les informations rapidement        |
+|                                    | Utilisateur     | Filtrer mes dépenses par catégorie, date ou type de compte                           | Retrouver des informations spécifiques               |
+| **Visualisation des statistiques** | Utilisateur     | Voir une répartition graphique de mes dépenses par catégorie                         | Identifier les catégories les plus dépensières       |
+|                                    | Utilisateur     | Comparer mes dépenses entre différents mois                                          | Observer les variations dans mes dépenses            |
+| **Synthèse rapide**                | Utilisateur     | Voir les 3 indicateurs les plus importants sur le tableau de bord                    | Effectuer un suivi rapide                            |
+| **Partage et synchronisation**     | Utilisateur     | Accéder à l’application depuis mon compte personnel                                  | Voir mes données synchronisées                       |
+| **Navigation et UI**               | Utilisateur     | Basculer facilement entre mes dépenses personnelles et communes via un menu dropdown | Naviguer rapidement                                  |
+|                                    | Utilisateur     | Un tableau clair et organisé pour afficher mes dépenses                              | Visualiser les colonnes comme libellé, montant, etc. |
+| **Gestion des catégories**         | Utilisateur     | Ajouter une nouvelle catégorie de dépenses                                           | Personnaliser le suivi de mes dépenses               |
+|                                    | Utilisateur     | Modifier ou supprimer des catégories existantes                                      | Maintenir une liste propre et pertinente             |
+| **Sécurité et authentification**   | Utilisateur     | Me connecter de manière sécurisée avec mon compte                                    | Protéger mes données                                 |
+|                                    | Utilisateur     | Être automatiquement déconnecté après une période d’inactivité                       | Garantir la sécurité                                 |
 
 ### **6.2. Use Case**
 
@@ -262,26 +263,26 @@ Heroku offre une solution clé en main pour héberger ton application Node.js av
 ## **7. Fonctionnalités prioritaires (MVP - Minimum Viable Product)**
 
 1. **Gestion des dépenses :**
-    - Ajout d’une dépense (montant, catégorie, date, compte associé, commentaires).
-    - Consultation des dépenses (liste simple chronologique).
-    - Modification et suppression d’une dépense.
+   - Ajout d’une dépense (montant, catégorie, date, compte associé, commentaires).
+   - Consultation des dépenses (liste simple chronologique).
+   - Modification et suppression d’une dépense.
 2. **Statistiques :**
-    - Graphique de répartition des dépenses par catégorie (camembert).
-    - Évolution des dépenses mensuelles (barres).
+   - Graphique de répartition des dépenses par catégorie (camembert).
+   - Évolution des dépenses mensuelles (barres).
 3. **Partage et synchronisation :**
-    - Accès pour deux utilisateurs avec une gestion basique des comptes :
-        - Compte personnel (toi).
-        - Compte conjoint (ta femme).
-        - Compte commun.
+   - Accès pour deux utilisateurs avec une gestion basique des comptes :
+     - Compte personnel (toi).
+     - Compte conjoint (ta femme).
+     - Compte commun.
 4. **Interface utilisateur :**
-    - Dashboard simple avec une vue des dépenses et graphiques.
-    - Menu de navigation latéral avec trois onglets : "Dashboard", "Mes Dépenses", "Statistiques".
+   - Dashboard simple avec une vue des dépenses et graphiques.
+   - Menu de navigation latéral avec trois onglets : "Dashboard", "Mes Dépenses", "Statistiques".
 5. **Backend sécurisé :**
-    - API REST pour gérer les dépenses.
-    - Authentification par JWT.
-    - Stockage des données avec MongoDB Atlas.
+   - API REST pour gérer les dépenses.
+   - Authentification par JWT.
+   - Stockage des données avec MongoDB Atlas.
 6. **Hébergement :**
-    - Déploiement sur Heroku.
+   - Déploiement sur Heroku.
 
 ### **Exclusions pour la V1 :**
 

@@ -1,6 +1,10 @@
 import express from "express";
 import { proteger } from "../middlewares/auth.middleware";
-import { updateUserProfile, uploadUserAvatar, changeUserPassword } from "../controllers/profile.controller";
+import {
+  updateUserProfile,
+  uploadUserAvatar,
+  changeUserPassword,
+} from "../controllers/profile.controller";
 import { uploadAvatar } from "../middlewares/upload.middleware";
 
 const router = express.Router();

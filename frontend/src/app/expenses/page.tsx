@@ -28,15 +28,22 @@ export default function ExpensesPage() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [filters, setFilters] = useState<DepenseFilters>({});
   const [sort, setSort] = useState<DepenseSort>({});
-  const [selectedVue, setSelectedVue] = useState<'moi' | 'partenaire' | 'couple_complet'>('moi');
-  const { depenses, pagination, isLoading, isError } =
-    useDepenses(currentPage, ITEMS_PER_PAGE, filters, sort, selectedVue);
+  const [selectedVue, setSelectedVue] = useState<
+    'moi' | 'partenaire' | 'couple_complet'
+  >('moi');
+  const { depenses, pagination, isLoading, isError } = useDepenses(
+    currentPage,
+    ITEMS_PER_PAGE,
+    filters,
+    sort,
+    selectedVue,
+  );
   const { categories } = useCategories();
 
   const handleEdit = (depense: IDepense) => {
     setSelectedDepense(depense);
     setShowAddForm(true);
-    setShowImportModal(false); 
+    setShowImportModal(false);
     setShowAddCategorieForm(false);
   };
 
@@ -49,17 +56,17 @@ export default function ExpensesPage() {
 
   const handleAddCategorie = () => {
     setShowAddCategorieForm(true);
-    setShowAddForm(false); 
+    setShowAddForm(false);
     setShowImportModal(false);
   };
 
-  const handleOpenImportModal = () => { 
+  const handleOpenImportModal = () => {
     setShowImportModal(true);
-    setShowAddForm(false); 
+    setShowAddForm(false);
     setShowAddCategorieForm(false);
   };
 
-  const handleCloseImportModal = () => { 
+  const handleCloseImportModal = () => {
     setShowImportModal(false);
   };
 
@@ -75,36 +82,36 @@ export default function ExpensesPage() {
     }
   };
 
-   // Le handler principal qui met à jour l'état et reset la page
-   const handleFilterOrSortChange = (
+  // Le handler principal qui met à jour l'état et reset la page
+  const handleFilterOrSortChange = (
     changedFilters?: Partial<DepenseFilters>,
-    changedSort?: DepenseSort
- ) => {
-  console.log("Changement détecté:", { changedFilters, changedSort });
-  if (changedFilters) {
-      setFilters(prevFilters => ({ ...prevFilters, ...changedFilters }));
-  }
-  if (changedSort) {
+    changedSort?: DepenseSort,
+  ) => {
+    console.log('Changement détecté:', { changedFilters, changedSort });
+    if (changedFilters) {
+      setFilters((prevFilters) => ({ ...prevFilters, ...changedFilters }));
+    }
+    if (changedSort) {
       setSort(changedSort);
-  }
-  setCurrentPage(1);
-};
+    }
+    setCurrentPage(1);
+  };
 
-// Wrapper spécifique pour le changement de tri
-const handleSortChange = (newSort: DepenseSort) => {
-    handleFilterOrSortChange(undefined, newSort); 
-};
+  // Wrapper spécifique pour le changement de tri
+  const handleSortChange = (newSort: DepenseSort) => {
+    handleFilterOrSortChange(undefined, newSort);
+  };
 
-// Wrapper spécifique pour le changement de filtre 
-const handleFilterChange = (newFilters: Partial<DepenseFilters>) => {
-    handleFilterOrSortChange(newFilters, undefined); 
-};
+  // Wrapper spécifique pour le changement de filtre
+  const handleFilterChange = (newFilters: Partial<DepenseFilters>) => {
+    handleFilterOrSortChange(newFilters, undefined);
+  };
 
-// Ajout du sélecteur de vue
-const handleVueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  setSelectedVue(e.target.value as 'moi' | 'partenaire' | 'couple_complet');
-  setCurrentPage(1);
-};
+  // Ajout du sélecteur de vue
+  const handleVueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedVue(e.target.value as 'moi' | 'partenaire' | 'couple_complet');
+    setCurrentPage(1);
+  };
 
   return (
     <RequireAuth>
@@ -114,7 +121,9 @@ const handleVueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 
           {/* Sélecteur de vue */}
           <div className="mb-4">
-            <label htmlFor="vue-select" className="mr-2 font-medium">Vue :</label>
+            <label htmlFor="vue-select" className="mr-2 font-medium">
+              Vue :
+            </label>
             <select
               id="vue-select"
               value={selectedVue}
@@ -123,10 +132,14 @@ const handleVueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
             >
               <option value="moi">Mes Dépenses</option>
               {user?.partenaireId && typeof user.partenaireId === 'object' && (
-                <option value="partenaire">Dépenses de {user.partenaireId.nom}</option>
+                <option value="partenaire">
+                  Dépenses de {user.partenaireId.nom}
+                </option>
               )}
               {user?.partenaireId && (
-                <option value="couple_complet">Toutes les Dépenses du Couple</option>
+                <option value="couple_complet">
+                  Toutes les Dépenses du Couple
+                </option>
               )}
             </select>
           </div>
@@ -172,7 +185,11 @@ const handleVueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
                 onFilterChange={handleFilterChange}
                 onSortChange={handleSortChange}
                 currentUserId={user?._id}
-                partenaireId={user?.partenaireId && typeof user.partenaireId === 'object' ? user.partenaireId._id : undefined}
+                partenaireId={
+                  user?.partenaireId && typeof user.partenaireId === 'object'
+                    ? user.partenaireId._id
+                    : undefined
+                }
               />
               {/* --- Section Pagination --- */}
               {pagination && pagination.total > 0 && (

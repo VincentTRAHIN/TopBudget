@@ -81,12 +81,10 @@ export default function ImportCsvModal({ onClose }: ImportCsvModalProps) {
           typeof errorInfo.message === 'string'
         ) {
           errorMessage = errorInfo.message;
-        }
-        else if (error instanceof Error) {
+        } else if (error instanceof Error) {
           errorMessage = error.message;
         }
-      }
-      else if (error instanceof Error) {
+      } else if (error instanceof Error) {
         errorMessage = error.message;
       }
       toast.error(errorMessage);

@@ -1,10 +1,17 @@
-"use client"; 
+'use client';
 
-import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth.hook";
-import { LogOut } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { Home, CreditCard, Tag, LayoutDashboard, BarChart2, UserCircle } from "lucide-react";
+import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth.hook';
+import { LogOut } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import {
+  Home,
+  CreditCard,
+  Tag,
+  LayoutDashboard,
+  BarChart2,
+  UserCircle,
+} from 'lucide-react';
 
 export default function Sidebar() {
   const { isAuthenticated, logout } = useAuth();
@@ -18,9 +25,7 @@ export default function Sidebar() {
         <Link
           href="/"
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
-            isActive("/")
-              ? "bg-indigo-50 text-indigo-600"
-              : ""
+            isActive('/') ? 'bg-indigo-50 text-indigo-600' : ''
           }`}
         >
           <Home size={20} />
@@ -29,21 +34,17 @@ export default function Sidebar() {
         <Link
           href="/dashboard"
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
-            isActive("/dashboard")
-              ? "bg-indigo-50 text-indigo-600"
-              : ""
+            isActive('/dashboard') ? 'bg-indigo-50 text-indigo-600' : ''
           }`}
         >
           <LayoutDashboard size={20} />
           <span>Tableau de Bord</span>
         </Link>
-        
+
         <Link
           href="/expenses"
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
-            isActive("/expenses")
-              ? "bg-indigo-50 text-indigo-600"
-              : ""
+            isActive('/expenses') ? 'bg-indigo-50 text-indigo-600' : ''
           }`}
         >
           <CreditCard size={20} />
@@ -52,9 +53,7 @@ export default function Sidebar() {
         <Link
           href="/categories"
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
-            isActive("/categories")
-              ? "bg-indigo-50 text-indigo-600"
-              : ""
+            isActive('/categories') ? 'bg-indigo-50 text-indigo-600' : ''
           }`}
         >
           <Tag size={20} />
@@ -63,9 +62,7 @@ export default function Sidebar() {
         <Link
           href="/statistiques"
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
-            isActive("/statistiques")
-              ? "bg-indigo-50 text-indigo-600"
-              : ""
+            isActive('/statistiques') ? 'bg-indigo-50 text-indigo-600' : ''
           }`}
         >
           <BarChart2 size={20} />
@@ -74,9 +71,7 @@ export default function Sidebar() {
         <Link
           href="/profil"
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
-            isActive("/profil")
-              ? "bg-indigo-50 text-indigo-600"
-              : ""
+            isActive('/profil') ? 'bg-indigo-50 text-indigo-600' : ''
           }`}
         >
           <UserCircle size={20} />

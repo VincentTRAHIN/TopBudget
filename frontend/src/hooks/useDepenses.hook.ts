@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import useSWR from 'swr';
 import fetcher from '@/utils/fetcher.utils';
@@ -12,7 +12,7 @@ export interface DepensesResponse {
     page: number;
     pages: number;
     limit: number;
-  }
+  };
 }
 
 export interface DepenseFilters {
@@ -21,7 +21,7 @@ export interface DepenseFilters {
   dateFin?: string;
   typeCompte?: string;
   typeDepense?: string;
-  search?: string; 
+  search?: string;
 }
 
 export interface DepenseSort {
@@ -34,7 +34,7 @@ export const useDepenses = (
   limit: number = 25,
   filters: DepenseFilters = {},
   sort: DepenseSort = {},
-  vue: 'moi' | 'partenaire' | 'couple_complet' = 'moi'
+  vue: 'moi' | 'partenaire' | 'couple_complet' = 'moi',
 ) => {
   const queryParams = new URLSearchParams({
     page: String(page),
@@ -62,7 +62,7 @@ export const useDepenses = (
     fetcher,
     {
       keepPreviousData: true,
-    }
+    },
   );
 
   return {

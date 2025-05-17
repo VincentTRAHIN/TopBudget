@@ -15,6 +15,10 @@ import { useState } from 'react';
 export default function StatistiquesPage() {
   const { user } = useAuth();
   const [statsContext, setStatsContext] = useState<'moi' | 'couple'>('moi');
+  const partenaireNom =
+    typeof user?.partenaireId === 'object' && user?.partenaireId?.nom
+      ? user.partenaireId.nom
+      : 'Partenaire';
 
   return (
     <RequireAuth>
@@ -24,11 +28,15 @@ export default function StatistiquesPage() {
 
           {/* Sélecteur de contexte statistiques */}
           <div className="mb-4">
-            <label htmlFor="stats-context-select" className="mr-2 font-medium">Vue :</label>
+            <label htmlFor="stats-context-select" className="mr-2 font-medium">
+              Vue :
+            </label>
             <select
               id="stats-context-select"
               value={statsContext}
-              onChange={e => setStatsContext(e.target.value as 'moi' | 'couple')}
+              onChange={(e) =>
+                setStatsContext(e.target.value as 'moi' | 'couple')
+              }
               className="border rounded px-2 py-1"
             >
               <option value="moi">Mes Statistiques</option>
@@ -52,7 +60,11 @@ export default function StatistiquesPage() {
             <div className="col-span-1">
               <PieChartCategories
                 statsContext={statsContext}
-                customTitle={statsContext === 'couple' ? 'Répartition des Dépenses Communes par Catégorie' : undefined}
+                customTitle={
+                  statsContext === 'couple'
+                    ? 'Répartition des Dépenses Communes par Catégorie'
+                    : undefined
+                }
               />
             </div>
             <div className="col-span-1">
@@ -60,19 +72,12 @@ export default function StatistiquesPage() {
             </div>
           </div>
 
-          {/* Résumé des contributions du couple */}
-          {statsContext === 'couple' && (
-            <div className="mb-6">
-              <CoupleContributionsSummary />
-            </div>
-          )}
-
           {/* Section dédiée aux statistiques du couple */}
-          {user?.partenaireId && (
+          {user?.partenaireId && statsContext === 'couple' && (
             <section className="mb-8">
               <h2 className="text-xl font-bold mb-4">Statistiques du Couple</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <CoupleContributionsSummary />
+                <CoupleContributionsSummary partenaireNom={partenaireNom} />
                 <CoupleFixedChargesList />
               </div>
             </section>

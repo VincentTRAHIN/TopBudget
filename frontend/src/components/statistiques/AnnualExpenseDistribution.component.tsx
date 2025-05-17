@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
@@ -10,7 +10,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  ChartOptions
+  ChartOptions,
 } from 'chart.js';
 import { useMonthlyExpensesEvolution } from '@/hooks/useMonthlyExpensesEvolution.hook';
 
@@ -20,32 +20,34 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
 export default function AnnualExpenseDistribution() {
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState<number>(
+    new Date().getFullYear(),
+  );
   const { data, isLoading, isError } = useMonthlyExpensesEvolution(12);
 
-  const filteredData = data.filter(item => {
+  const filteredData = data.filter((item) => {
     const year = parseInt(item.mois.split('-')[0]);
     return year === selectedYear;
   });
 
   const chartData = {
-    labels: filteredData.map(item => {
+    labels: filteredData.map((item) => {
       const month = parseInt(item.mois.split('-')[1]);
       return new Date(0, month - 1).toLocaleString('fr-FR', { month: 'long' });
     }),
     datasets: [
       {
         label: `Dépenses ${selectedYear}`,
-        data: filteredData.map(item => item.totalDepenses),
+        data: filteredData.map((item) => item.totalDepenses),
         backgroundColor: 'rgba(54, 162, 235, 0.6)',
         borderColor: 'rgb(54, 162, 235)',
-        borderWidth: 1
-      }
-    ]
+        borderWidth: 1,
+      },
+    ],
   };
 
   const chartOptions: ChartOptions<'bar'> = {
@@ -57,31 +59,33 @@ export default function AnnualExpenseDistribution() {
       },
       title: {
         display: true,
-        text: `Dépenses mensuelles pour ${selectedYear}`
+        text: `Dépenses mensuelles pour ${selectedYear}`,
       },
       tooltip: {
         callbacks: {
-          label: function(context) {
+          label: function (context) {
             return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}€`;
-          }
-        }
-      }
+          },
+        },
+      },
     },
     scales: {
       y: {
         beginAtZero: true,
         title: {
           display: true,
-          text: 'Montant (€)'
-        }
-      }
-    }
+          text: 'Montant (€)',
+        },
+      },
+    },
   };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Distribution Annuelle des Dépenses</h3>
+        <h3 className="text-lg font-semibold">
+          Distribution Annuelle des Dépenses
+        </h3>
         <select
           value={selectedYear}
           onChange={(e) => setSelectedYear(parseInt(e.target.value))}

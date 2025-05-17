@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import useSWR from 'swr';
 import fetcher from '@/utils/fetcher.utils';
@@ -12,13 +12,13 @@ export interface CurrentMonthTotalData {
 
 export const useCurrentMonthTotal = (contexte: 'moi' | 'couple' = 'moi') => {
   const url = `${totalMensuelEndpoint}${contexte !== 'moi' ? `?contexte=${contexte}` : ''}`;
-  
+
   const { data, error, isLoading, mutate } = useSWR<CurrentMonthTotalData>(
     url,
     fetcher,
     {
       shouldRetryOnError: false,
-    }
+    },
   );
 
   return {

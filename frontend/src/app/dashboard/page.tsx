@@ -1,8 +1,8 @@
-import Layout from "@/components/layout/Layout";
-import RequireAuth from "@/components/auth/requireAuth.component";
-import TotalDepenses from "@/components/dashboard/totalDepenses.component";
-import LastDepenses from "@/components/dashboard/lastDepenses.component";
-import MonthlyComparisonSummary from "@/components/dashboard/MonthlyComparisonSummary.component";
+import Layout from '@/components/layout/Layout';
+import RequireAuth from '@/components/auth/requireAuth.component';
+import TotalDepenses from '@/components/dashboard/totalDepenses.component';
+import LastDepenses from '@/components/dashboard/lastDepenses.component';
+import MonthlyComparisonSummary from '@/components/dashboard/MonthlyComparisonSummary.component';
 
 export default function DashboardPage() {
   return (
@@ -17,15 +17,14 @@ export default function DashboardPage() {
             <div className="lg:col-span-1">
               <TotalDepenses />
             </div>
-            
+
             {/* Comparaison mensuelle */}
             <div className="lg:col-span-1">
               <MonthlyComparisonSummary />
             </div>
-            
+
             {/* Espace pour un futur indicateur */}
-            <div className="lg:col-span-1 hidden lg:block">
-            </div>
+            <div className="lg:col-span-1 hidden lg:block"></div>
           </div>
 
           {/* Section pour les dernières dépenses */}

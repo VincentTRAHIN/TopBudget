@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
@@ -21,7 +21,7 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
 const YEAR_COLORS: { [key: string]: string } = {
@@ -31,29 +31,42 @@ const YEAR_COLORS: { [key: string]: string } = {
 };
 const DEFAULT_BAR_COLOR = 'rgba(153, 102, 255, 0.6)';
 
-export const MonthlyExpensesChart: React.FC<{ statsContext?: 'moi' | 'couple' }> = ({ statsContext = 'moi' }) => {
-  const [selectedPeriod, setSelectedPeriod] = useState<number>(6); 
-  const { data, isLoading, isError, errorMessage } = useMonthlyExpensesEvolution(selectedPeriod, statsContext);
+export const MonthlyExpensesChart: React.FC<{
+  statsContext?: 'moi' | 'couple';
+}> = ({ statsContext = 'moi' }) => {
+  const [selectedPeriod, setSelectedPeriod] = useState<number>(6);
+  const { data, isLoading, isError, errorMessage } =
+    useMonthlyExpensesEvolution(selectedPeriod, statsContext);
 
   const handlePeriodChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedPeriod(Number(event.target.value));
   };
 
   if (isLoading) {
-    return <div className="bg-white p-4 rounded shadow-md h-96 flex items-center justify-center">Chargement du graphique...</div>;
+    return (
+      <div className="bg-white p-4 rounded shadow-md h-96 flex items-center justify-center">
+        Chargement du graphique...
+      </div>
+    );
   }
 
   if (isError) {
     return (
       <div className="bg-white p-4 rounded shadow-md h-96 flex flex-col items-center justify-center">
-        <p className="text-red-500">Erreur lors du chargement des données du graphique.</p>
+        <p className="text-red-500">
+          Erreur lors du chargement des données du graphique.
+        </p>
         {errorMessage && <p className="text-sm text-red-400">{errorMessage}</p>}
       </div>
     );
   }
 
   if (!data || data.length === 0) {
-    return <div className="bg-white p-4 rounded shadow-md h-96 flex items-center justify-center">Aucune donnée disponible pour afficher le graphique.</div>;
+    return (
+      <div className="bg-white p-4 rounded shadow-md h-96 flex items-center justify-center">
+        Aucune donnée disponible pour afficher le graphique.
+      </div>
+    );
   }
 
   let chartData: ChartData<'bar', number[], string>;
@@ -66,54 +79,65 @@ export const MonthlyExpensesChart: React.FC<{ statsContext?: 'moi' | 'couple' }>
       },
       title: {
         display: true,
-        text: `Évolution des Dépenses Mensuelles (${selectedPeriod} derniers mois)`
+        text: `Évolution des Dépenses Mensuelles (${selectedPeriod} derniers mois)`,
       },
       tooltip: {
         callbacks: {
-          label: function(context) {
+          label: function (context) {
             let label = context.dataset.label || '';
             if (label) {
               label += ': ';
             }
             if (context.parsed.y !== null) {
-              label += new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(context.parsed.y);
+              label += new Intl.NumberFormat('fr-FR', {
+                style: 'currency',
+                currency: 'EUR',
+              }).format(context.parsed.y);
             }
             return label;
-          }
-        }
-      }
+          },
+        },
+      },
     },
     scales: {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: (value) => `${typeof value === 'number' ? value.toLocaleString('fr-FR') : value}€`,
+          callback: (value) =>
+            `${typeof value === 'number' ? value.toLocaleString('fr-FR') : value}€`,
         },
       },
     },
   };
 
-  if (statsContext === 'couple' && data.length > 0 && data[0].depensesPersoUserA !== undefined) {
+  if (
+    statsContext === 'couple' &&
+    data.length > 0 &&
+    data[0].depensesPersoUserA !== undefined
+  ) {
     // Mode barres empilées pour le couple
-    const labels = data.map(item => {
+    const labels = data.map((item) => {
       const date = new Date(item.mois + '-01');
-      return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
+      return date.toLocaleDateString('fr-FR', {
+        month: 'short',
+        year: '2-digit',
+      });
     });
     const datasetA = {
       label: 'Dépenses Perso Utilisateur',
-      data: data.map(item => item.depensesPersoUserA || 0),
+      data: data.map((item) => item.depensesPersoUserA || 0),
       backgroundColor: 'rgba(54, 162, 235, 0.7)',
       stack: 'Stack 0',
     };
     const datasetB = {
       label: 'Dépenses Perso Partenaire',
-      data: data.map(item => item.depensesPersoUserB || 0),
+      data: data.map((item) => item.depensesPersoUserB || 0),
       backgroundColor: 'rgba(255, 99, 132, 0.7)',
       stack: 'Stack 0',
     };
     const datasetC = {
       label: 'Dépenses Communes',
-      data: data.map(item => item.depensesCommunes || 0),
+      data: data.map((item) => item.depensesCommunes || 0),
       backgroundColor: 'rgba(255, 206, 86, 0.7)',
       stack: 'Stack 0',
     };
@@ -123,27 +147,42 @@ export const MonthlyExpensesChart: React.FC<{ statsContext?: 'moi' | 'couple' }>
     };
     chartOptions.scales = {
       x: { stacked: true },
-      y: { stacked: true, beginAtZero: true, ticks: { callback: (value) => `${typeof value === 'number' ? value.toLocaleString('fr-FR') : value}€` } },
+      y: {
+        stacked: true,
+        beginAtZero: true,
+        ticks: {
+          callback: (value) =>
+            `${typeof value === 'number' ? value.toLocaleString('fr-FR') : value}€`,
+        },
+      },
     };
     chartOptions.plugins = {
       ...chartOptions.plugins,
       legend: { display: true },
-      title: { display: true, text: `Évolution des Dépenses du Couple (${selectedPeriod} derniers mois)` },
+      title: {
+        display: true,
+        text: `Évolution des Dépenses du Couple (${selectedPeriod} derniers mois)`,
+      },
     };
   } else {
-    const labels = data.map(item => {
+    const labels = data.map((item) => {
       const date = new Date(item.mois + '-01');
-      return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
+      return date.toLocaleDateString('fr-FR', {
+        month: 'short',
+        year: '2-digit',
+      });
     });
 
-    const dataValues = data.map(item => item.totalDepenses);
+    const dataValues = data.map((item) => item.totalDepenses);
 
-    const backgroundColors = data.map(item => {
+    const backgroundColors = data.map((item) => {
       const year = item.mois.split('-')[0];
       return YEAR_COLORS[year] || DEFAULT_BAR_COLOR;
     });
 
-    const borderColors = backgroundColors.map(color => color.replace('0.6', '1'));
+    const borderColors = backgroundColors.map((color) =>
+      color.replace('0.6', '1'),
+    );
 
     chartData = {
       labels,
@@ -162,7 +201,12 @@ export const MonthlyExpensesChart: React.FC<{ statsContext?: 'moi' | 'couple' }>
   return (
     <div className="bg-white p-4 rounded shadow-md">
       <div className="flex items-center justify-center gap-2 mb-4">
-        <label htmlFor="period-select" className="block text-sm font-medium text-gray-700">Période :</label>
+        <label
+          htmlFor="period-select"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Période :
+        </label>
         <select
           id="period-select"
           value={selectedPeriod}
