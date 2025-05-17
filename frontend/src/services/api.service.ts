@@ -16,3 +16,4 @@ export const profileAvatarEndpoint = `${API_BASE_URL}/profile/avatar`;
 export const profileChangePasswordEndpoint = `${API_BASE_URL}/profile/me/change-password`;
 export const profileUpdateEndpoint = `${API_BASE_URL}/profile`;
 export const searchUserEndpoint = `${API_BASE_URL}/users/search`;
+export const syntheseMensuelleEndpoint = `${API_BASE_URL}/statistiques/synthese-mensuelle`;

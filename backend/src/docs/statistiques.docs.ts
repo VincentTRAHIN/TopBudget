@@ -116,6 +116,63 @@
  *         - type: array
  *           items:
  *             $ref: '#/components/schemas/EvolutionMensuelleDataCouple'
+ *
+ *     SyntheseMensuelleBase:
+ *       type: object
+ *       properties:
+ *         moisCourant:
+ *           type: string
+ *           description: Le mois et l'année de la synthèse (YYYY-MM).
+ *         categoriesEnHausse:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               categorieId:
+ *                 type: string
+ *                 format: ObjectId
+ *               nom:
+ *                 type: string
+ *               montantMoisCourant:
+ *                 type: number
+ *               montantMoisPrecedent:
+ *                 type: number
+ *               augmentationPourcentage:
+ *                 type: number
+ *           description: Liste des catégories avec une augmentation significative des dépenses.
+ *
+ *     SyntheseMensuelleMoiResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/SyntheseMensuelleBase'
+ *         - type: object
+ *           properties:
+ *             totaux:
+ *               type: object
+ *               properties:
+ *                 personnelles:
+ *                   type: number
+ *                   description: Total des dépenses personnelles de l'utilisateur pour le mois.
+ *                 communesPayeesParMoi:
+ *                   type: number
+ *                   description: Total des dépenses communes payées par l'utilisateur pour le mois.
+ *
+ *     SyntheseMensuelleCoupleResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/SyntheseMensuelleBase'
+ *         - type: object
+ *           properties:
+ *             totaux:
+ *               type: object
+ *               properties:
+ *                 personnellesMoi:
+ *                   type: number
+ *                   description: Total des dépenses personnelles de l'utilisateur connecté pour le mois.
+ *                 personnellesPartenaire:
+ *                   type: number
+ *                   description: Total des dépenses personnelles du partenaire pour le mois.
+ *                 communesCouple:
+ *                   type: number
+ *                   description: Total des dépenses communes du couple pour le mois.
  */
 
 /**
@@ -566,6 +623,64 @@
  *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Erreur serveur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
+ * /api/statistiques/synthese-mensuelle:
+ *   get:
+ *     summary: Récupère la synthèse mensuelle des dépenses.
+ *     description: Fournit un résumé des dépenses pour un mois donné, en distinguant les dépenses personnelles et communes, et en mettant en évidence les catégories avec des augmentations significatives.
+ *     tags: [Statistiques]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: mois
+ *         schema:
+ *           type: string
+ *           format: MM
+ *         description: Mois pour la synthèse (format MM, ex: "07"). Si non fourni, le mois actuel est utilisé.
+ *       - in: query
+ *         name: annee
+ *         schema:
+ *           type: string
+ *           format: YYYY
+ *         description: Année pour la synthèse (format YYYY, ex: "2023"). Si non fourni, l'année actuelle est utilisée.
+ *       - in: query
+ *         name: contexte
+ *         schema:
+ *           type: string
+ *           enum: [moi, couple]
+ *           default: moi
+ *         description: Contexte de la synthèse ('moi' pour les dépenses personnelles et communes payées par l'utilisateur, 'couple' pour une vue d'ensemble du couple).
+ *     responses:
+ *       200:
+ *         description: Synthèse mensuelle récupérée avec succès.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - $ref: '#/components/schemas/SyntheseMensuelleMoiResponse'
+ *                 - $ref: '#/components/schemas/SyntheseMensuelleCoupleResponse'
+ *       400:
+ *         description: Paramètres invalides.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Non autorisé.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erreur serveur.
  *         content:
  *           application/json:
  *             schema:

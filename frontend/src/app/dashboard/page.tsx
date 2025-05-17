@@ -1,10 +1,17 @@
+'use client'; // Ajouter cette directive en haut du fichier
+
 import Layout from '@/components/layout/Layout';
 import RequireAuth from '@/components/auth/requireAuth.component';
 import TotalDepenses from '@/components/dashboard/totalDepenses.component';
 import LastDepenses from '@/components/dashboard/lastDepenses.component';
 import MonthlyComparisonSummary from '@/components/dashboard/MonthlyComparisonSummary.component';
+import SyntheseMensuelle from '@/components/statistiques/SyntheseMensuelle.component'; // Importer SyntheseMensuelle
+import { useAuth } from '@/hooks/useAuth.hook'; // Importer useAuth
 
 export default function DashboardPage() {
+  const { user } = useAuth(); // Utiliser useAuth pour déterminer le contexte
+  const contexteSynthese = user?.partenaireId ? 'couple' : 'moi'; // Déterminer le contexte
+
   return (
     <RequireAuth>
       <Layout>
@@ -23,8 +30,10 @@ export default function DashboardPage() {
               <MonthlyComparisonSummary />
             </div>
 
-            {/* Espace pour un futur indicateur */}
-            <div className="lg:col-span-1 hidden lg:block"></div>
+            {/* Synthèse Mensuelle */}
+            <div className="lg:col-span-1">
+              <SyntheseMensuelle contexte={contexteSynthese} />
+            </div>
           </div>
 
           {/* Section pour les dernières dépenses */}
