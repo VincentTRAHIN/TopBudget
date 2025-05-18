@@ -13,8 +13,13 @@
 │   ├── constants
 │   │   ├── auth.constants.ts
 │   │   ├── categorie.constants.ts
+│   │   ├── categorieRevenu.constants.ts
+│   │   ├── common.constants.ts
 │   │   ├── depense.constants.ts
 │   │   ├── index.ts
+│   │   ├── profile.constants.ts
+│   │   ├── revenu.constants.ts
+│   │   ├── statistiques.constants.ts
 │   │   ├── user.constants.ts
 │   ├── controllers
 │   │   ├── auth.controller.ts
@@ -60,14 +65,23 @@
 │   │   ├── revenu.route.ts
 │   │   ├── statistiques.route.ts
 │   │   ├── user.route.ts
+│   ├── services
+│   │   ├── ImportService.ts
+│   │   ├── ProfileService.ts
+│   │   ├── StatistiquesService.ts
 │   ├── types
 │   │   ├── categorie.types.ts
 │   │   ├── categorieRevenu.types.ts
 │   │   ├── depense.types.ts
+│   │   ├── request.types.ts
 │   │   ├── revenu.types.ts
+│   │   ├── typed-request.ts
 │   │   ├── user.types.ts
 │   ├── utils
+│   │   ├── async.utils.ts
 │   │   ├── logger.utils.ts
+│   │   ├── response.utils.ts
+│   │   ├── utilisateur.utils.ts
 ├── tsconfig.json
 
 📁 FRONTEND

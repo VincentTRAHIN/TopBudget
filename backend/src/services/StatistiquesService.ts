@@ -2,38 +2,38 @@ import mongoose from "mongoose";
 import DepenseModel from "../models/depense.model";
 import RevenuModel from "../models/revenu.model";
 import User from "../models/user.model";
-import { IDepense } from "../types/depense.types";
-import { IRevenu } from "../types/revenu.types";
+import { IDepense, IDepensePopulated } from "../types/depense.types";
+import { IRevenu, IRevenuPopulated } from "../types/revenu.types";
 
-export type UserIdsType = mongoose.Types.ObjectId | { $in: mongoose.Types.ObjectId[] };
+export type UserIdsType = mongoose.Types.ObjectId | { $in: ReadonlyArray<mongoose.Types.ObjectId> };
 
 interface CategorieRepartition {
-  _id: mongoose.Types.ObjectId;
-  total: number;
-  count: number;
-  nom?: string;
+  readonly _id: mongoose.Types.ObjectId;
+  readonly total: number;
+  readonly count: number;
+  readonly nom?: string;
 }
 
 interface SoldeInfo {
-  totalRevenus: number;
-  totalDepenses: number;
-  solde: number;
+  readonly totalRevenus: number;
+  readonly totalDepenses: number;
+  readonly solde: number;
 }
 
 interface ComparaisonInfo {
-  actuel: number | SoldeInfo;
-  precedent: number | SoldeInfo;
-  difference: number;
+  readonly actuel: number | SoldeInfo;
+  readonly precedent: number | SoldeInfo;
+  readonly difference: number;
 }
 
 interface ContributionCouple {
-  utilisateurId: string;
-  nom: string;
-  totalDepenses: number;
-  pourcentageDepenses: number;
-  totalRevenus: number;
-  pourcentageRevenus: number;
-  solde: number;
+  readonly utilisateurId: string;
+  readonly nom: string;
+  readonly totalDepenses: number;
+  readonly pourcentageDepenses: number;
+  readonly totalRevenus: number;
+  readonly pourcentageRevenus: number;
+  readonly solde: number;
 }
 
 class StatistiquesService {

@@ -22,9 +22,7 @@ export const totalDepensesMensuelles = async (
       return;
     }
     
-    let { mois, annee } = req.query;
-    const contexte = req.query.contexte;
-    const { categorie } = req.query;
+    let { mois, annee, contexte, categorie } = req.query;
     
     if (!mois || !annee) {
       const dateActuelle = new Date();
@@ -78,8 +76,7 @@ export const repartitionParCategorie = async (
       return;
     }
     
-    const { mois, annee } = req.query;
-    const contexte = req.query.contexte;
+    const { mois, annee, contexte } = req.query;
     
     if (!mois || !annee) {
       sendErrorClient(res, "Les paramètres mois et année sont requis");

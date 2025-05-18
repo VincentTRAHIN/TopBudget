@@ -13,10 +13,10 @@ export interface ICategorieInput {
 }
 
 export interface ICategorieResponse {
-  id: string;
-  nom: string;
-  description?: string;
-  image?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  readonly id: string;
+  readonly nom: string;
+  readonly description?: string;
+  readonly image?: string;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
 }

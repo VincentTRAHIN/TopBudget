@@ -14,6 +14,13 @@ export interface IUser extends Document {
   comparerMotDePasse(motDePasse: string): Promise<boolean>;
 }
 
+/**
+ * Interface pour les documents utilisateur avec champ partenaire populé
+ */
+export interface IUserPopulated extends Omit<IUser, 'partenaireId'> {
+  partenaireId?: Pick<IUser, "_id" | "nom" | "email" | "avatarUrl"> | null;
+}
+
 export interface IUserInput {
   nom: string;
   email: string;
@@ -22,19 +29,19 @@ export interface IUserInput {
 }
 
 export interface IUserLogin {
-  email: string;
-  motDePasse: string;
+  readonly email: string;
+  readonly motDePasse: string;
 }
 
 export interface IUserResponse {
-  id: string;
-  nom: string;
-  email: string;
-  role: UserRole;
-  dateCreation: Date;
-  avatarUrl?: string;
-  partenaireId?: string | null;
-  sobriquetPartenaire?: string;
+  readonly id: string;
+  readonly nom: string;
+  readonly email: string;
+  readonly role: UserRole;
+  readonly dateCreation: Date;
+  readonly avatarUrl?: string;
+  readonly partenaireId?: string | null;
+  readonly sobriquetPartenaire?: string;
 }
 
 export interface IUserProfileUpdateInput {

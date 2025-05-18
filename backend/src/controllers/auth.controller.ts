@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { validationResult } from "express-validator";
 import logger from "../utils/logger.utils";
 import { AUTH, COMMON } from "../constants";
+import { IUserPopulated } from "../types/user.types";
 import { sendSuccess, sendErrorClient } from '../utils/response.utils';
 
 const generateToken = (id: string) => {
@@ -108,19 +109,21 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    await utilisateur.populate({
+    await utilisateur.populate<{ partenaireId: IUserPopulated['partenaireId'] }>({
       path: "partenaireId",
       select: "nom email avatarUrl _id",
     });
 
+    const userWithPartenaire = utilisateur as unknown as IUserPopulated;
+    
     sendSuccess(res, {
-      _id: utilisateur._id,
-      nom: utilisateur.nom,
-      email: utilisateur.email,
-      role: utilisateur.role,
-      dateCreation: utilisateur.dateCreation,
-      avatarUrl: utilisateur.avatarUrl,
-      partenaireId: utilisateur.partenaireId,
+      _id: userWithPartenaire._id,
+      nom: userWithPartenaire.nom,
+      email: userWithPartenaire.email,
+      role: userWithPartenaire.role,
+      dateCreation: userWithPartenaire.dateCreation,
+      avatarUrl: userWithPartenaire.avatarUrl,
+      partenaireId: userWithPartenaire.partenaireId,
     });
   } catch (error) {
     logger.error("Erreur dans getMe:", error);

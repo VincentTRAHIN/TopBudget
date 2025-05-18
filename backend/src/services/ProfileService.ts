@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import User from "../models/user.model";
-import { IUserProfileUpdateInput } from "../types/user.types";
+import { IUserProfileUpdateInput, IUserPopulated } from "../types/user.types";
 import { AUTH, USER } from "../constants";
 import path from "path";
 import fs from "fs/promises";
@@ -57,15 +57,22 @@ class ProfileService {
       }
     }
     await currentUser.save();
-    await currentUser.populate({ path: "partenaireId", select: "nom email avatarUrl" });
+    await currentUser.populate<{ partenaireId: IUserPopulated['partenaireId'] }>({ 
+      path: "partenaireId", 
+      select: "nom email avatarUrl" 
+    });
+    
+    const userPopulated = currentUser as unknown as IUserPopulated;
+    const { _id, nom, email, role, dateCreation, avatarUrl, partenaireId } = userPopulated;
+    
     return {
-      _id: currentUser._id,
-      nom: currentUser.nom,
-      email: currentUser.email,
-      role: currentUser.role,
-      dateCreation: currentUser.dateCreation,
-      avatarUrl: currentUser.avatarUrl,
-      partenaireId: currentUser.partenaireId,
+      _id,
+      nom,
+      email,
+      role,
+      dateCreation,
+      avatarUrl,
+      partenaireId,
     };
   }
 
@@ -89,15 +96,22 @@ class ProfileService {
     if (!user) throw new AppError("Utilisateur non trouvé", 404);
     user.avatarUrl = fileUrl;
     await user.save();
-    await user.populate({ path: "partenaireId", select: "nom email avatarUrl" });
+    await user.populate<{ partenaireId: IUserPopulated['partenaireId'] }>({ 
+      path: "partenaireId", 
+      select: "nom email avatarUrl" 
+    });
+    
+    const userPopulated = user as unknown as IUserPopulated;
+    const { _id, nom, email, role, dateCreation, avatarUrl, partenaireId } = userPopulated;
+    
     return {
-      _id: user._id,
-      nom: user.nom,
-      email: user.email,
-      role: user.role,
-      dateCreation: user.dateCreation,
-      avatarUrl: user.avatarUrl,
-      partenaireId: user.partenaireId,
+      _id,
+      nom,
+      email,
+      role,
+      dateCreation,
+      avatarUrl,
+      partenaireId,
     };
   }
 

@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { IUser } from "./user.types";
 
 export type TypeCompteRevenu = "Perso" | "Conjoint";
 
@@ -23,6 +24,14 @@ export interface IRevenu {
   updatedAt?: Date;
 }
 
+/**
+ * Interface pour les documents de revenu avec champs populés
+ */
+export interface IRevenuPopulated extends Omit<IRevenu, 'utilisateur' | 'categorieRevenu'> {
+  utilisateur: Pick<IUser, "_id" | "nom" | "email">;
+  categorieRevenu: ICategorieRevenu;
+}
+
 export interface IRevenuInput {
   montant: number;
   description: string;
@@ -34,24 +43,24 @@ export interface IRevenuInput {
 }
 
 export interface IRevenuResponse {
-  _id: string;
-  montant: number;
-  description: string;
-  date: string;
-  typeCompte: TypeCompteRevenu;
-  utilisateur: {
-    _id: string;
-    nom: string;
-    email?: string;
+  readonly _id: string;
+  readonly montant: number;
+  readonly description: string;
+  readonly date: string;
+  readonly typeCompte: TypeCompteRevenu;
+  readonly utilisateur: {
+    readonly _id: string;
+    readonly nom: string;
+    readonly email?: string;
   };
-  commentaire?: string;
-  categorieRevenu: {
-    _id: string;
-    nom: string;
-    description?: string;
-    image?: string;
+  readonly commentaire?: string;
+  readonly categorieRevenu: {
+    readonly _id: string;
+    readonly nom: string;
+    readonly description?: string;
+    readonly image?: string;
   };
-  estRecurrent: boolean;
-  createdAt: string;
-  updatedAt: string;
+  readonly estRecurrent: boolean;
+  readonly createdAt: string;
+  readonly updatedAt: string;
 }
