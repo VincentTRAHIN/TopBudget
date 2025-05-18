@@ -1,0 +1,178 @@
+
+📁 BACKEND
+├── .dockerignore
+├── .env
+├── .env.example
+├── .gitignore
+├── Dockerfile
+├── eslint.config.mjs
+├── package-lock.json
+├── package.json
+├── src
+│   ├── app.ts
+│   ├── constants
+│   │   ├── auth.constants.ts
+│   │   ├── categorie.constants.ts
+│   │   ├── depense.constants.ts
+│   │   ├── index.ts
+│   │   ├── user.constants.ts
+│   ├── controllers
+│   │   ├── auth.controller.ts
+│   │   ├── categorie.controller.ts
+│   │   ├── categorieRevenu.controller.ts
+│   │   ├── depense.controller.ts
+│   │   ├── profile.controller.ts
+│   │   ├── revenu.controller.ts
+│   │   ├── statistiques.controller.ts
+│   │   ├── user.controller.ts
+│   ├── docs
+│   │   ├── auth.docs.ts
+│   │   ├── budget.docs.ts
+│   │   ├── categorie.docs.ts
+│   │   ├── categorieRevenu.docs.ts
+│   │   ├── depense.docs.ts
+│   │   ├── profile.docs.ts
+│   │   ├── revenu.docs.ts
+│   │   ├── statistiques.docs.ts
+│   │   ├── swagger.config.ts
+│   ├── middlewares
+│   │   ├── auth.middleware.ts
+│   │   ├── error.middleware.ts
+│   │   ├── upload.middleware.ts
+│   │   ├── validators
+│   │   │   ├── categorie.validator.ts
+│   │   │   ├── categorieRevenu.validator.ts
+│   │   │   ├── depense.validator.ts
+│   │   │   ├── revenu.validator.ts
+│   │   │   ├── user.validator.ts
+│   ├── models
+│   │   ├── categorie.model.ts
+│   │   ├── categorieRevenu.model.ts
+│   │   ├── depense.model.ts
+│   │   ├── revenu.model.ts
+│   │   ├── user.model.ts
+│   ├── routes
+│   │   ├── auth.route.ts
+│   │   ├── categorie.route.ts
+│   │   ├── categorieRevenu.route.ts
+│   │   ├── depense.route.ts
+│   │   ├── profile.route.ts
+│   │   ├── revenu.route.ts
+│   │   ├── statistiques.route.ts
+│   │   ├── user.route.ts
+│   ├── types
+│   │   ├── categorie.types.ts
+│   │   ├── categorieRevenu.types.ts
+│   │   ├── depense.types.ts
+│   │   ├── revenu.types.ts
+│   │   ├── user.types.ts
+│   ├── utils
+│   │   ├── logger.utils.ts
+├── tsconfig.json
+
+📁 FRONTEND
+├── .env
+├── .eslintrc.json
+├── .gitignore
+├── .prettierrc
+├── Dockerfile
+├── README.md
+├── eslint.config.mjs
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── src
+│   ├── app
+│   │   ├── auth
+│   │   │   ├── login
+│   │   │   │   ├── page.tsx
+│   │   │   ├── register
+│   │   │   │   ├── page.tsx
+│   │   ├── categories
+│   │   │   ├── page.tsx
+│   │   ├── categories-revenu
+│   │   │   ├── page.tsx
+│   │   ├── dashboard
+│   │   │   ├── page.tsx
+│   │   ├── expenses
+│   │   │   ├── page.tsx
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── profil
+│   │   │   ├── page.tsx
+│   │   ├── revenus
+│   │   │   ├── page.tsx
+│   │   ├── statistiques
+│   │   │   ├── page.tsx
+│   ├── components
+│   │   ├── auth
+│   │   │   ├── authNav.component.tsx
+│   │   │   ├── requireAuth.component.tsx
+│   │   ├── categories
+│   │   │   ├── CategoriesList.component.tsx
+│   │   │   ├── formCategorie.component.tsx
+│   │   ├── categories-revenu
+│   │   │   ├── CategoriesRevenuList.component.tsx
+│   │   │   ├── FormCategorieRevenu.component.tsx
+│   │   ├── dashboard
+│   │   │   ├── MonthlyComparisonSummary.component.tsx
+│   │   │   ├── MonthlyExpensesChart.component.tsx
+│   │   │   ├── lastDepenses.component.tsx
+│   │   │   ├── pieChartCategories.component.tsx
+│   │   │   ├── totalDepenses.component.tsx
+│   │   ├── expenses
+│   │   │   ├── formDepenses.component.tsx
+│   │   │   ├── importCsvModal.component.tsx
+│   │   │   ├── tableDepenses.component.tsx
+│   │   ├── home
+│   │   │   ├── HomeHeader.component.tsx
+│   │   ├── layout
+│   │   │   ├── Header.tsx
+│   │   │   ├── Layout.tsx
+│   │   │   ├── Sidebar.tsx
+│   │   │   ├── clientLayout.component.tsx
+│   │   ├── revenus
+│   │   │   ├── formRevenu.component.tsx
+│   │   │   ├── importCsvModalRevenu.component.tsx
+│   │   │   ├── tableRevenus.component.tsx
+│   │   ├── statistiques
+│   │   │   ├── AnnualExpenseDistribution.component.tsx
+│   │   │   ├── CoupleContributionsSummary.component.tsx
+│   │   │   ├── CoupleFixedChargesList.component.tsx
+│   │   │   ├── PieChartCategoriesRevenu.component.tsx
+│   │   │   ├── StatsSummary.component.tsx
+│   │   │   ├── SyntheseMensuelle.component.tsx
+│   │   │   ├── TopCategoriesYearToDate.component.tsx
+│   ├── hooks
+│   │   ├── useAuth.hook.ts
+│   │   ├── useCategories.hook.ts
+│   │   ├── useCategoriesRevenu.hook.ts
+│   │   ├── useCategoryDistribution.hook.ts
+│   │   ├── useCoupleContributionsSummary.hook.ts
+│   │   ├── useCoupleFixedCharges.hook.ts
+│   │   ├── useCurrentMonthTotal.hook.ts
+│   │   ├── useDepenses.hook.ts
+│   │   ├── useMonthlyComparison.hook.ts
+│   │   ├── useMonthlyExpensesEvolution.hook.ts
+│   │   ├── useMonthlyTotal.hook.ts
+│   │   ├── useRevenuDistributionByCategorie.hook.ts
+│   │   ├── useRevenus.hook.ts
+│   │   ├── useSyntheseMensuelle.hook.ts
+│   ├── services
+│   │   ├── api.service.ts
+│   ├── styles
+│   │   ├── globals.css
+│   ├── types
+│   │   ├── categorie.type.ts
+│   │   ├── categorieRevenu.type.ts
+│   │   ├── depense.type.ts
+│   │   ├── revenu.type.ts
+│   │   ├── statistiques.type.ts
+│   │   ├── user.type.ts
+│   ├── utils
+│   │   ├── avatar.utils.ts
+│   │   ├── fetcher.utils.ts
+├── tailwind.config.ts
+├── tsconfig.json

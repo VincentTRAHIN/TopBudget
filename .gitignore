@@ -42,3 +42,5 @@ next-env.d.ts
 backend.txt
 frontend.txt
 extract-code.js
+generate-structure.js
+structure.txt

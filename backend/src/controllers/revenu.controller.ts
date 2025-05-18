@@ -7,11 +7,10 @@ import logger from "../utils/logger.utils";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import { AppError } from "../middlewares/error.middleware";
 import { IRevenuInput, TypeCompteRevenu } from "../types/revenu.types";
-import { Readable } from "stream";
-import csvParser from "csv-parser";
-import { parse, isValid } from "date-fns";
-import { AUTH } from "../constants";
+import { AUTH, REVENU, COMMON } from "../constants";
 import CategorieRevenuModel from "../models/categorieRevenu.model";
+import { importService } from "../services/ImportService";
+import { sendSuccess, sendErrorClient } from '../utils/response.utils';
 
 const buildRevenuQuery = (req: AuthRequest): Record<string, unknown> => {
   const query: Record<string, unknown> = {};
@@ -62,12 +61,12 @@ export const ajouterRevenu = async (
 ): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    res.status(400).json({ errors: errors.array() });
+    sendErrorClient(res, COMMON.ERROR_MESSAGES.VALIDATION_ERROR, 400, errors.array());
     return;
   }
 
   if (!req.user) {
-    next(new AppError("Utilisateur non authentifié.", 401));
+    next(new AppError(AUTH.ERROR_MESSAGES.UNAUTHORIZED, 401));
     return;
   }
 
@@ -85,7 +84,7 @@ export const ajouterRevenu = async (
     // Validation de la catégorie de revenu
     const categorie = await CategorieRevenuModel.findById(categorieRevenu);
     if (!categorie) {
-      res.status(404).json({ message: "Catégorie de revenu non trouvée." });
+      sendErrorClient(res, REVENU.ERROR_MESSAGES.CATEGORIE_REVENU_NOT_FOUND);
       return;
     }
     const nouveauRevenu = new RevenuModel({
@@ -104,11 +103,11 @@ export const ajouterRevenu = async (
       .populate("utilisateur", "nom _id")
       .populate("categorieRevenu", "nom _id");
 
-    res.status(201).json(revenuPopule);
+    sendSuccess(res, revenuPopule, 'Revenu créé', 201);
     return;
   } catch (error) {
     logger.error("Erreur lors de l'ajout du revenu:", error);
-    next(new AppError("Erreur serveur lors de l'ajout du revenu.", 500));
+    next(new AppError(REVENU.ERROR_MESSAGES.SERVER_ERROR_ADD, 500));
     return;
   }
 };
@@ -119,7 +118,7 @@ export const obtenirRevenus = async (
   next: NextFunction,
 ): Promise<void> => {
   if (!req.user) {
-    next(new AppError("Utilisateur non authentifié.", 401));
+    next(new AppError(AUTH.ERROR_MESSAGES.UNAUTHORIZED, 401));
     return;
   }
 
@@ -145,12 +144,10 @@ export const obtenirRevenus = async (
             : new mongoose.Types.ObjectId(currentUser.partenaireId.toString());
         userIdsToQuery.push(partenaireId);
       } else {
-        res
-          .status(200)
-          .json({
-            revenus: [],
-            pagination: { total: 0, page, limit, pages: 0 },
-          });
+        sendSuccess(res, {
+          revenus: [],
+          pagination: { total: 0, page, limit, pages: 0 },
+        });
         return;
       }
     } else if (vue === "couple_complet" && req.user.id) {
@@ -170,9 +167,7 @@ export const obtenirRevenus = async (
     if (userIdsToQuery.length > 0) {
       queryFilters.utilisateur = { $in: userIdsToQuery };
     } else if (vue !== "moi") {
-      res
-        .status(200)
-        .json({ revenus: [], pagination: { total: 0, page, limit, pages: 0 } });
+      sendSuccess(res, { revenus: [], pagination: { total: 0, page, limit, pages: 0 } });
       return;
     }
 
@@ -189,7 +184,7 @@ export const obtenirRevenus = async (
       .skip(skip)
       .limit(limit);
 
-    res.status(200).json({
+    sendSuccess(res, {
       revenus,
       pagination: {
         total: totalRevenus,
@@ -197,12 +192,12 @@ export const obtenirRevenus = async (
         limit,
         pages: Math.ceil(totalRevenus / limit),
       },
-    });
+    }, 'Liste des revenus');
     return;
   } catch (error) {
     logger.error("Erreur lors de la récupération des revenus:", error);
     next(
-      new AppError("Erreur serveur lors de la récupération des revenus.", 500),
+      new AppError(REVENU.ERROR_MESSAGES.SERVER_ERROR_GET_LIST, 500),
     );
     return;
   }
@@ -214,13 +209,13 @@ export const obtenirRevenuParId = async (
   next: NextFunction,
 ): Promise<void> => {
   if (!req.user) {
-    next(new AppError("Utilisateur non authentifié.", 401));
+    next(new AppError(AUTH.ERROR_MESSAGES.UNAUTHORIZED_USER, 401));
     return;
   }
 
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    next(new AppError("ID de revenu invalide.", 400));
+    next(new AppError(REVENU.ERROR_MESSAGES.INVALID_ID, 400));
     return;
   }
 
@@ -231,7 +226,7 @@ export const obtenirRevenuParId = async (
     );
 
     if (!revenu) {
-      next(new AppError("Revenu non trouvé.", 404));
+      next(new AppError(REVENU.ERROR_MESSAGES.REVENU_NOT_FOUND, 404));
       return;
     }
 
@@ -254,16 +249,16 @@ export const obtenirRevenuParId = async (
       }
     }
     if (!hasAccess) {
-      next(new AppError("Accès non autorisé à cette ressource.", 403));
+      next(new AppError(REVENU.ERROR_MESSAGES.ACCESS_DENIED, 403));
       return;
     }
 
-    res.status(200).json(revenu);
+    sendSuccess(res, revenu);
     return;
   } catch (error) {
     logger.error("Erreur lors de la récupération du revenu par ID:", error);
     next(
-      new AppError("Erreur serveur lors de la récupération du revenu.", 500),
+      new AppError(REVENU.ERROR_MESSAGES.SERVER_ERROR_GET_ONE, 500),
     );
     return;
   }
@@ -276,18 +271,18 @@ export const modifierRevenu = async (
 ): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    res.status(400).json({ errors: errors.array() });
+    sendErrorClient(res, COMMON.ERROR_MESSAGES.VALIDATION_ERROR, 400, errors.array());
     return;
   }
 
   if (!req.user) {
-    next(new AppError("Utilisateur non authentifié.", 401));
+    next(new AppError(AUTH.ERROR_MESSAGES.UNAUTHORIZED_USER, 401));
     return;
   }
 
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    next(new AppError("ID de revenu invalide.", 400));
+    next(new AppError(REVENU.ERROR_MESSAGES.INVALID_ID, 400));
     return;
   }
 
@@ -306,14 +301,14 @@ export const modifierRevenu = async (
     const revenu = await RevenuModel.findById(id);
 
     if (!revenu) {
-      next(new AppError("Revenu non trouvé.", 404));
+      next(new AppError(REVENU.ERROR_MESSAGES.REVENU_NOT_FOUND, 404));
       return;
     }
 
     if (revenu.utilisateur.toString() !== req.user.id.toString()) {
       next(
         new AppError(
-          "Action non autorisée. Vous ne pouvez modifier que vos propres revenus.",
+          REVENU.ERROR_MESSAGES.NOT_AUTHORIZED,
           403,
         ),
       );
@@ -326,7 +321,7 @@ export const modifierRevenu = async (
         updates.categorieRevenu,
       );
       if (!categorie) {
-        res.status(404).json({ message: "Catégorie de revenu non trouvée." });
+        sendErrorClient(res, REVENU.ERROR_MESSAGES.CATEGORIE_REVENU_NOT_FOUND);
         return;
       }
     }
@@ -337,12 +332,12 @@ export const modifierRevenu = async (
       .populate("utilisateur", "nom _id")
       .populate("categorieRevenu", "nom _id");
 
-    res.status(200).json(revenuPopule);
+    sendSuccess(res, revenuPopule, 'Revenu modifié');
     return;
   } catch (error) {
     logger.error("Erreur lors de la modification du revenu:", error);
     next(
-      new AppError("Erreur serveur lors de la modification du revenu.", 500),
+      new AppError(REVENU.ERROR_MESSAGES.SERVER_ERROR_UPDATE, 500),
     );
     return;
   }
@@ -354,13 +349,13 @@ export const supprimerRevenu = async (
   next: NextFunction,
 ): Promise<void> => {
   if (!req.user) {
-    next(new AppError("Utilisateur non authentifié.", 401));
+    next(new AppError(AUTH.ERROR_MESSAGES.UNAUTHORIZED_USER, 401));
     return;
   }
 
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    next(new AppError("ID de revenu invalide.", 400));
+    next(new AppError(REVENU.ERROR_MESSAGES.INVALID_ID, 400));
     return;
   }
 
@@ -368,14 +363,14 @@ export const supprimerRevenu = async (
     const revenu = await RevenuModel.findById(id);
 
     if (!revenu) {
-      next(new AppError("Revenu non trouvé.", 404));
+      next(new AppError(REVENU.ERROR_MESSAGES.REVENU_NOT_FOUND, 404));
       return;
     }
 
     if (revenu.utilisateur.toString() !== req.user.id.toString()) {
       next(
         new AppError(
-          "Action non autorisée. Vous ne pouvez supprimer que vos propres revenus.",
+          REVENU.ERROR_MESSAGES.NOT_AUTHORIZED,
           403,
         ),
       );
@@ -383,11 +378,11 @@ export const supprimerRevenu = async (
     }
 
     await RevenuModel.findByIdAndDelete(id);
-    res.status(200).json({ message: "Revenu supprimé avec succès." });
+    sendSuccess(res, { message: "Revenu supprimé avec succès." });
     return;
   } catch (error) {
     logger.error("Erreur lors de la suppression du revenu:", error);
-    next(new AppError("Erreur serveur lors de la suppression du revenu.", 500));
+    next(new AppError(REVENU.ERROR_MESSAGES.SERVER_ERROR_DELETE, 500));
     return;
   }
 };
@@ -398,235 +393,13 @@ export const importerRevenus = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  logger.info(`Tentative d'importation de revenus par ${req.user?.email}`);
-
-  if (!req.file) return next(new AppError("Aucun fichier CSV fourni", 400));
+  if (!req.file) return next(new AppError(COMMON.ERROR_MESSAGES.NO_CSV_FILE, 400));
   if (!req.user)
     return next(new AppError(AUTH.ERROR_MESSAGES.UNAUTHORIZED, 401));
-
-  const userId = req.user.id;
-  const csvBuffer = req.file.buffer;
-
-  const revenusAImporter: Array<
-    IRevenuInput & { utilisateur: mongoose.Types.ObjectId }
-  > = [];
-  const erreursImport: Array<{
-    ligne: number;
-    data: Record<string, string>;
-    erreur: string;
-  }> = [];
-  let ligneCourante = 0;
-
-  // Pré-chargement des catégories de revenus existantes (nom -> _id)
-  const categoriesDocs = await CategorieRevenuModel.find().lean();
-  const categorieMap = new Map<string, mongoose.Types.ObjectId>();
-  categoriesDocs.forEach((cat) => {
-    categorieMap.set(
-      cat.nom.trim().toLowerCase(),
-      cat._id as mongoose.Types.ObjectId,
-    );
-  });
-
-  const lineProcessingPromises: Promise<void>[] = [];
-
-  await new Promise<void>((resolveStream, rejectStream) => {
-    Readable.from(csvBuffer)
-      .pipe(
-        csvParser({
-          separator: ",",
-          mapHeaders: ({ header }) => header.trim().toLowerCase(),
-          headers: [
-            "date",
-            "montant",
-            "description",
-            "categorierevenu",
-            "typecompte",
-            "commentaire",
-            "estrecurrent",
-          ],
-          skipLines: 0,
-        }),
-      )
-      .on("data", (row) => {
-        ligneCourante++;
-        const currentLine = ligneCourante;
-        const processLine = async () => {
-          try {
-            const {
-              date: dateStr,
-              montant: montantStr,
-              description,
-              categorierevenu,
-              typecompte: typeCompteStr,
-              commentaire: commentaireStr,
-              estrecurrent,
-            } = row;
-            if (!dateStr || !montantStr || !description || !categorierevenu)
-              throw new Error(
-                "Données manquantes (date, montant, description, categorieRevenu)",
-              );
-
-            const expectedDateFormat = "dd/MM/yyyy";
-            const date = parse(dateStr, expectedDateFormat, new Date());
-            if (!isValid(date))
-              throw new Error(
-                `Date invalide: ${dateStr}. Format attendu: ${expectedDateFormat.toUpperCase()}`,
-              );
-
-            const montantNumerique = parseFloat(montantStr.replace(",", "."));
-            if (isNaN(montantNumerique) || montantNumerique <= 0)
-              throw new Error(`Montant invalide: ${montantStr}`);
-
-            let typeCompte: TypeCompteRevenu = "Perso";
-            if (
-              typeCompteStr &&
-              (typeCompteStr === "Perso" || typeCompteStr === "Conjoint")
-            ) {
-              typeCompte = typeCompteStr as TypeCompteRevenu;
-            }
-
-            // Gestion de la catégorie de revenu (ID ou nom)
-            let categorieRevenuId: mongoose.Types.ObjectId | null = null;
-            if (categorierevenu) {
-              const trimmed = categorierevenu.trim();
-              if (mongoose.Types.ObjectId.isValid(trimmed)) {
-                // Recherche par ID
-                const cat = await CategorieRevenuModel.findById(trimmed).lean();
-                if (cat) {
-                  categorieRevenuId = cat._id as mongoose.Types.ObjectId;
-                }
-              }
-              if (!categorieRevenuId) {
-                // Recherche par nom (insensible à la casse)
-                const lower = trimmed.toLowerCase();
-                if (categorieMap.has(lower)) {
-                  categorieRevenuId = categorieMap.get(lower)!;
-                } else {
-                  // Création atomique ou récupération de la catégorie (évite les doublons)
-                  const cat = await CategorieRevenuModel.findOneAndUpdate(
-                    { nom: { $regex: new RegExp(`^${trimmed}$`, "i") } },
-                    {
-                      $setOnInsert: {
-                        nom: trimmed,
-                        description:
-                          "Catégorie créée automatiquement lors de l'import CSV.",
-                      },
-                    },
-                    { new: true, upsert: true, lean: true },
-                  );
-                  if (!cat)
-                    throw new Error(
-                      `Erreur inattendue lors de la création ou récupération de la catégorie: ${trimmed}`,
-                    );
-                  categorieRevenuId = cat._id as mongoose.Types.ObjectId;
-                  categorieMap.set(lower, cat._id as mongoose.Types.ObjectId);
-                }
-              }
-            }
-            if (!categorieRevenuId)
-              throw new Error(
-                "Erreur inattendue : categorieRevenuId null après création ou recherche.",
-              );
-
-            // Gestion du booléen estRecurrent
-            let estRecurrentBool = false;
-            if (typeof estrecurrent === "string") {
-              estRecurrentBool =
-                estrecurrent.trim().toLowerCase() === "true" ||
-                estrecurrent.trim() === "1";
-            }
-
-            const revenuToInsert: IRevenuInput & {
-              utilisateur: mongoose.Types.ObjectId;
-            } = {
-              date,
-              montant: montantNumerique,
-              description,
-              typeCompte,
-              commentaire: commentaireStr || "",
-              categorieRevenu: categorieRevenuId.toString(),
-              estRecurrent: estRecurrentBool,
-              utilisateur: new mongoose.Types.ObjectId(userId),
-            };
-            revenusAImporter.push(revenuToInsert);
-          } catch (lineError: unknown) {
-            const errorMessage =
-              lineError instanceof Error
-                ? lineError.message
-                : "Erreur inconnue de traitement de ligne";
-            logger.warn(
-              `Erreur traitement ligne ${currentLine}: ${errorMessage}`,
-            );
-            erreursImport.push({
-              ligne: currentLine,
-              data: row,
-              erreur: errorMessage,
-            });
-          }
-        };
-        lineProcessingPromises.push(processLine());
-      })
-      .on("end", async () => {
-        logger.info("Fin du stream CSV (événement end reçu).");
-        await Promise.allSettled(lineProcessingPromises);
-        let importedCount = 0;
-        if (revenusAImporter.length > 0) {
-          try {
-            const result = await RevenuModel.insertMany(revenusAImporter, {
-              ordered: false,
-            });
-            importedCount = result.length;
-            logger.info(`${importedCount} revenus importés avec succès.`);
-          } catch (dbError: unknown) {
-            let errorMessage = "Erreur inconnue lors de l'insertion en masse";
-            let successfulInserts = 0;
-            if (dbError instanceof Error) {
-              errorMessage = dbError.message;
-              logger.error(
-                `Erreur Mongoose/Mongo lors de l'insertion en masse: ${errorMessage}`,
-                dbError,
-              );
-              if (typeof dbError === "object" && dbError !== null) {
-                const resultObj = (
-                  dbError as { result?: { nInserted?: number } }
-                ).result;
-                if (resultObj && typeof resultObj.nInserted === "number") {
-                  successfulInserts = resultObj.nInserted;
-                }
-              }
-            } else {
-              logger.error(
-                "Erreur inattendue lors de l'insertion en masse:",
-                dbError,
-              );
-            }
-            res.status(500).json({
-              message: "Erreur lors de l'enregistrement des revenus.",
-              details: errorMessage,
-              importedCount: successfulInserts,
-              errorCount:
-                revenusAImporter.length -
-                successfulInserts +
-                erreursImport.length,
-              erreursParsing: erreursImport,
-            });
-            return;
-          }
-        } else {
-          logger.info("Aucun revenu valide à importer.");
-        }
-        res.status(200).json({
-          message: `Import terminé. ${importedCount} revenus importés. ${erreursImport.length} lignes avec erreurs.`,
-          totalLignesLues: ligneCourante,
-          importedCount,
-          errorCount: erreursImport.length,
-          erreurs: erreursImport,
-        });
-        resolveStream();
-      })
-      .on("error", (err) => {
-        logger.error("Erreur Stream CSV:", err);
-        rejectStream(err);
-      });
-  });
+  try {
+    const result = await importService.importRevenusCsv(req.file.buffer, req.user.id);
+    sendSuccess(res, result);
+  } catch (error) {
+    next(error);
+  }
 };

@@ -2,6 +2,7 @@ import { Response } from "express";
 import User from "../models/user.model";
 import { AUTH } from "../constants";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import { sendSuccess, sendErrorClient } from '../utils/response.utils';
 
 // GET /api/users/search?query=...
 export const searchUser = async (
@@ -16,7 +17,7 @@ export const searchUser = async (
     const { query } = req.query;
     console.log("[DEBUG] /api/users/search query param:", query);
     if (!query || typeof query !== "string") {
-      res.status(400).json({ message: "Paramètre query requis" });
+      sendErrorClient(res, "Paramètre query requis");
       return;
     }
     // Recherche par email exact OU nom exact (case insensitive)
@@ -29,7 +30,7 @@ export const searchUser = async (
       res.status(404).json({ message: "Utilisateur non trouvé" });
       return;
     }
-    res.json(user);
+    sendSuccess(res, user, 'Utilisateur trouvé');
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error });
   }

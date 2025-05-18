@@ -1,4 +1,5 @@
 import { UserRole } from "../types/user.types";
+import { COMMON } from "./common.constants";
 
 export const USER = {
   // Rôles disponibles
@@ -10,8 +11,8 @@ export const USER = {
 
   // Messages d'erreur
   ERROR_MESSAGES: {
-    USER_NOT_FOUND: "Utilisateur non trouvé",
-    EMAIL_ALREADY_EXISTS: "Cet email est déjà utilisé",
+    USER_NOT_FOUND: COMMON.ERROR_MESSAGES.USER_NOT_FOUND,
+    EMAIL_ALREADY_EXISTS: COMMON.ERROR_MESSAGES.EMAIL_ALREADY_EXISTS,
     INVALID_ROLE: "Rôle invalide",
     CANNOT_DELETE_SELF: "Vous ne pouvez pas supprimer votre propre compte",
     CANNOT_MODIFY_ADMIN: "Vous ne pouvez pas modifier un administrateur",

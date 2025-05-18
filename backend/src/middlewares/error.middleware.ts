@@ -43,8 +43,10 @@ export const errorHandler = (
     stack: err.stack,
   });
 
+  const status = err instanceof AppError ? err.status : "error";
+  
   res.status(statusCode).json({
-    status: "error",
+    status,
     message,
     ...(stack && { stack }),
     ...(process.env.NODE_ENV === "development" && {

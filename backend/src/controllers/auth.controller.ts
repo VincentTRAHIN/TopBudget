@@ -4,7 +4,8 @@ import User from "../models/user.model";
 import jwt from "jsonwebtoken";
 import { validationResult } from "express-validator";
 import logger from "../utils/logger.utils";
-import { AUTH } from "../constants";
+import { AUTH, COMMON } from "../constants";
+import { sendSuccess, sendErrorClient } from '../utils/response.utils';
 
 const generateToken = (id: string) => {
   if (!process.env.JWT_SECRET) {
@@ -21,7 +22,8 @@ export const inscription = async (
 ): Promise<void> => {
   const erreurs = validationResult(req);
   if (!erreurs.isEmpty()) {
-    res.status(400).json({ erreurs: erreurs.array() });
+    sendErrorClient(res, COMMON.ERROR_MESSAGES.VALIDATION_ERROR, 400, erreurs.array());
+    return;
   }
 
   const { nom, email, motDePasse } = req.body;
@@ -29,24 +31,22 @@ export const inscription = async (
   try {
     const userExistant = await User.findOne({ email });
     if (userExistant) {
-      res
-        .status(400)
-        .json({ message: AUTH.ERROR_MESSAGES.EMAIL_ALREADY_EXISTS });
+      sendErrorClient(res, AUTH.ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
       return;
     }
 
     const nouvelUtilisateur = new User({ nom, email, motDePasse });
     await nouvelUtilisateur.save();
 
-    res.status(201).json({
+    sendSuccess(res, {
       _id: nouvelUtilisateur._id,
       nom: nouvelUtilisateur.nom,
       email: nouvelUtilisateur.email,
       token: generateToken(nouvelUtilisateur._id as string),
-    });
+    }, 'Utilisateur inscrit avec succès', 201);
   } catch (error) {
     logger.error((error as Error).message);
-    res.status(500).json({ message: "Erreur lors de l'inscription" });
+    sendErrorClient(res, AUTH.ERROR_MESSAGES.SERVER_ERROR_SIGNUP, 500);
   }
 };
 
@@ -59,7 +59,7 @@ export const connexion = async (req: Request, res: Response): Promise<void> => {
     logger.warn(
       `Erreurs de validation login: ${JSON.stringify(erreurs.array())}`,
     );
-    res.status(400).json({ erreurs: erreurs.array() });
+    sendErrorClient(res, COMMON.ERROR_MESSAGES.VALIDATION_ERROR, 400, erreurs.array());
     return;
   }
 
@@ -69,9 +69,7 @@ export const connexion = async (req: Request, res: Response): Promise<void> => {
     const utilisateur = await User.findOne({ email });
     if (!utilisateur) {
       logger.warn(`Utilisateur non trouvé pour email: ${email}`);
-      res
-        .status(400)
-        .json({ message: AUTH.ERROR_MESSAGES.INVALID_CREDENTIALS });
+      sendErrorClient(res, AUTH.ERROR_MESSAGES.INVALID_CREDENTIALS);
       return;
     }
     logger.info(`Utilisateur trouvé: ${utilisateur.email}`);
@@ -79,28 +77,26 @@ export const connexion = async (req: Request, res: Response): Promise<void> => {
     const motDePasseValide = await utilisateur.comparerMotDePasse(motDePasse);
     if (!motDePasseValide) {
       logger.warn(`Mot de passe invalide pour utilisateur: ${email}`);
-      res
-        .status(400)
-        .json({ message: AUTH.ERROR_MESSAGES.INVALID_CREDENTIALS });
+      sendErrorClient(res, AUTH.ERROR_MESSAGES.INVALID_CREDENTIALS);
       return;
     }
     logger.info(`Connexion réussie pour utilisateur: ${email}`);
 
-    res.json({
+    sendSuccess(res, {
       _id: utilisateur._id,
       nom: utilisateur.nom,
       email: utilisateur.email,
       token: generateToken(utilisateur._id as string),
-    });
+    }, 'Utilisateur connecté', 200);
   } catch (error) {
     logger.error("Erreur interne lors de la connexion:", error);
-    res.status(500).json({ message: "Erreur lors de la connexion" });
+    sendErrorClient(res, AUTH.ERROR_MESSAGES.SERVER_ERROR_LOGIN, 500);
   }
 };
 
 export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) {
-    res.status(401).json({ message: AUTH.ERROR_MESSAGES.UNAUTHORIZED });
+    sendErrorClient(res, AUTH.ERROR_MESSAGES.UNAUTHORIZED);
     return;
   }
 
@@ -108,7 +104,7 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
     const utilisateur = await User.findById(req.user.id).select("-motDePasse");
 
     if (!utilisateur) {
-      res.status(404).json({ message: AUTH.ERROR_MESSAGES.USER_NOT_FOUND });
+      sendErrorClient(res, AUTH.ERROR_MESSAGES.USER_NOT_FOUND);
       return;
     }
 
@@ -117,7 +113,7 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
       select: "nom email avatarUrl _id",
     });
 
-    res.status(200).json({
+    sendSuccess(res, {
       _id: utilisateur._id,
       nom: utilisateur.nom,
       email: utilisateur.email,

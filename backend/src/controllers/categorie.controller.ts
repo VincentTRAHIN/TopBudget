@@ -3,8 +3,9 @@ import Categorie from "../models/categorie.model";
 import { validationResult } from "express-validator";
 import logger from "../utils/logger.utils";
 import { AuthRequest } from "../middlewares/auth.middleware";
-import { CATEGORIE } from "../constants";
+import { CATEGORIE, COMMON } from "../constants";
 import Depense from "../models/depense.model";
+import { sendSuccess, sendErrorClient } from '../utils/response.utils';
 
 export const ajouterCategorie = async (
   req: AuthRequest,
@@ -12,7 +13,7 @@ export const ajouterCategorie = async (
 ): Promise<void> => {
   const erreurs = validationResult(req);
   if (!erreurs.isEmpty()) {
-    res.status(400).json({ erreurs: erreurs.array() });
+    sendErrorClient(res, COMMON.ERROR_MESSAGES.VALIDATION_ERROR, 400, erreurs.array());
     return;
   }
 
@@ -25,9 +26,7 @@ export const ajouterCategorie = async (
       nom.length < CATEGORIE.VALIDATION.MIN_NOM_LENGTH ||
       nom.length > CATEGORIE.VALIDATION.MAX_NOM_LENGTH
     ) {
-      res.status(400).json({
-        message: `Le nom doit contenir entre ${CATEGORIE.VALIDATION.MIN_NOM_LENGTH} et ${CATEGORIE.VALIDATION.MAX_NOM_LENGTH} caractères`,
-      });
+      sendErrorClient(res, `Le nom doit contenir entre ${CATEGORIE.VALIDATION.MIN_NOM_LENGTH} et ${CATEGORIE.VALIDATION.MAX_NOM_LENGTH} caractères`);
       return;
     }
 
@@ -36,9 +35,7 @@ export const ajouterCategorie = async (
       description &&
       description.length > CATEGORIE.VALIDATION.MAX_DESCRIPTION_LENGTH
     ) {
-      res.status(400).json({
-        message: `La description ne peut pas dépasser ${CATEGORIE.VALIDATION.MAX_DESCRIPTION_LENGTH} caractères`,
-      });
+      sendErrorClient(res, `La description ne peut pas dépasser ${CATEGORIE.VALIDATION.MAX_DESCRIPTION_LENGTH} caractères`);
       return;
     }
 
@@ -47,9 +44,7 @@ export const ajouterCategorie = async (
       nom: { $regex: new RegExp(`^${nom}$`, "i") },
     });
     if (categorieExistante) {
-      res
-        .status(400)
-        .json({ message: CATEGORIE.ERROR_MESSAGES.CATEGORIE_ALREADY_EXISTS });
+      sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.CATEGORIE_ALREADY_EXISTS);
       return;
     }
 
@@ -59,10 +54,10 @@ export const ajouterCategorie = async (
       image,
     });
 
-    res.status(201).json(nouvelleCategorie);
+    sendSuccess(res, nouvelleCategorie, 'Catégorie créée', 201);
   } catch (error) {
     logger.error(error);
-    res.status(500).json({ message: "Erreur lors de l'ajout de la catégorie" });
+    sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.SERVER_ERROR_ADD, 500);
   }
 };
 
@@ -72,12 +67,10 @@ export const obtenirCategories = async (
 ): Promise<void> => {
   try {
     const categories = await Categorie.find().sort({ nom: 1 });
-    res.json(categories);
+    sendSuccess(res, categories, 'Liste des catégories');
   } catch (error) {
     logger.error(error);
-    res
-      .status(500)
-      .json({ message: "Erreur lors de la récupération des catégories" });
+    sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.SERVER_ERROR_GET_LIST, 500);
   }
 };
 
@@ -89,9 +82,7 @@ export const modifierCategorie = async (
     const categorie = await Categorie.findById(req.params.id);
 
     if (!categorie) {
-      res
-        .status(404)
-        .json({ message: CATEGORIE.ERROR_MESSAGES.CATEGORIE_NOT_FOUND });
+      sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.CATEGORIE_NOT_FOUND);
       return;
     }
 
@@ -102,9 +93,7 @@ export const modifierCategorie = async (
         _id: { $ne: categorie._id },
       });
       if (categorieExistante) {
-        res
-          .status(400)
-          .json({ message: CATEGORIE.ERROR_MESSAGES.CATEGORIE_ALREADY_EXISTS });
+        sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.CATEGORIE_ALREADY_EXISTS);
         return;
       }
     }
@@ -112,12 +101,10 @@ export const modifierCategorie = async (
     const updated = await Categorie.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
-    res.json(updated);
+    sendSuccess(res, updated, 'Catégorie modifiée');
   } catch (error) {
     logger.error(error);
-    res
-      .status(500)
-      .json({ message: "Erreur lors de la mise à jour de la catégorie" });
+    sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.SERVER_ERROR_UPDATE, 500);
   }
 };
 
@@ -129,27 +116,21 @@ export const supprimerCategorie = async (
     const categorie = await Categorie.findById(req.params.id);
 
     if (!categorie) {
-      res
-        .status(404)
-        .json({ message: CATEGORIE.ERROR_MESSAGES.CATEGORIE_NOT_FOUND });
+      sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.CATEGORIE_NOT_FOUND);
       return;
     }
 
     // Vérifier si la catégorie est utilisée par des dépenses
     const depenses = await Depense.countDocuments({ categorie: categorie._id });
     if (depenses > 0) {
-      res
-        .status(400)
-        .json({ message: CATEGORIE.ERROR_MESSAGES.CATEGORIE_IN_USE });
+      sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.CATEGORIE_IN_USE);
       return;
     }
 
     await categorie.deleteOne();
-    res.json({ message: "Catégorie supprimée" });
+    sendSuccess(res, { message: "Catégorie supprimée" });
   } catch (error) {
     logger.error(error);
-    res
-      .status(500)
-      .json({ message: "Erreur lors de la suppression de la catégorie" });
+    sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.SERVER_ERROR_DELETE, 500);
   }
 };

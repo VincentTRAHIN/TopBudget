@@ -1,14 +1,11 @@
 import { Response } from "express";
 import { AuthRequest } from "../middlewares/auth.middleware";
-import User from "../models/user.model";
-import mongoose from "mongoose";
 import logger from "../utils/logger.utils";
-import { AUTH, USER } from "../constants";
+import { AUTH, PROFILE } from "../constants";
 import { IUserProfileUpdateInput } from "../types/user.types";
-import path from "path";
-import fs from "fs/promises";
-import { NextFunction } from "express";
 import { AppError } from "../middlewares/error.middleware";
+import ProfileService from "../services/ProfileService";
+import { sendSuccess, sendErrorClient } from '../utils/response.utils';
 
 /**
  * Mise à jour du profil utilisateur
@@ -24,126 +21,16 @@ export const updateUserProfile = async (
       res.status(401).json({ message: AUTH.ERROR_MESSAGES.UNAUTHORIZED });
       return;
     }
-
     const userId = req.user.id;
-
-    const {
-      nom,
-      email,
-      partenaireId: partenaireIdInput,
-    } = req.body as IUserProfileUpdateInput;
-
-    const currentUser = await User.findById(userId);
-    if (!currentUser) {
-      res.status(404).json({ message: USER.ERROR_MESSAGES.USER_NOT_FOUND });
-      return;
-    }
-
-    if (nom !== undefined && nom !== currentUser.nom) {
-      currentUser.nom = nom;
-    }
-
-    if (email !== undefined && email !== currentUser.email) {
-      const emailExistant = await User.findOne({
-        email,
-        _id: { $ne: currentUser._id },
-      });
-
-      if (emailExistant) {
-        res
-          .status(400)
-          .json({ message: USER.ERROR_MESSAGES.EMAIL_ALREADY_EXISTS });
-        return;
-      }
-
-      currentUser.email = email;
-    }
-
-    if (partenaireIdInput !== undefined) {
-      if (partenaireIdInput === null || partenaireIdInput === "") {
-        if (currentUser.partenaireId) {
-          const ancienPartenaire = await User.findById(
-            currentUser.partenaireId,
-          );
-          if (ancienPartenaire) {
-            ancienPartenaire.partenaireId = undefined;
-            await ancienPartenaire.save();
-          }
-
-          currentUser.partenaireId = undefined;
-        }
-      } else {
-        if (!mongoose.Types.ObjectId.isValid(partenaireIdInput)) {
-          res.status(400).json({ message: "ID de partenaire invalide" });
-          return;
-        }
-
-        if (partenaireIdInput === userId) {
-          res
-            .status(400)
-            .json({ message: "Vous ne pouvez pas vous lier à vous-même" });
-          return;
-        }
-
-        const potentialPartner = await User.findById(partenaireIdInput);
-        if (!potentialPartner) {
-          res.status(404).json({ message: "Partenaire non trouvé" });
-          return;
-        }
-
-        if (
-          potentialPartner.partenaireId &&
-          potentialPartner.partenaireId.toString() !== String(currentUser._id)
-        ) {
-          res.status(400).json({
-            message: "Ce partenaire est déjà lié à un autre utilisateur",
-          });
-          return;
-        }
-
-        if (
-          currentUser.partenaireId &&
-          currentUser.partenaireId.toString() !== String(potentialPartner._id)
-        ) {
-          const ancienPartenaire = await User.findById(
-            currentUser.partenaireId,
-          );
-          if (ancienPartenaire) {
-            ancienPartenaire.partenaireId = undefined;
-            await ancienPartenaire.save();
-          }
-        }
-
-        currentUser.partenaireId =
-          potentialPartner._id as mongoose.Schema.Types.ObjectId;
-        potentialPartner.partenaireId =
-          currentUser._id as mongoose.Schema.Types.ObjectId;
-
-        await potentialPartner.save();
-      }
-    }
-
-    await currentUser.save();
-
-    await currentUser.populate({
-      path: "partenaireId",
-      select: "nom email avatarUrl",
-    });
-
-    res.status(200).json({
-      _id: currentUser._id,
-      nom: currentUser.nom,
-      email: currentUser.email,
-      role: currentUser.role,
-      dateCreation: currentUser.dateCreation,
-      avatarUrl: currentUser.avatarUrl,
-      partenaireId: currentUser.partenaireId,
-    });
+    const result = await ProfileService.updateUserProfileData(userId, req.body as IUserProfileUpdateInput);
+    sendSuccess(res, result);
   } catch (error) {
-    logger.error("Erreur lors de la mise à jour du profil:", error);
-    res
-      .status(500)
-      .json({ message: "Erreur lors de la mise à jour du profil" });
+    if (error instanceof AppError) {
+      sendErrorClient(res, error.message);
+    } else {
+      logger.error("Erreur lors de la mise à jour du profil:", error);
+      sendErrorClient(res, PROFILE.ERROR_MESSAGES.SERVER_ERROR_UPDATE, 500);
+    }
   }
 };
 
@@ -155,58 +42,22 @@ export const updateUserProfile = async (
 export const uploadUserAvatar = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
 ): Promise<void> => {
   try {
     if (!req.user) {
-      return next(new AppError("Non autorisé", 401));
+      res.status(401).json({ message: AUTH.ERROR_MESSAGES.UNAUTHORIZED });
+      return;
     }
     const userId = req.user.id;
-    if (!req.file) {
-      return next(new AppError("Aucun fichier fourni", 400));
-    }
-
-    const uploadDir = path.join(__dirname, "../../public/uploads/avatars");
-    await fs.mkdir(uploadDir, { recursive: true });
-
-    const mimeToExt: Record<string, string> = {
-      "image/jpeg": "jpg",
-      "image/png": "png",
-      "image/gif": "gif",
-    };
-    const ext = mimeToExt[req.file.mimetype];
-    if (!ext) {
-      return next(new AppError("Type de fichier non supporté", 400));
-    }
-    const fileName = `user-${userId}-${Date.now()}.${ext}`;
-    const filePath = path.join(uploadDir, fileName);
-    const apiBaseUrl = process.env.API_BASE_URL || "http://backend:5001";
-    const fileUrl = `${apiBaseUrl}/uploads/avatars/${fileName}`;
-
-    await fs.writeFile(filePath, req.file.buffer);
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return next(new AppError("Utilisateur non trouvé", 404));
-    }
-    user.avatarUrl = fileUrl;
-    await user.save();
-    await user.populate({
-      path: "partenaireId",
-      select: "nom email avatarUrl",
-    });
-
-    res.status(200).json({
-      _id: user._id,
-      nom: user.nom,
-      email: user.email,
-      role: user.role,
-      dateCreation: user.dateCreation,
-      avatarUrl: user.avatarUrl,
-      partenaireId: user.partenaireId,
-    });
+    const result = await ProfileService.updateAvatar(userId, req.file!);
+    sendSuccess(res, result);
   } catch (error) {
-    next(error);
+    if (error instanceof AppError) {
+      sendErrorClient(res, error.message);
+    } else {
+      logger.error("Erreur lors de l'upload de l'avatar:", error);
+      sendErrorClient(res, PROFILE.ERROR_MESSAGES.SERVER_ERROR_UPLOAD_AVATAR, 500);
+    }
   }
 };
 
@@ -218,7 +69,6 @@ export const uploadUserAvatar = async (
 export const changeUserPassword = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -227,46 +77,14 @@ export const changeUserPassword = async (
     }
     const userId = req.user.id;
     const { currentPassword, newPassword, confirmPassword } = req.body;
-
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      res.status(400).json({ message: "Tous les champs sont requis." });
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      res
-        .status(400)
-        .json({ message: "Les nouveaux mots de passe ne correspondent pas." });
-      return;
-    }
-    const rules = AUTH.PASSWORD_RULES;
-    if (
-      newPassword.length < rules.MIN_LENGTH ||
-      (rules.REQUIRE_UPPERCASE && !/[A-Z]/.test(newPassword)) ||
-      (rules.REQUIRE_LOWERCASE && !/[a-z]/.test(newPassword)) ||
-      (rules.REQUIRE_NUMBER && !/[0-9]/.test(newPassword)) ||
-      (rules.REQUIRE_SPECIAL_CHAR &&
-        !/[!@#$%^&*(),.?":{}|<>]/.test(newPassword))
-    ) {
-      res.status(400).json({
-        message:
-          "Le nouveau mot de passe ne respecte pas les règles de sécurité.",
-      });
-      return;
-    }
-    const user = await User.findById(userId);
-    if (!user) {
-      res.status(404).json({ message: USER.ERROR_MESSAGES.USER_NOT_FOUND });
-      return;
-    }
-    const isMatch = await user.comparerMotDePasse(currentPassword);
-    if (!isMatch) {
-      res.status(401).json({ message: "Mot de passe actuel incorrect." });
-      return;
-    }
-    user.motDePasse = newPassword;
-    await user.save();
-    res.status(200).json({ message: "Mot de passe mis à jour avec succès." });
+    const result = await ProfileService.changePassword(userId, currentPassword, newPassword, confirmPassword);
+    sendSuccess(res, result);
   } catch (error) {
-    next(error);
+    if (error instanceof AppError) {
+      sendErrorClient(res, error.message);
+    } else {
+      logger.error("Erreur lors du changement de mot de passe:", error);
+      sendErrorClient(res, PROFILE.ERROR_MESSAGES.SERVER_ERROR_PASSWORD_CHANGE, 500);
+    }
   }
 };

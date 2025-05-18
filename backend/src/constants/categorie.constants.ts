@@ -7,6 +7,10 @@ export const CATEGORIE = {
       "Cette catégorie est utilisée par des dépenses et ne peut être supprimée",
     VALIDATION_ERROR:
       "Erreur de validation lors de la création/modification de la catégorie.",
+    SERVER_ERROR_ADD: "Erreur lors de l'ajout de la catégorie",
+    SERVER_ERROR_GET_LIST: "Erreur lors de la récupération des catégories",
+    SERVER_ERROR_UPDATE: "Erreur lors de la modification de la catégorie", 
+    SERVER_ERROR_DELETE: "Erreur lors de la suppression de la catégorie",
   },
 
   VALIDATION: {

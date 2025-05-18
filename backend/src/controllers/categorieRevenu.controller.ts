@@ -4,22 +4,8 @@ import { validationResult } from "express-validator";
 import logger from "../utils/logger.utils";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import RevenuModel from "../models/revenu.model";
-
-// Constantes d'erreur pour les catégories de revenus
-export const CATEGORIE_REVENU = {
-  ERROR_MESSAGES: {
-    CATEGORIE_REVENU_NOT_FOUND: "Catégorie de revenu non trouvée",
-    CATEGORIE_REVENU_ALREADY_EXISTS:
-      "Une catégorie de revenu avec ce nom existe déjà",
-    CATEGORIE_REVENU_IN_USE:
-      "Catégorie de revenu utilisée par des revenus, impossible de la supprimer",
-  },
-  VALIDATION: {
-    MIN_NOM_LENGTH: 2,
-    MAX_NOM_LENGTH: 50,
-    MAX_DESCRIPTION_LENGTH: 200,
-  },
-};
+import { sendSuccess, sendErrorClient } from '../utils/response.utils';
+import { CATEGORIE_REVENU, COMMON } from '../constants';
 
 export const ajouterCategorieRevenu = async (
   req: AuthRequest,
@@ -27,7 +13,7 @@ export const ajouterCategorieRevenu = async (
 ): Promise<void> => {
   const erreurs = validationResult(req);
   if (!erreurs.isEmpty()) {
-    res.status(400).json({ erreurs: erreurs.array() });
+    sendErrorClient(res, COMMON.ERROR_MESSAGES.VALIDATION_ERROR, 400, erreurs.array());
     return;
   }
   try {
@@ -37,34 +23,21 @@ export const ajouterCategorieRevenu = async (
       nom.length < CATEGORIE_REVENU.VALIDATION.MIN_NOM_LENGTH ||
       nom.length > CATEGORIE_REVENU.VALIDATION.MAX_NOM_LENGTH
     ) {
-      res
-        .status(400)
-        .json({
-          message: `Le nom doit contenir entre ${CATEGORIE_REVENU.VALIDATION.MIN_NOM_LENGTH} et ${CATEGORIE_REVENU.VALIDATION.MAX_NOM_LENGTH} caractères`,
-        });
+      sendErrorClient(res, `Le nom doit contenir entre ${CATEGORIE_REVENU.VALIDATION.MIN_NOM_LENGTH} et ${CATEGORIE_REVENU.VALIDATION.MAX_NOM_LENGTH} caractères`);
       return;
     }
     if (
       description &&
       description.length > CATEGORIE_REVENU.VALIDATION.MAX_DESCRIPTION_LENGTH
     ) {
-      res
-        .status(400)
-        .json({
-          message: `La description ne peut pas dépasser ${CATEGORIE_REVENU.VALIDATION.MAX_DESCRIPTION_LENGTH} caractères`,
-        });
+      sendErrorClient(res, `La description ne peut pas dépasser ${CATEGORIE_REVENU.VALIDATION.MAX_DESCRIPTION_LENGTH} caractères`);
       return;
     }
     const existante = await CategorieRevenuModel.findOne({
       nom: { $regex: new RegExp(`^${nom}$`, "i") },
     });
     if (existante) {
-      res
-        .status(400)
-        .json({
-          message:
-            CATEGORIE_REVENU.ERROR_MESSAGES.CATEGORIE_REVENU_ALREADY_EXISTS,
-        });
+      sendErrorClient(res, CATEGORIE_REVENU.ERROR_MESSAGES.CATEGORIE_REVENU_ALREADY_EXISTS);
       return;
     }
     const nouvelleCategorie = await CategorieRevenuModel.create({
@@ -72,7 +45,7 @@ export const ajouterCategorieRevenu = async (
       description,
       image,
     });
-    res.status(201).json(nouvelleCategorie);
+    sendSuccess(res, nouvelleCategorie, 'Catégorie de revenu créée', 201);
   } catch (error) {
     logger.error(error);
     res
@@ -87,7 +60,7 @@ export const obtenirCategoriesRevenu = async (
 ): Promise<void> => {
   try {
     const categories = await CategorieRevenuModel.find().sort({ nom: 1 });
-    res.json(categories);
+    sendSuccess(res, categories, 'Liste des catégories de revenu');
   } catch (error) {
     logger.error(error);
     res
@@ -105,11 +78,7 @@ export const modifierCategorieRevenu = async (
   try {
     const categorie = await CategorieRevenuModel.findById(req.params.id);
     if (!categorie) {
-      res
-        .status(404)
-        .json({
-          message: CATEGORIE_REVENU.ERROR_MESSAGES.CATEGORIE_REVENU_NOT_FOUND,
-        });
+      sendErrorClient(res, CATEGORIE_REVENU.ERROR_MESSAGES.CATEGORIE_REVENU_NOT_FOUND);
       return;
     }
     if (req.body.nom && req.body.nom !== categorie.nom) {
@@ -118,12 +87,7 @@ export const modifierCategorieRevenu = async (
         _id: { $ne: categorie._id },
       });
       if (existante) {
-        res
-          .status(400)
-          .json({
-            message:
-              CATEGORIE_REVENU.ERROR_MESSAGES.CATEGORIE_REVENU_ALREADY_EXISTS,
-          });
+        sendErrorClient(res, CATEGORIE_REVENU.ERROR_MESSAGES.CATEGORIE_REVENU_ALREADY_EXISTS);
         return;
       }
     }
@@ -132,7 +96,7 @@ export const modifierCategorieRevenu = async (
       req.body,
       { new: true },
     );
-    res.json(updated);
+    sendSuccess(res, updated, 'Catégorie de revenu modifiée');
   } catch (error) {
     logger.error(error);
     res
@@ -150,26 +114,18 @@ export const supprimerCategorieRevenu = async (
   try {
     const categorie = await CategorieRevenuModel.findById(req.params.id);
     if (!categorie) {
-      res
-        .status(404)
-        .json({
-          message: CATEGORIE_REVENU.ERROR_MESSAGES.CATEGORIE_REVENU_NOT_FOUND,
-        });
+      sendErrorClient(res, CATEGORIE_REVENU.ERROR_MESSAGES.CATEGORIE_REVENU_NOT_FOUND);
       return;
     }
     const revenus = await RevenuModel.countDocuments({
       categorieRevenu: categorie._id,
     });
     if (revenus > 0) {
-      res
-        .status(400)
-        .json({
-          message: CATEGORIE_REVENU.ERROR_MESSAGES.CATEGORIE_REVENU_IN_USE,
-        });
+      sendErrorClient(res, CATEGORIE_REVENU.ERROR_MESSAGES.CATEGORIE_REVENU_IN_USE);
       return;
     }
     await categorie.deleteOne();
-    res.json({ message: "Catégorie de revenu supprimée" });
+    sendSuccess(res, { message: 'Catégorie de revenu supprimée' });
   } catch (error) {
     logger.error(error);
     res

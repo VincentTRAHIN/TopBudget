@@ -22,6 +22,14 @@ export const DEPENSE = {
     INVALID_TYPE_DEPENSE: "Type de dépense invalide",
     CATEGORIE_NOT_FOUND: "Catégorie non trouvée",
     INVALID_DESCRIPTION: "La description est invalide",
+    INVALID_ID: "ID de dépense invalide",
+    NOT_AUTHORIZED: "Action non autorisée. Vous ne pouvez modifier que vos propres dépenses.",
+    ACCESS_DENIED: "Accès non autorisé à cette ressource.",
+    SERVER_ERROR_ADD: "Erreur serveur lors de l'ajout de la dépense",
+    SERVER_ERROR_GET_LIST: "Erreur serveur lors de la récupération des dépenses",
+    SERVER_ERROR_GET_ONE: "Erreur serveur lors de la récupération de la dépense",
+    SERVER_ERROR_UPDATE: "Erreur serveur lors de la modification de la dépense",
+    SERVER_ERROR_DELETE: "Erreur serveur lors de la suppression de la dépense",
   },
 
   // Validation
