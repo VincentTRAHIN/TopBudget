@@ -104,9 +104,7 @@ export const obtenirDepenses = async (
       return;
     }
 
-    // Ajout du paramètre de vue (moi, partenaire, couple_complet)
     const vue = typeof req.query.vue === "string" ? req.query.vue : "moi";
-    // On recharge l'utilisateur complet pour avoir le partenaireId
     const User = (await import("../models/user.model")).default;
     const fullCurrentUser = await User.findById(req.user.id);
     if (!fullCurrentUser) {
@@ -114,9 +112,7 @@ export const obtenirDepenses = async (
       return;
     }
 
-    // Utilisation de Record<string, unknown> pour le typage du filtre
     const matchFilter: Record<string, unknown> = {};
-    // Gestion du filtre utilisateur selon la vue
     if (vue === "partenaire") {
       if (!fullCurrentUser.partenaireId) {
         res.status(400).json({ message: "Aucun partenaire lié" });

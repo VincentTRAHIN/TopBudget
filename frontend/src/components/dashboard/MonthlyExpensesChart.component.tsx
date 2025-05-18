@@ -13,7 +13,7 @@ import {
   ChartData,
   ChartOptions,
 } from 'chart.js';
-import { useMonthlyExpensesEvolution } from '../../hooks/useMonthlyExpensesEvolution.hook';
+import { useMonthlyFlowsEvolution } from '@/hooks/useMonthlyExpensesEvolution.hook';
 
 ChartJS.register(
   CategoryScale,
@@ -24,22 +24,26 @@ ChartJS.register(
   Legend,
 );
 
-const YEAR_COLORS: { [key: string]: string } = {
-  '2023': 'rgba(255, 159, 64, 0.6)',
-  '2024': 'rgba(54, 162, 235, 0.6)',
-  '2025': 'rgba(75, 192, 192, 0.6)',
-};
-const DEFAULT_BAR_COLOR = 'rgba(153, 102, 255, 0.6)';
-
-export const MonthlyExpensesChart: React.FC<{
+export const MonthlyFlowsChart: React.FC<{
   statsContext?: 'moi' | 'couple';
 }> = ({ statsContext = 'moi' }) => {
   const [selectedPeriod, setSelectedPeriod] = useState<number>(6);
-  const { data, isLoading, isError, errorMessage } =
-    useMonthlyExpensesEvolution(selectedPeriod, statsContext);
+  const [dataType, setDataType] = useState<'depenses' | 'revenus' | 'solde'>(
+    'depenses',
+  );
+  const { data, isLoading, isError, errorMessage } = useMonthlyFlowsEvolution(
+    selectedPeriod,
+    statsContext,
+    dataType,
+  );
 
   const handlePeriodChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedPeriod(Number(event.target.value));
+  };
+  const handleDataTypeChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    setDataType(event.target.value as 'depenses' | 'revenus' | 'solde');
   };
 
   if (isLoading) {
@@ -79,7 +83,7 @@ export const MonthlyExpensesChart: React.FC<{
       },
       title: {
         display: true,
-        text: `Évolution des Dépenses Mensuelles (${selectedPeriod} derniers mois)`,
+        text: `Évolution des ${dataType.charAt(0).toUpperCase() + dataType.slice(1)} Mensuelles (${selectedPeriod} derniers mois)`,
       },
       tooltip: {
         callbacks: {
@@ -173,24 +177,32 @@ export const MonthlyExpensesChart: React.FC<{
       });
     });
 
-    const dataValues = data.map((item) => item.totalDepenses);
+    let dataValues: number[] = [];
+    let label = '';
+    let backgroundColor = '';
+    if (dataType === 'depenses') {
+      dataValues = data.map((item) => item.totalDepenses ?? 0);
+      label = 'Dépenses';
+      backgroundColor = 'rgba(255, 99, 132, 0.6)';
+    } else if (dataType === 'revenus') {
+      dataValues = data.map((item) => item.totalRevenus ?? 0);
+      label = 'Revenus';
+      backgroundColor = 'rgba(75, 192, 192, 0.6)';
+    } else if (dataType === 'solde') {
+      dataValues = data.map((item) => item.soldeMensuel ?? 0);
+      label = 'Solde';
+      backgroundColor = 'rgba(54, 162, 235, 0.6)';
+    }
 
-    const backgroundColors = data.map((item) => {
-      const year = item.mois.split('-')[0];
-      return YEAR_COLORS[year] || DEFAULT_BAR_COLOR;
-    });
-
-    const borderColors = backgroundColors.map((color) =>
-      color.replace('0.6', '1'),
-    );
+    const borderColors = backgroundColor.replace('0.6', '1');
 
     chartData = {
       labels,
       datasets: [
         {
-          label: 'Dépenses Mensuelles',
+          label,
           data: dataValues,
-          backgroundColor: backgroundColors,
+          backgroundColor,
           borderColor: borderColors,
           borderWidth: 1,
         },
@@ -217,6 +229,22 @@ export const MonthlyExpensesChart: React.FC<{
           <option value={12}>12 derniers mois</option>
           <option value={24}>24 derniers mois</option>
         </select>
+        <label
+          htmlFor="data-type-select"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Type de données :
+        </label>
+        <select
+          id="data-type-select"
+          value={dataType}
+          onChange={handleDataTypeChange}
+          className="mt-1 block w-auto max-w-xs rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3"
+        >
+          <option value="depenses">Dépenses</option>
+          <option value="revenus">Revenus</option>
+          <option value="solde">Solde</option>
+        </select>
       </div>
       <div className="h-80 md:h-96">
         <Bar options={chartOptions} data={chartData} />
@@ -225,4 +253,4 @@ export const MonthlyExpensesChart: React.FC<{
   );
 };
 
-export default MonthlyExpensesChart;
+export default MonthlyFlowsChart;

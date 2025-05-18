@@ -112,7 +112,6 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
-    // Peupler le partenaire s'il existe
     await utilisateur.populate({
       path: "partenaireId",
       select: "nom email avatarUrl _id",

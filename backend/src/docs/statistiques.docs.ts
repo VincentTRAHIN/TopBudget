@@ -173,6 +173,18 @@
  *                 communesCouple:
  *                   type: number
  *                   description: Total des dépenses communes du couple pour le mois.
+ *     RepartitionRevenusCategorie:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: ID de la catégorie de revenu
+ *         nom:
+ *           type: string
+ *           description: Nom de la catégorie de revenu
+ *         total:
+ *           type: number
+ *           description: Montant total des revenus pour cette catégorie
  */
 
 /**
@@ -196,6 +208,11 @@
  *           type: string
  *           format: date
  *         description: Date de fin pour le filtre
+ *       - in: query
+ *         name: estRecurrent
+ *         schema:
+ *           type: boolean
+ *         description: Filtrer uniquement les revenus récurrents (fixes) ou non (optionnel)
  *     responses:
  *       200:
  *         description: Statistiques globales
@@ -226,6 +243,11 @@
  *         schema:
  *           type: string
  *         description: ID du budget
+ *       - in: query
+ *         name: estRecurrent
+ *         schema:
+ *           type: boolean
+ *         description: Filtrer uniquement les revenus récurrents (fixes) ou non (optionnel)
  *     responses:
  *       200:
  *         description: Statistiques du budget
@@ -274,6 +296,11 @@
  *           type: string
  *           format: date
  *         description: Date de fin pour le filtre
+ *       - in: query
+ *         name: estRecurrent
+ *         schema:
+ *           type: boolean
+ *         description: Filtrer uniquement les revenus récurrents (fixes) ou non (optionnel)
  *     responses:
  *       200:
  *         description: Statistiques de la catégorie
@@ -299,7 +326,8 @@
  * @swagger
  * /api/statistiques/total-mensuel:
  *   get:
- *     summary: Récupère le total des dépenses mensuelles
+ *     summary: Récupère le total mensuel pour un type de flux (dépenses ou revenus)
+ *     description: Permet de récupérer le total mensuel pour un type de flux donné (dépenses ou revenus). Utilisez le paramètre typeFlux pour choisir le type (par défaut : dépenses).
  *     tags: [Statistiques]
  *     security:
  *       - bearerAuth: []
@@ -331,18 +359,25 @@
  *           enum: [moi, couple]
  *         required: false
  *         description: Contexte d'analyse ('moi' = dépenses personnelles, 'couple' = dépenses du couple)
+ *       - in: query
+ *         name: typeFlux
+ *         schema:
+ *           type: string
+ *           enum: [depenses, revenus]
+ *         description: Type de flux à totaliser ("depenses" ou "revenus"). Par défaut : "depenses".
+ *       - in: query
+ *         name: estRecurrent
+ *         schema:
+ *           type: boolean
+ *         description: Filtrer uniquement les revenus récurrents (fixes) ou non (optionnel)
  *     responses:
  *       200:
- *         description: Total des dépenses mensuelles
+ *         description: Total mensuel récupéré avec succès
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 depenses:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/DepenseResponse'
  *                 total:
  *                   type: number
  *       401:
@@ -381,6 +416,11 @@
  *           enum: [moi, couple]
  *         required: false
  *         description: Contexte d'analyse ('moi' = dépenses personnelles, 'couple' = dépenses communes du couple)
+ *       - in: query
+ *         name: estRecurrent
+ *         schema:
+ *           type: boolean
+ *         description: Filtrer uniquement les revenus récurrents (fixes) ou non (optionnel)
  *     responses:
  *       200:
  *         description: Répartition des dépenses par catégorie
@@ -402,7 +442,8 @@
  * @swagger
  * /api/statistiques/comparaison-mois:
  *   get:
- *     summary: Compare les dépenses entre deux mois
+ *     summary: Compare les flux entre deux mois
+ *     description: Compare les dépenses, revenus ou le solde entre deux mois. Utilisez le paramètre type pour choisir ce qui est comparé.
  *     tags: [Statistiques]
  *     security:
  *       - bearerAuth: []
@@ -411,28 +452,69 @@
  *         name: moisPrecedent
  *         schema:
  *           type: string
- *           format: date
- *         description: Mois précédent (format YYYY-MM). Si non fourni, le mois précédent sera calculé automatiquement.
+ *           format: MM
+ *         description: Mois précédent (format MM). Si non fourni, le mois précédent sera calculé automatiquement.
  *       - in: query
- *         name: moisCourant
+ *         name: anneePrecedente
  *         schema:
  *           type: string
- *           format: date
- *         description: Mois courant (format YYYY-MM). Si non fourni, le mois courant sera calculé automatiquement.
+ *           format: YYYY
+ *         description: Année du mois précédent (format YYYY)
+ *       - in: query
+ *         name: moisActuel
+ *         schema:
+ *           type: string
+ *           format: MM
+ *         description: Mois courant (format MM). Si non fourni, le mois courant sera calculé automatiquement.
+ *       - in: query
+ *         name: anneeActuelle
+ *         schema:
+ *           type: string
+ *           format: YYYY
+ *         description: Année du mois courant (format YYYY)
  *       - in: query
  *         name: contexte
  *         schema:
  *           type: string
  *           enum: [moi, couple]
- *         required: false
- *         description: Contexte d'analyse ('moi' = dépenses personnelles, 'couple' = dépenses du couple)
+ *         description: Contexte d'analyse ('moi' = personnel, 'couple' = couple)
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [depenses, revenus, solde]
+ *         description: Type de comparaison : "depenses" (par défaut), "revenus" ou "solde". La réponse change selon ce type :
+ *           - depenses : différence et pourcentage sur les dépenses
+ *           - revenus : différence et pourcentage sur les revenus
+ *           - solde : différence et pourcentage sur le solde (revenus - dépenses)
+ *       - in: query
+ *         name: estRecurrent
+ *         schema:
+ *           type: boolean
+ *         description: Filtrer uniquement les revenus récurrents (fixes) ou non (optionnel)
  *     responses:
  *       200:
- *         description: Comparaison des dépenses entre deux mois
+ *         description: Comparaison entre deux mois récupérée avec succès
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ComparaisonMois'
+ *               type: object
+ *               properties:
+ *                 moisActuel:
+ *                   type: string
+ *                 moisPrecedent:
+ *                   type: string
+ *                 totalMoisActuel:
+ *                   type: number
+ *                 totalMoisPrecedent:
+ *                   type: number
+ *                 difference:
+ *                   type: number
+ *                 pourcentageVariation:
+ *                   type: number
+ *                 typeCompare:
+ *                   type: string
+ *                   enum: [depenses, revenus, solde]
  *       401:
  *         description: Non autorisé
  *         content:
@@ -445,8 +527,8 @@
  * @swagger
  * /api/statistiques/evolution-mensuelle:
  *   get:
- *     summary: Récupère l'évolution mensuelle des dépenses.
- *     description: Permet de visualiser l'évolution des dépenses sur plusieurs mois.
+ *     summary: Récupère l'évolution mensuelle d'un type de flux (dépenses, revenus ou solde)
+ *     description: Permet de visualiser l'évolution mensuelle d'un type de flux (dépenses, revenus ou solde) sur plusieurs mois. Utilisez le paramètre dataType pour choisir le type (par défaut : dépenses).
  *     tags: [Statistiques]
  *     security:
  *       - bearerAuth: []
@@ -462,15 +544,32 @@
  *         schema:
  *           type: string
  *           enum: [moi, couple]
- *         required: false
- *         description: Contexte d'analyse ('moi' = dépenses personnelles, 'couple' = dépenses communes du couple)
+ *         description: Contexte d'analyse ('moi' = personnel, 'couple' = couple)
+ *       - in: query
+ *         name: dataType
+ *         schema:
+ *           type: string
+ *           enum: [depenses, revenus, solde]
+ *         description: Type de données à afficher ("depenses" par défaut, ou "revenus", ou "solde").
+ *       - in: query
+ *         name: estRecurrent
+ *         schema:
+ *           type: boolean
+ *         description: Filtrer uniquement les revenus récurrents (fixes) ou non (optionnel)
  *     responses:
  *       200:
- *         description: Évolution mensuelle des dépenses récupérée avec succès.
+ *         description: Évolution mensuelle récupérée avec succès.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/EvolutionMensuelleResponse'
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   mois:
+ *                     type: string
+ *                   total:
+ *                     type: number
  *       400:
  *         description: Paramètre nbMois invalide.
  *         content:
@@ -685,4 +784,123 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
+ * /api/statistiques/solde-mensuel:
+ *   get:
+ *     summary: Récupère le solde mensuel (revenus, dépenses, solde)
+ *     description: Retourne le total des revenus, des dépenses et le solde pour un mois donné. Prend en compte le contexte (moi/couple) et les filtres mois/année.
+ *     tags: [Statistiques]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: mois
+ *         schema:
+ *           type: string
+ *           format: MM
+ *         description: Mois concerné (format MM, ex: "05"). Si non fourni, le mois courant est utilisé.
+ *       - in: query
+ *         name: annee
+ *         schema:
+ *           type: string
+ *           format: YYYY
+ *         description: Année concernée (format YYYY). Si non fournie, l'année courante est utilisée.
+ *       - in: query
+ *         name: contexte
+ *         schema:
+ *           type: string
+ *           enum: [moi, couple]
+ *         description: Contexte d'analyse ('moi' = personnel, 'couple' = couple)
+ *       - in: query
+ *         name: estRecurrent
+ *         schema:
+ *           type: boolean
+ *         description: Filtrer uniquement les revenus récurrents (fixes) ou non (optionnel)
+ *     responses:
+ *       200:
+ *         description: Solde mensuel récupéré avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalRevenus:
+ *                   type: number
+ *                   description: Total des revenus pour la période
+ *                 totalDepenses:
+ *                   type: number
+ *                   description: Total des dépenses pour la période
+ *                 solde:
+ *                   type: number
+ *                   description: Solde (revenus - dépenses)
+ *       400:
+ *         description: Paramètres invalides
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Non autorisé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Erreur serveur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
+ * /api/statistiques/revenus-par-categorie:
+ *   get:
+ *     summary: Répartition des revenus par catégorie
+ *     tags: [Statistiques]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: mois
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Mois au format MM (ex: 05)
+ *       - in: query
+ *         name: annee
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Année au format YYYY (ex: 2025)
+ *       - in: query
+ *         name: contexte
+ *         schema:
+ *           type: string
+ *           enum: [moi, couple]
+ *         description: Contexte d'analyse (revenus personnels ou du couple)
+ *       - in: query
+ *         name: estRecurrent
+ *         schema:
+ *           type: boolean
+ *         description: Filtrer uniquement les revenus récurrents (fixes) ou non (optionnel)
+ *     responses:
+ *       200:
+ *         description: Répartition des revenus par catégorie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/RepartitionRevenusCategorie'
+ *       401:
+ *         description: Non autorisé
+ *       400:
+ *         description: Paramètres manquants ou invalides
+ *       500:
+ *         description: Erreur serveur
  */

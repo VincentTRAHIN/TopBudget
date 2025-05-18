@@ -82,7 +82,6 @@ export default function ExpensesPage() {
     }
   };
 
-  // Le handler principal qui met à jour l'état et reset la page
   const handleFilterOrSortChange = (
     changedFilters?: Partial<DepenseFilters>,
     changedSort?: DepenseSort,
@@ -97,17 +96,14 @@ export default function ExpensesPage() {
     setCurrentPage(1);
   };
 
-  // Wrapper spécifique pour le changement de tri
   const handleSortChange = (newSort: DepenseSort) => {
     handleFilterOrSortChange(undefined, newSort);
   };
 
-  // Wrapper spécifique pour le changement de filtre
   const handleFilterChange = (newFilters: Partial<DepenseFilters>) => {
     handleFilterOrSortChange(newFilters, undefined);
   };
 
-  // Ajout du sélecteur de vue
   const handleVueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedVue(e.target.value as 'moi' | 'partenaire' | 'couple_complet');
     setCurrentPage(1);

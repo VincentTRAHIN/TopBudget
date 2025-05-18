@@ -1,4 +1,3 @@
-// Fonction pour générer une couleur d'arrière-plan pour l'avatar basée sur le nom de l'utilisateur
 const AVATAR_COLORS = [
   'bg-blue-600',
   'bg-red-600',
@@ -20,7 +19,6 @@ const AVATAR_COLORS = [
 export const getAvatarColor = (name: string = ''): string => {
   if (!name) return AVATAR_COLORS[0];
 
-  // Utiliser la somme des codes de caractère pour déterminer une couleur constante pour un nom donné
   const sum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const index = sum % AVATAR_COLORS.length;
 
@@ -30,14 +28,11 @@ export const getAvatarColor = (name: string = ''): string => {
 export const getInitials = (name: string = ''): string => {
   if (!name) return '?';
 
-  // Diviser le nom en parties (prénom et nom)
   const parts = name.trim().split(/\s+/);
 
-  // Si une seule partie, retourner la première lettre
   if (parts.length === 1) {
     return parts[0].charAt(0).toUpperCase();
   }
 
-  // Sinon, retourner les initiales du prénom et du nom
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 };

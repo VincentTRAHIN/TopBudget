@@ -10,6 +10,7 @@ export interface IUser extends Document {
   role: UserRole;
   avatarUrl?: string;
   partenaireId?: Schema.Types.ObjectId;
+  sobriquetPartenaire?: string;
   comparerMotDePasse(motDePasse: string): Promise<boolean>;
 }
 
@@ -33,6 +34,7 @@ export interface IUserResponse {
   dateCreation: Date;
   avatarUrl?: string;
   partenaireId?: string | null;
+  sobriquetPartenaire?: string;
 }
 
 export interface IUserProfileUpdateInput {

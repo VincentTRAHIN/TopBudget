@@ -13,7 +13,6 @@ import { useCategoryDistribution } from '@/hooks/useCategoryDistribution.hook';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-// Move backgroundColors outside the component to avoid reference changes on each render
 const BACKGROUND_COLORS = [
   'rgba(54, 162, 235, 0.6)',
   'rgba(255, 99, 132, 0.6)',
@@ -40,7 +39,6 @@ export default function TopCategoriesYearToDate({
 
   const [totalAmount, setTotalAmount] = useState<number>(0);
 
-  // Nous demandons les données jusqu'au mois actuel
   const { categoryDistribution, isLoading, isError } = useCategoryDistribution(
     currentYear,
     currentMonth,

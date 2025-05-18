@@ -15,7 +15,6 @@ import {
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-// Move BACKGROUND_COLORS outside the component to avoid reference changes
 const BACKGROUND_COLORS = [
   'rgba(54, 162, 235, 0.6)',
   'rgba(255, 99, 132, 0.6)',

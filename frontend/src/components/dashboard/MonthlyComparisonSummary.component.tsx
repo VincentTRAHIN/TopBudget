@@ -45,7 +45,6 @@ const MonthlyComparisonSummary: React.FC<{
     pourcentageVariation = 0,
   } = data;
 
-  // Détermine l'icône et la couleur en fonction de la différence
   const TrendIcon =
     difference === 0 ? Minus : difference > 0 ? TrendingUp : TrendingDown;
   const trendColor =
@@ -67,7 +66,6 @@ const MonthlyComparisonSummary: React.FC<{
         ? 'Augmentation des dépenses'
         : 'Réduction des dépenses';
 
-  // Récupération du mois en cours et du mois précédent en français
   const currentMonth = new Date().toLocaleDateString('fr-FR', {
     month: 'long',
   });

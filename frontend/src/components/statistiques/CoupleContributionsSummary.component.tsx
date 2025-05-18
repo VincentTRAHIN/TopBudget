@@ -21,7 +21,6 @@ export default function CoupleContributionsSummary({
     mois,
   );
   const { user } = useAuth();
-  // Récupère le nom du partenaire si non fourni
   const nomPartenaire =
     partenaireNom ||
     (typeof user?.partenaireId === 'object' && user?.partenaireId?.nom

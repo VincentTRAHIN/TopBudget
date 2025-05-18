@@ -17,7 +17,6 @@ import {
   searchUserEndpoint,
 } from '@/services/api.service';
 
-// Schéma de validation pour les informations personnelles
 const ProfileSchema = Yup.object().shape({
   nom: Yup.string()
     .min(2, 'Nom trop court')
@@ -26,7 +25,6 @@ const ProfileSchema = Yup.object().shape({
   email: Yup.string().email('Email invalide').required('Email requis'),
 });
 
-// Schéma de validation pour la liaison partenaire
 const PartnerSchema = Yup.object().shape({
   partenaireIdentifier: Yup.string().required(
     'Identifiant du partenaire requis',
@@ -47,7 +45,6 @@ export default function ProfilPage() {
     );
   }
 
-  // Gestion soumission des informations personnelles
   const handleProfileSubmit = async (
     values: { nom: string; email: string },
     { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void },
@@ -61,7 +58,6 @@ export default function ProfilPage() {
         }),
       });
 
-      // Réussite
       toast.success('Profil mis à jour avec succès');
       mutateAuth();
     } catch (error) {
@@ -75,7 +71,6 @@ export default function ProfilPage() {
     }
   };
 
-  // Gestion soumission liaison partenaire
   const handlePartnerSubmit = async (
     values: { partenaireIdentifier?: string },
     {
@@ -89,7 +84,6 @@ export default function ProfilPage() {
     try {
       let partenaireIdToSend = null;
       if (!unlinkPartner && values.partenaireIdentifier) {
-        // Recherche l'utilisateur par email ou nom
         const userFound = await fetcher<{
           _id: string;
           nom: string;
@@ -99,7 +93,6 @@ export default function ProfilPage() {
         );
         partenaireIdToSend = userFound._id;
       }
-      // Mise à jour du profil avec le bon partenaireId
       await fetcher<IUser>(profileUpdateEndpoint, {
         method: 'PUT',
         headers: {
@@ -131,7 +124,6 @@ export default function ProfilPage() {
     }
   };
 
-  // Gestion upload avatar
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setAvatarFile(e.target.files[0]);
@@ -154,7 +146,6 @@ export default function ProfilPage() {
     } catch (error: unknown) {
       let message = "Erreur lors de l'upload de l'avatar";
       if (error instanceof Error && error.message) {
-        // Gestion des erreurs HTTP (404, 500, etc.)
         if (error.message.includes('404')) {
           message =
             "Impossible de téléverser l'avatar (ressource non trouvée). Merci de réessayer plus tard.";
@@ -170,7 +161,6 @@ export default function ProfilPage() {
         } else if (error.message.match(/\b5\d\d\b/)) {
           message = 'Erreur serveur. Merci de réessayer plus tard.';
         } else {
-          // Si le backend retourne un message d'erreur JSON
           try {
             const errObj = JSON.parse(error.message);
             if (errObj.message) message = errObj.message;
@@ -185,7 +175,6 @@ export default function ProfilPage() {
     }
   };
 
-  // Déterminer si l'utilisateur a un partenaire en vérifiant si partenaireId est un objet (après population)
   const hasPartner = user.partenaireId && typeof user.partenaireId === 'object';
 
   return (

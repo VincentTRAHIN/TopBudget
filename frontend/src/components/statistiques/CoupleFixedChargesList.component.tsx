@@ -11,7 +11,6 @@ export default function CoupleFixedChargesList() {
   );
   const { data, isLoading, isError } = useCoupleFixedCharges(annee, mois);
 
-  // Gestion loading
   if (isLoading) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
@@ -57,7 +56,6 @@ export default function CoupleFixedChargesList() {
     );
   }
 
-  // Gestion erreur
   if (isError) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md text-center text-red-500">
@@ -103,7 +101,6 @@ export default function CoupleFixedChargesList() {
     );
   }
 
-  // Gestion absence de données
   if (!data || !data.listeChargesFixes) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
@@ -149,7 +146,6 @@ export default function CoupleFixedChargesList() {
     );
   }
 
-  // Rendu principal si data et data.listeChargesFixes existent
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h3 className="text-lg font-semibold mb-4">Charges Fixes Communes</h3>

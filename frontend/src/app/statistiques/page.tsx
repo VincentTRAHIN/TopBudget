@@ -3,12 +3,13 @@
 import Layout from '@/components/layout/Layout';
 import RequireAuth from '@/components/auth/requireAuth.component';
 import PieChartCategories from '@/components/dashboard/pieChartCategories.component';
-import MonthlyExpensesChart from '@/components/dashboard/MonthlyExpensesChart.component';
 import MonthlyComparisonSummary from '@/components/dashboard/MonthlyComparisonSummary.component';
+import { MonthlyFlowsChart } from '@/components/dashboard/MonthlyExpensesChart.component';
 import StatsSummary from '@/components/statistiques/StatsSummary.component';
 import TopCategoriesYearToDate from '@/components/statistiques/TopCategoriesYearToDate.component';
 import CoupleContributionsSummary from '@/components/statistiques/CoupleContributionsSummary.component';
 import CoupleFixedChargesList from '@/components/statistiques/CoupleFixedChargesList.component';
+import PieChartCategoriesRevenu from '@/components/statistiques/PieChartCategoriesRevenu.component';
 import { useAuth } from '@/hooks/useAuth.hook';
 import { useState } from 'react';
 
@@ -68,6 +69,21 @@ export default function StatistiquesPage() {
               />
             </div>
             <div className="col-span-1">
+              <PieChartCategoriesRevenu
+                year={new Date().getFullYear()}
+                month={new Date().getMonth() + 1}
+                contexte={statsContext}
+                customTitle={
+                  statsContext === 'couple'
+                    ? 'Répartition des Revenus du Couple par Catégorie'
+                    : 'Répartition des Revenus par Catégorie'
+                }
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="col-span-1">
               <TopCategoriesYearToDate statsContext={statsContext} />
             </div>
           </div>
@@ -85,10 +101,8 @@ export default function StatistiquesPage() {
 
           <div className="grid grid-cols-1 gap-6">
             <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">
-                Évolution des Dépenses
-              </h2>
-              <MonthlyExpensesChart statsContext={statsContext} />
+              <h2 className="text-xl font-semibold mb-4">Évolution des Flux</h2>
+              <MonthlyFlowsChart statsContext={statsContext} />
             </div>
           </div>
         </div>

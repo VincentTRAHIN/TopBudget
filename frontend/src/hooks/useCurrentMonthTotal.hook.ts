@@ -2,18 +2,18 @@
 
 import useSWR from 'swr';
 import fetcher from '@/utils/fetcher.utils';
-import { totalMensuelEndpoint } from '@/services/api.service';
-import { IDepense } from '@/types/depense.type';
+import { soldeMensuelEndpoint } from '@/services/api.service';
 
-export interface CurrentMonthTotalData {
-  total: number;
-  depenses?: IDepense[];
+export interface CurrentMonthFlowsData {
+  totalDepenses: number;
+  totalRevenus: number;
+  solde: number;
 }
 
-export const useCurrentMonthTotal = (contexte: 'moi' | 'couple' = 'moi') => {
-  const url = `${totalMensuelEndpoint}${contexte !== 'moi' ? `?contexte=${contexte}` : ''}`;
+export const useCurrentMonthFlows = (contexte: 'moi' | 'couple' = 'moi') => {
+  const url = `${soldeMensuelEndpoint}${contexte !== 'moi' ? `?contexte=${contexte}` : ''}`;
 
-  const { data, error, isLoading, mutate } = useSWR<CurrentMonthTotalData>(
+  const { data, error, isLoading, mutate } = useSWR<CurrentMonthFlowsData>(
     url,
     fetcher,
     {
@@ -22,7 +22,9 @@ export const useCurrentMonthTotal = (contexte: 'moi' | 'couple' = 'moi') => {
   );
 
   return {
-    total: data?.total || 0,
+    totalDepenses: data?.totalDepenses || 0,
+    totalRevenus: data?.totalRevenus || 0,
+    solde: data?.solde || 0,
     isLoading,
     isError: error,
     mutate,

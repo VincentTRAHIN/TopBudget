@@ -36,10 +36,12 @@ export interface SyntheseCoupleResponse {
 export function useSyntheseMensuelle(
   annee: number,
   mois: number,
-  contexte: 'moi' | 'couple'
+  contexte: 'moi' | 'couple',
 ) {
   const url = `${syntheseMensuelleEndpoint}?annee=${annee}&mois=${mois.toString().padStart(2, '0')}&contexte=${contexte}`;
-  const { data, error, isLoading } = useSWR<SyntheseMoiResponse | SyntheseCoupleResponse | null>(url, fetcher);
+  const { data, error, isLoading } = useSWR<
+    SyntheseMoiResponse | SyntheseCoupleResponse | null
+  >(url, fetcher);
   return {
     data,
     isLoading,

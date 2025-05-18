@@ -17,7 +17,6 @@ export const useCategoryDistribution = (
 ) => {
   const formattedMonth = String(month).padStart(2, '0');
   let url = `${statistiquesParCategorieEndpoint}?annee=${year}&mois=${formattedMonth}`;
-  // Correction : n'ajoute le paramètre que si contexte est exactement 'couple'
   if (contexte && contexte === 'couple') {
     url += `&contexte=couple`;
   }

@@ -11,6 +11,8 @@ import categorieRoutes from "./routes/categorie.route";
 import statistiquesRoutes from "./routes/statistiques.route";
 import profileRoutes from "./routes/profile.route";
 import userRoutes from "./routes/user.route";
+import revenuRoutes from "./routes/revenu.route";
+import categorieRevenuRoutes from "./routes/categorieRevenu.route";
 import logger from "./utils/logger.utils";
 import { swaggerSpec } from "./docs/swagger.config";
 import { errorHandler, AppError } from "./middlewares/error.middleware";
@@ -71,9 +73,11 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/depenses", depenseRoutes);
 app.use("/api/categories", categorieRoutes);
+app.use("/api/categories-revenu", categorieRevenuRoutes);
 app.use("/api/statistiques", statistiquesRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/revenus", revenuRoutes);
 
 // Gestion des erreurs 404
 app.use((_req, _res, next) => {

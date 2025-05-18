@@ -1,16 +1,16 @@
-'use client'; // Ajouter cette directive en haut du fichier
+'use client';
 
 import Layout from '@/components/layout/Layout';
 import RequireAuth from '@/components/auth/requireAuth.component';
-import TotalDepenses from '@/components/dashboard/totalDepenses.component';
+import TotalFlows from '@/components/dashboard/totalDepenses.component';
 import LastDepenses from '@/components/dashboard/lastDepenses.component';
 import MonthlyComparisonSummary from '@/components/dashboard/MonthlyComparisonSummary.component';
-import SyntheseMensuelle from '@/components/statistiques/SyntheseMensuelle.component'; // Importer SyntheseMensuelle
-import { useAuth } from '@/hooks/useAuth.hook'; // Importer useAuth
+import SyntheseMensuelle from '@/components/statistiques/SyntheseMensuelle.component';
+import { useAuth } from '@/hooks/useAuth.hook';
 
 export default function DashboardPage() {
-  const { user } = useAuth(); // Utiliser useAuth pour déterminer le contexte
-  const contexteSynthese = user?.partenaireId ? 'couple' : 'moi'; // Déterminer le contexte
+  const { user } = useAuth();
+  const contexteSynthese = user?.partenaireId ? 'couple' : 'moi';
 
   return (
     <RequireAuth>
@@ -20,9 +20,9 @@ export default function DashboardPage() {
 
           {/* Section pour les indicateurs clés */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-            {/* Total des dépenses du mois en cours */}
+            {/* Total des flux du mois en cours */}
             <div className="lg:col-span-1">
-              <TotalDepenses />
+              <TotalFlows />
             </div>
 
             {/* Comparaison mensuelle */}

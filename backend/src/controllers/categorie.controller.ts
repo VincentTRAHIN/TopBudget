@@ -25,11 +25,9 @@ export const ajouterCategorie = async (
       nom.length < CATEGORIE.VALIDATION.MIN_NOM_LENGTH ||
       nom.length > CATEGORIE.VALIDATION.MAX_NOM_LENGTH
     ) {
-      res
-        .status(400)
-        .json({
-          message: `Le nom doit contenir entre ${CATEGORIE.VALIDATION.MIN_NOM_LENGTH} et ${CATEGORIE.VALIDATION.MAX_NOM_LENGTH} caractères`,
-        });
+      res.status(400).json({
+        message: `Le nom doit contenir entre ${CATEGORIE.VALIDATION.MIN_NOM_LENGTH} et ${CATEGORIE.VALIDATION.MAX_NOM_LENGTH} caractères`,
+      });
       return;
     }
 
@@ -38,11 +36,9 @@ export const ajouterCategorie = async (
       description &&
       description.length > CATEGORIE.VALIDATION.MAX_DESCRIPTION_LENGTH
     ) {
-      res
-        .status(400)
-        .json({
-          message: `La description ne peut pas dépasser ${CATEGORIE.VALIDATION.MAX_DESCRIPTION_LENGTH} caractères`,
-        });
+      res.status(400).json({
+        message: `La description ne peut pas dépasser ${CATEGORIE.VALIDATION.MAX_DESCRIPTION_LENGTH} caractères`,
+      });
       return;
     }
 
