@@ -1,7 +1,3 @@
-/**
- * Constantes communes partagées entre plusieurs modules
- * Permet d'éviter la duplication de messages d'erreur
- */
 export const COMMON = {
   SUCCESS: {
     CREATED: "Création réussie",
@@ -28,7 +24,7 @@ export const COMMON = {
     FILE_TOO_LARGE: "Fichier trop volumineux",
   },
   VALIDATION: {
-    MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
+    MAX_FILE_SIZE: 5 * 1024 * 1024, 
     ALLOWED_FILE_TYPES: ["image/jpeg", "image/png", "image/gif", "text/csv"],
   },
 } as const;

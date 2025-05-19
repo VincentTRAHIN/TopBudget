@@ -14,7 +14,9 @@ const MonthlyComparisonSummary: React.FC<{
   statsContext?: 'moi' | 'couple';
   type?: 'depenses' | 'revenus' | 'solde';
 }> = ({ statsContext = 'moi', type = 'depenses' }) => {
+  console.log('[MonthlyComparisonSummary] Props reçues:', { statsContext, type }); // AJOUT/VÉRIFICATION
   const { data, isLoading, isError } = useMonthlyComparison(statsContext, type);
+  console.log('[MonthlyComparisonSummary] Données reçues du hook:', { data, isLoading, isError }); // AJOUT
 
   if (isLoading) {
     return (
@@ -52,24 +54,34 @@ const MonthlyComparisonSummary: React.FC<{
     pourcentageVariation = 0,
   } = data;
 
-  const isPositiveTrend = type === 'revenus' ? difference > 0 : difference < 0;
+  // Pour les dépenses: une différence < 0 (baisse) est une tendance positive pour les finances.
+  // Pour les revenus: une différence > 0 (hausse) est une tendance positive pour les finances.
+  // Pour le solde: une différence > 0 (hausse) est une tendance positive pour les finances.
+  const isFinancialImprovement =
+    type === 'depenses'
+      ? difference < 0
+      : type === 'revenus' // Explicitement pour revenus
+        ? difference > 0
+        : type === 'solde' // Explicitement pour solde
+          ? difference > 0
+          : false; // Cas par défaut ou si type est inattendu
   const isNeutralTrend = difference === 0;
 
   const TrendIcon = isNeutralTrend
     ? Minus
-    : isPositiveTrend
+    : difference > 0 // La valeur a augmenté
       ? TrendingUp
-      : TrendingDown;
+      : TrendingDown; // La valeur a diminué
 
   const trendColor = isNeutralTrend
     ? 'text-gray-600'
-    : isPositiveTrend
-      ? 'text-green-600'
-      : 'text-red-600';
+    : isFinancialImprovement 
+      ? 'text-green-600' // Amélioration financière = vert
+      : 'text-red-600';   // Détérioration financière = rouge
 
   const trendBg = isNeutralTrend
     ? 'bg-gray-50'
-    : isPositiveTrend
+    : isFinancialImprovement
       ? 'bg-green-50'
       : 'bg-red-50';
 
@@ -82,17 +94,17 @@ const MonthlyComparisonSummary: React.FC<{
           ? 'Revenus stables'
           : 'Solde stable';
   } else if (type === 'depenses') {
-    trendText = isPositiveTrend
-      ? 'Réduction des dépenses'
-      : 'Augmentation des dépenses';
+    trendText = isFinancialImprovement 
+      ? 'Réduction des dépenses' // Vert
+      : 'Augmentation des dépenses'; // Rouge
   } else if (type === 'revenus') {
-    trendText = isPositiveTrend
-      ? 'Augmentation des revenus'
-      : 'Réduction des revenus';
-  } else {
-    trendText = isPositiveTrend
-      ? 'Amélioration du solde'
-      : 'Détérioration du solde';
+    trendText = isFinancialImprovement
+      ? 'Augmentation des revenus' // Vert
+      : 'Réduction des revenus'; // Rouge
+  } else { // pour le type 'solde'
+    trendText = isFinancialImprovement 
+      ? 'Amélioration du solde' // Vert
+      : 'Détérioration du solde'; // Rouge
   }
 
   const currentMonth = new Date().toLocaleDateString('fr-FR', {
