@@ -1,23 +1,39 @@
 import { Response } from 'express';
+import { ValidationError } from 'express-validator';
 
-export const sendSuccess = (
+export const sendSuccess = <T>(
   res: Response,
-  data: any,
-  message: string = 'Opération réussie',
+  message: string,
+  data?: T,
   statusCode: number = 200
 ): void => {
-  if ((data === undefined || data === null) && statusCode === 204) {
-    res.sendStatus(204);
-    return;
-  }
-  res.status(statusCode).json({ status: 'success', message, data });
+  res.status(statusCode).json({
+    success: true,
+    message,
+    data,
+  });
 };
 
 export const sendErrorClient = (
   res: Response,
   message: string,
-  statusCode: number = 400,
-  errors?: any[]
+  errors?: ValidationError[] | string,
+  statusCode: number = 400
 ): void => {
-  res.status(statusCode).json({ status: 'fail', message, ...(errors && { errors }) });
+  res.status(statusCode).json({
+    success: false,
+    message,
+    errors,
+  });
+};
+
+export const sendErrorServer = (
+  res: Response,
+  message: string,
+  statusCode: number = 500
+): void => {
+  res.status(statusCode).json({
+    success: false,
+    message,
+  });
 };

@@ -1,4 +1,5 @@
-import express from "express";
+import { Router } from "express";
+import { check } from "express-validator";
 import { proteger } from "../middlewares/auth.middleware";
 import {
   ajouterCategorieRevenu,
@@ -6,22 +7,35 @@ import {
   modifierCategorieRevenu,
   supprimerCategorieRevenu,
 } from "../controllers/categorieRevenu.controller";
-import { creerCategorieRevenuValidator } from "../middlewares/validators/categorieRevenu.validator";
+import { asyncHandler } from "../utils/async.utils";
 
-const router = express.Router();
+const router = Router();
 
 // Créer une catégorie de revenu
 router.post(
   "/",
   proteger,
-  creerCategorieRevenuValidator,
-  ajouterCategorieRevenu,
+  [
+    check('nom').notEmpty().withMessage('Le nom est requis'),
+    check('description').optional().isString().withMessage('La description doit être une chaîne de caractères'),
+    check('image').optional().isString().withMessage('L\'image doit être une chaîne de caractères'),
+  ],
+  asyncHandler(ajouterCategorieRevenu)
 );
 // Obtenir toutes les catégories de revenus
-router.get("/", proteger, obtenirCategoriesRevenu);
+router.get("/", proteger, asyncHandler(obtenirCategoriesRevenu));
 // Modifier une catégorie de revenu
-router.put("/:id", proteger, modifierCategorieRevenu);
+router.put(
+  "/:id",
+  proteger,
+  [
+    check('nom').optional().notEmpty().withMessage('Le nom est requis'),
+    check('description').optional().isString().withMessage('La description doit être une chaîne de caractères'),
+    check('image').optional().isString().withMessage('L\'image doit être une chaîne de caractères'),
+  ],
+  asyncHandler(modifierCategorieRevenu)
+);
 // Supprimer une catégorie de revenu
-router.delete("/:id", proteger, supprimerCategorieRevenu);
+router.delete("/:id", proteger, asyncHandler(supprimerCategorieRevenu));
 
 export default router;

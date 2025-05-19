@@ -9,13 +9,23 @@ export const USER = {
     ADMIN: "Admin" as UserRole,
   },
 
+  // Messages de succès
+  SUCCESS: {
+    FETCHED: "Utilisateur trouvé",
+    CREATED: "Utilisateur créé avec succès",
+    UPDATED: "Utilisateur mis à jour avec succès",
+    DELETED: "Utilisateur supprimé avec succès",
+  },
+
   // Messages d'erreur
-  ERROR_MESSAGES: {
-    USER_NOT_FOUND: COMMON.ERROR_MESSAGES.USER_NOT_FOUND,
-    EMAIL_ALREADY_EXISTS: COMMON.ERROR_MESSAGES.EMAIL_ALREADY_EXISTS,
+  ERRORS: {
+    NOT_FOUND: COMMON.ERRORS.USER_NOT_FOUND,
+    ALREADY_EXISTS: COMMON.ERRORS.EMAIL_ALREADY_EXISTS,
     INVALID_ROLE: "Rôle invalide",
     CANNOT_DELETE_SELF: "Vous ne pouvez pas supprimer votre propre compte",
     CANNOT_MODIFY_ADMIN: "Vous ne pouvez pas modifier un administrateur",
+    QUERY_REQUIRED: "Paramètre query requis",
+    SEARCH_ERROR: "Erreur lors de la recherche d'utilisateur",
   },
 
   // Validation

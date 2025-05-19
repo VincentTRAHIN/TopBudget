@@ -12,8 +12,8 @@ import { Query } from "express-serve-static-core";
 export const asyncHandler = <T extends Request = Request>(
   fn: (req: T, res: Response, next: NextFunction) => Promise<void | unknown>
 ) => {
-  return (req: T, res: Response, next: NextFunction): void => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+  return (req: T, res: Response, next: NextFunction): Promise<void> => {
+    return Promise.resolve(fn(req, res, next)).catch(next) as Promise<void>;
   };
 };
 
@@ -34,7 +34,7 @@ export function createAsyncHandler<
   Params extends ParamsDictionary = ParamsDictionary, 
   QueryParams extends Query = Query
 >(handler: AsyncController<Body, Params, QueryParams>) {
-  return (req: TypedAuthRequest<Body, Params, QueryParams>, res: Response, next: NextFunction): void => {
-    Promise.resolve(handler(req, res, next)).catch(next);
+  return (req: TypedAuthRequest<Body, Params, QueryParams>, res: Response, next: NextFunction): Promise<void> => {
+    return Promise.resolve(handler(req, res, next)).catch(next) as Promise<void>;
   };
 };

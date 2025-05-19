@@ -42,10 +42,12 @@ export const proteger = async (
     } catch (error) {
       logger.error(error);
       res.status(401).json({ message: "Non autorisé, token invalide" });
+      return;
     }
   }
 
   if (!token) {
     res.status(401).json({ message: "Non autorisé, aucun token" });
+    return;
   }
 };

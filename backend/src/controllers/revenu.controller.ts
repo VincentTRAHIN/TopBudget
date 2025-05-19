@@ -1,413 +1,333 @@
+import { Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
-import mongoose from "mongoose";
-import RevenuModel from "../models/revenu.model";
-import UserModel from "../models/user.model";
 import logger from "../utils/logger.utils";
 import { AppError } from "../middlewares/error.middleware";
-import { TypeCompteRevenu, IRevenuPopulated } from "../types/revenu.types";
-import { IUser } from "../types/user.types";
 import { AUTH, REVENU, COMMON } from "../constants";
-import CategorieRevenuModel from "../models/categorieRevenu.model";
-import { importService } from "../services/ImportService";
+import { ImportService } from "../services/import.service";
 import { sendSuccess, sendErrorClient } from '../utils/response.utils';
 import { 
-  IdParams, 
-  TypedAuthRequest, 
-  RevenuRequest 
+  RevenuCreateBody, 
+  RevenuUpdateBody, 
+  RevenuQueryParams
 } from '../types/typed-request';
 import { createAsyncHandler } from '../utils/async.utils';
+import { AuthRequest } from '../middlewares/auth.middleware';
+import { RevenuService } from '../services/revenu.service';
 
 /**
- * Construit la requête de filtrage pour les revenus selon les paramètres fournis
+ * @swagger
+ * /api/revenus:
+ *   post:
+ *     tags: [Revenus]
+ *     summary: Créer un nouveau revenu
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - montant
+ *               - date
+ *               - typeCompte
+ *               - categorieRevenu
+ *             properties:
+ *               montant:
+ *                 type: number
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               commentaire:
+ *                 type: string
+ *               typeCompte:
+ *                 type: string
+ *                 enum: [compte_courant, compte_epargne]
+ *               recurrence:
+ *                 type: object
+ *               categorieRevenu:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               estRecurrent:
+ *                 type: boolean
+ *     responses:
+ *       201:
+ *         description: Revenu créé avec succès
+ *       400:
+ *         description: Données invalides
+ *       404:
+ *         description: Catégorie de revenu non trouvée
  */
-const buildRevenuQuery = (
-  params: RevenuRequest.QueryParams
-): Record<string, unknown> => {
-  const query: Record<string, unknown> = {};
-  const {
-    dateDebut,
-    dateFin,
-    typeCompte,
-    search,
-    categorieRevenu,
-    estRecurrent,
-  } = params;
-
-  if (dateDebut) {
-    if (!query.date) query.date = {} as { $gte?: Date; $lte?: Date };
-    (query.date as { $gte?: Date; $lte?: Date }).$gte = new Date(
-      dateDebut as string,
-    );
-  }
-  if (dateFin) {
-    if (!query.date) query.date = {} as { $gte?: Date; $lte?: Date };
-    (query.date as { $gte?: Date; $lte?: Date }).$lte = new Date(
-      dateFin as string,
-    );
-  }
-  if (typeCompte) query.typeCompte = typeCompte as TypeCompteRevenu;
-  if (categorieRevenu) query.categorieRevenu = categorieRevenu;
-  if (typeof estRecurrent !== "undefined") {
-    if (Array.isArray(estRecurrent)) {
-      query.estRecurrent = estRecurrent[0] === "true";
-    } else {
-      query.estRecurrent = Boolean(estRecurrent);
+export const ajouterRevenu = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
     }
-  }
 
-  if (search) {
-    const searchRegex = { $regex: search, $options: "i" };
-    query.$or = [{ description: searchRegex }, { commentaire: searchRegex }];
-  }
-  return query;
-};
-
-/**
- * Ajouter un nouveau revenu
- * POST /api/revenus
- */
-export const ajouterRevenu = createAsyncHandler<RevenuRequest.CreateBody>(
-  async (req, res, next): Promise<void> => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      sendErrorClient(res, COMMON.ERROR_MESSAGES.VALIDATION_ERROR, 400, errors.array());
-      return;
+      return sendErrorClient(res, "Erreur de validation", errors.array());
     }
-
-    if (!req.user) {
-      next(new AppError(AUTH.ERROR_MESSAGES.UNAUTHORIZED, 401));
-      return;
-    }
-
-    const {
-      montant,
-      description,
-      date,
-      typeCompte,
-      commentaire,
-      categorieRevenu,
-      estRecurrent,
-    } = req.body;
 
     try {
-      const categorieRevenuExiste = await CategorieRevenuModel.findById(categorieRevenu);
-      if (!categorieRevenuExiste) {
-        sendErrorClient(res, REVENU.ERROR_MESSAGES.CATEGORIE_REVENU_NOT_FOUND);
-        return;
-      }
-
-      const nouveauRevenu = new RevenuModel({
-        montant,
-        description,
-        date,
-        typeCompte,
-        commentaire,
-        categorieRevenu,
-        estRecurrent: Boolean(estRecurrent),
-        utilisateur: req.user.id,
-      });
-
-      await nouveauRevenu.save();
-
-      const revenuPopule = await RevenuModel.findById(nouveauRevenu._id)
-        .populate<{ categorieRevenu: IRevenuPopulated['categorieRevenu'] }>("categorieRevenu", "nom description image")
-        .populate<{ utilisateur: IRevenuPopulated['utilisateur'] }>("utilisateur", "nom _id")
-        .lean<IRevenuPopulated>();
-
-      sendSuccess(res, revenuPopule, 'Revenu ajouté avec succès', 201);
+      const revenu = await RevenuService.create(req.body as RevenuCreateBody, req.user.id);
+      return sendSuccess(res, "Revenu créé avec succès", revenu, 201);
     } catch (error) {
       logger.error("Erreur lors de la création du revenu:", error);
-      next(new AppError(REVENU.ERROR_MESSAGES.SERVER_ERROR_ADD, 500));
-      return;
+      next(error);
     }
   }
 );
 
 /**
- * Obtenir la liste des revenus
- * GET /api/revenus
+ * @swagger
+ * /api/revenus:
+ *   get:
+ *     tags: [Revenus]
+ *     summary: Obtenir la liste des revenus
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Numéro de page
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Nombre d'éléments par page
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *         description: Champ de tri
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         description: Ordre de tri
+ *       - in: query
+ *         name: vue
+ *         schema:
+ *           type: string
+ *           enum: [moi, partenaire, couple_complet]
+ *         description: Vue des revenus
+ *       - in: query
+ *         name: categorieRevenu
+ *         schema:
+ *           type: string
+ *         description: ID de la catégorie de revenu
+ *       - in: query
+ *         name: dateDebut
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Date de début
+ *       - in: query
+ *         name: dateFin
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Date de fin
+ *       - in: query
+ *         name: typeCompte
+ *         schema:
+ *           type: string
+ *           enum: [compte_courant, compte_epargne]
+ *         description: Type de compte
+ *       - in: query
+ *         name: estRecurrent
+ *         schema:
+ *           type: boolean
+ *         description: Filtre sur les revenus récurrents
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Terme de recherche
+ *     responses:
+ *       200:
+ *         description: Liste des revenus récupérée avec succès
  */
-export const obtenirRevenus = createAsyncHandler<Record<string, never>, Record<string, never>, RevenuRequest.QueryParams>(
-  async (req, res, next): Promise<void> => {
+export const obtenirRevenus = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
-      next(new AppError(AUTH.ERROR_MESSAGES.UNAUTHORIZED, 401));
-      return;
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
     }
 
     try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
-      const skip = (page - 1) * limit;
-      const { sortBy = "date", order = "desc", vue = "moi" } = req.query;
-
-      const queryFilters = buildRevenuQuery(req.query);
-      const userIdsToQuery: mongoose.Types.ObjectId[] = [];
-
-      if (vue === "moi" && req.user.id) {
-        userIdsToQuery.push(new mongoose.Types.ObjectId(req.user.id));
-      } else if (vue === "partenaire") {
-        const currentUser = await UserModel.findById(req.user.id).select(
-          "partenaireId",
-        );
-        if (currentUser?.partenaireId) {
-          const partenaireId =
-            typeof currentUser.partenaireId === "string"
-              ? new mongoose.Types.ObjectId(currentUser.partenaireId)
-              : new mongoose.Types.ObjectId(currentUser.partenaireId.toString());
-          userIdsToQuery.push(partenaireId);
-        } else {
-          sendSuccess(res, {
-            revenus: [],
-            pagination: { total: 0, page, limit, pages: 0 },
-          });
-          return;
-        }
-      } else if (vue === "couple_complet" && req.user.id) {
-        userIdsToQuery.push(new mongoose.Types.ObjectId(req.user.id));
-        const currentUser = await UserModel.findById(req.user.id).select(
-          "partenaireId",
-        );
-        if (currentUser?.partenaireId) {
-          const partenaireId =
-            typeof currentUser.partenaireId === "string"
-              ? new mongoose.Types.ObjectId(currentUser.partenaireId)
-              : new mongoose.Types.ObjectId(currentUser.partenaireId.toString());
-          userIdsToQuery.push(partenaireId);
-        }
-      } else {
-        userIdsToQuery.push(new mongoose.Types.ObjectId(req.user.id));
-      }
-
-      queryFilters.utilisateur = { $in: userIdsToQuery };
-
-      const total = await RevenuModel.countDocuments(queryFilters);
-      const pages = Math.ceil(total / limit);
-
-      const sortOptions: Record<string, 1 | -1> = {};
-      sortOptions[sortBy as string] = order === "asc" ? 1 : -1;
-
-      const revenus = await RevenuModel.find(queryFilters)
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(limit)
-        .populate<{ categorieRevenu: IRevenuPopulated['categorieRevenu'] }>("categorieRevenu", "nom description image")
-        .populate<{ utilisateur: Pick<IUser, 'nom'> }>("utilisateur", "nom")
-        .lean<IRevenuPopulated[]>();
-
-      sendSuccess(res, {
-        revenus,
-        pagination: {
-          total,
-          page,
-          limit,
-          pages,
-        },
-      });
-      return;
+      const result = await RevenuService.getAll(req.query as RevenuQueryParams, req.user.id);
+      return sendSuccess(res, "Liste des revenus récupérée avec succès", result);
     } catch (error) {
       logger.error("Erreur lors de la récupération des revenus:", error);
-      next(new AppError(REVENU.ERROR_MESSAGES.SERVER_ERROR_GET_LIST, 500));
-      return;
+      next(error);
     }
   }
 );
 
 /**
- * Obtenir un revenu par son ID
- * GET /api/revenus/:id
+ * @swagger
+ * /api/revenus/{id}:
+ *   get:
+ *     tags: [Revenus]
+ *     summary: Obtenir un revenu par son ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du revenu
+ *     responses:
+ *       200:
+ *         description: Revenu récupéré avec succès
+ *       404:
+ *         description: Revenu non trouvé
+ *       403:
+ *         description: Accès non autorisé
  */
-export const obtenirRevenuParId = createAsyncHandler<Record<string, never>, IdParams>(
-  async (req, res, next): Promise<void> => {
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      next(new AppError(REVENU.ERROR_MESSAGES.INVALID_ID, 400));
-      return;
-    }
-
+export const obtenirRevenuParId = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
-      next(new AppError(AUTH.ERROR_MESSAGES.UNAUTHORIZED, 401));
-      return;
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
     }
 
     try {
-      const revenu = await RevenuModel.findById(id)
-        .populate<{ categorieRevenu: IRevenuPopulated['categorieRevenu'] }>("categorieRevenu", "nom description image")
-        .populate<{ utilisateur: IRevenuPopulated['utilisateur'] }>("utilisateur", "nom email")
-        .lean<IRevenuPopulated>();
-
-      if (!revenu) {
-        next(new AppError(REVENU.ERROR_MESSAGES.REVENU_NOT_FOUND, 404));
-        return;
-      }
-
-      const utilisateurId = req.user.id.toString();
-      const revenuUtilisateurId = (
-        revenu.utilisateur as { _id: mongoose.Types.ObjectId }
-      )._id.toString();
-
-      let hasAccess = utilisateurId === revenuUtilisateurId;
-
-      if (!hasAccess) {
-        const fullCurrentUser = await UserModel.findById(req.user.id).select(
-          "partenaireId",
-        );
-        if (
-          fullCurrentUser?.partenaireId &&
-          fullCurrentUser.partenaireId.toString() === revenuUtilisateurId
-        ) {
-          hasAccess = true;
-        }
-      }
-      if (!hasAccess) {
-        next(new AppError(REVENU.ERROR_MESSAGES.ACCESS_DENIED, 403));
-        return;
-      }
-
-      sendSuccess(res, revenu);
-      return;
+      const revenu = await RevenuService.getById(req.params.id, req.user.id);
+      return sendSuccess(res, "Revenu récupéré avec succès", revenu);
     } catch (error) {
-      logger.error("Erreur lors de la récupération du revenu par ID:", error);
-      next(
-        new AppError(REVENU.ERROR_MESSAGES.SERVER_ERROR_GET_ONE, 500),
-      );
-      return;
+      logger.error("Erreur lors de la récupération du revenu:", error);
+      next(error);
     }
   }
 );
 
 /**
- * Modifier un revenu existant
- * PUT /api/revenus/:id
+ * @swagger
+ * /api/revenus/{id}:
+ *   put:
+ *     tags: [Revenus]
+ *     summary: Modifier un revenu
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du revenu
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               montant:
+ *                 type: number
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               commentaire:
+ *                 type: string
+ *               typeCompte:
+ *                 type: string
+ *                 enum: [compte_courant, compte_epargne]
+ *               recurrence:
+ *                 type: object
+ *               categorieRevenu:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               estRecurrent:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Revenu modifié avec succès
+ *       400:
+ *         description: Données invalides
+ *       404:
+ *         description: Revenu ou catégorie non trouvé
  */
-export const modifierRevenu = createAsyncHandler<RevenuRequest.UpdateBody, IdParams>(
-  async (req, res, next): Promise<void> => {
+export const modifierRevenu = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      sendErrorClient(res, COMMON.ERROR_MESSAGES.VALIDATION_ERROR, 400, errors.array());
-      return;
-    }
-
-    if (!req.user) {
-      next(new AppError(AUTH.ERROR_MESSAGES.UNAUTHORIZED_USER, 401));
-      return;
-    }
-
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      next(new AppError(REVENU.ERROR_MESSAGES.INVALID_ID, 400));
-      return;
-    }
-
-    const updates = req.body;
-    if (updates.date && typeof updates.date === "string") {
-      updates.date = new Date(updates.date);
+      return sendErrorClient(res, "Erreur de validation", errors.array());
     }
 
     try {
-      const revenu = await RevenuModel.findById(id);
-
-      if (!revenu) {
-        next(new AppError(REVENU.ERROR_MESSAGES.REVENU_NOT_FOUND, 404));
-        return;
-      }
-
-      if (revenu.utilisateur.toString() !== req.user.id.toString()) {
-        next(
-          new AppError(
-            REVENU.ERROR_MESSAGES.NOT_AUTHORIZED,
-            403,
-          ),
-        );
-        return;
-      }
-
-      if (updates.categorieRevenu) {
-        const categorie = await CategorieRevenuModel.findById(
-          updates.categorieRevenu,
-        );
-        if (!categorie) {
-          sendErrorClient(res, REVENU.ERROR_MESSAGES.CATEGORIE_REVENU_NOT_FOUND);
-          return;
-        }
-      }
-
-      Object.assign(revenu, updates);
-      await revenu.save();
-      const revenuPopule = await RevenuModel.findById(revenu._id)
-        .populate<{ utilisateur: IRevenuPopulated['utilisateur'] }>("utilisateur", "nom _id")
-        .populate<{ categorieRevenu: IRevenuPopulated['categorieRevenu'] }>("categorieRevenu", "nom description image")
-        .lean<IRevenuPopulated>();
-
-      sendSuccess(res, revenuPopule, 'Revenu modifié');
-      return;
+      const revenu = await RevenuService.update(req.params.id, req.body as RevenuUpdateBody, req.user.id);
+      return sendSuccess(res, "Revenu modifié avec succès", revenu);
     } catch (error) {
-      logger.error("Erreur lors de la mise à jour du revenu:", error);
-      next(new AppError(REVENU.ERROR_MESSAGES.SERVER_ERROR_UPDATE, 500));
-      return;
+      logger.error("Erreur lors de la modification du revenu:", error);
+      next(error);
     }
   }
 );
 
 /**
- * Supprimer un revenu
- * DELETE /api/revenus/:id
+ * @swagger
+ * /api/revenus/{id}:
+ *   delete:
+ *     tags: [Revenus]
+ *     summary: Supprimer un revenu
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du revenu
+ *     responses:
+ *       200:
+ *         description: Revenu supprimé avec succès
+ *       404:
+ *         description: Revenu non trouvé
  */
-export const supprimerRevenu = createAsyncHandler<Record<string, never>, IdParams>(
-  async (req, res, next): Promise<void> => {
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      next(new AppError(REVENU.ERROR_MESSAGES.INVALID_ID, 400));
-      return;
-    }
-
+export const supprimerRevenu = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
-      next(new AppError(AUTH.ERROR_MESSAGES.UNAUTHORIZED, 401));
-      return;
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
     }
 
     try {
-      const revenu = await RevenuModel.findById(id);
-      if (!revenu) {
-        next(new AppError(REVENU.ERROR_MESSAGES.REVENU_NOT_FOUND, 404));
-        return;
-      }
-
-      if (revenu.utilisateur.toString() !== req.user.id.toString()) {
-        next(
-          new AppError(
-            REVENU.ERROR_MESSAGES.NOT_AUTHORIZED,
-            403,
-          ),
-        );
-        return;
-      }
-
-      await RevenuModel.findByIdAndDelete(id);
-      sendSuccess(res, { message: "Revenu supprimé avec succès." });
-      return;
+      await RevenuService.delete(req.params.id, req.user.id);
+      return sendSuccess(res, "Revenu supprimé avec succès");
     } catch (error) {
       logger.error("Erreur lors de la suppression du revenu:", error);
-      next(new AppError(REVENU.ERROR_MESSAGES.SERVER_ERROR_DELETE, 500));
-      return;
+      next(error);
     }
   }
 );
 
-/**
- * Importation CSV de revenus
- */
-interface MulterRequest extends TypedAuthRequest {
+// Import avec Multer qui ajoute req.file
+interface MulterRequest extends AuthRequest {
   file?: Express.Multer.File;
 }
 
 export const importerRevenus = createAsyncHandler(
-  async (req: MulterRequest, res, next): Promise<void> => {
-    if (!req.file) return next(new AppError(COMMON.ERROR_MESSAGES.NO_CSV_FILE, 400));
-    if (!req.user)
-      return next(new AppError(AUTH.ERROR_MESSAGES.UNAUTHORIZED, 401));
+  async (req: MulterRequest, res: Response, next: NextFunction): Promise<void> => {
+    if (!req.file) return next(new AppError(COMMON.ERRORS.NO_CSV_FILE, 400));
+    if (!req.user) return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    
     try {
-      const result = await importService.importRevenusCsv(req.file.buffer, req.user.id);
-      sendSuccess(res, result);
+      const result = await ImportService.importRevenusCsv(req.file.buffer, req.user.id);
+      sendSuccess(res, REVENU.SUCCESS.IMPORTED, result);
     } catch (error) {
       next(error);
     }

@@ -44,3 +44,5 @@ frontend.txt
 extract-code.js
 generate-structure.js
 structure.txt
+memory-bank/
+.cursor/

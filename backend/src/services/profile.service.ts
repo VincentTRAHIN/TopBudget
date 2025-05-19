@@ -6,20 +6,20 @@ import path from "path";
 import fs from "fs/promises";
 import { AppError } from "../middlewares/error.middleware";
 
-class ProfileService {
-  async updateUserProfileData(userId: string, data: IUserProfileUpdateInput) {
-    const { nom, email, partenaireId: partenaireIdInput } = data;
+export class ProfileService {
+  static async updateUserProfileData(userId: string, data: IUserProfileUpdateInput) {
+    const { nom: nomInput, email: emailInput, partenaireId: partenaireIdInput } = data;
     const currentUser = await User.findById(userId);
-    if (!currentUser) throw new AppError(USER.ERROR_MESSAGES.USER_NOT_FOUND, 404);
+    if (!currentUser) throw new AppError(USER.ERRORS.NOT_FOUND, 404);
 
-    if (nom !== undefined && nom !== currentUser.nom) {
-      currentUser.nom = nom;
+    if (nomInput !== undefined && nomInput !== currentUser.nom) {
+      currentUser.nom = nomInput;
     }
 
-    if (email !== undefined && email !== currentUser.email) {
-      const emailExistant = await User.findOne({ email, _id: { $ne: currentUser._id } });
-      if (emailExistant) throw new AppError(USER.ERROR_MESSAGES.EMAIL_ALREADY_EXISTS, 400);
-      currentUser.email = email;
+    if (emailInput !== undefined && emailInput !== currentUser.email) {
+      const emailExistant = await User.findOne({ email: emailInput, _id: { $ne: currentUser._id } });
+      if (emailExistant) throw new AppError(USER.ERRORS.ALREADY_EXISTS, 400);
+      currentUser.email = emailInput;
     }
 
     if (partenaireIdInput !== undefined) {
@@ -34,7 +34,7 @@ class ProfileService {
         }
       } else {
         if (!mongoose.Types.ObjectId.isValid(partenaireIdInput)) {
-          throw new AppError("ID de partenaire invalide", 400);
+          throw new AppError(`ID de partenaire invalide`, 400);
         }
         if (partenaireIdInput === userId) {
           throw new AppError("Vous ne pouvez pas vous lier à vous-même", 400);
@@ -76,7 +76,7 @@ class ProfileService {
     };
   }
 
-  async updateAvatar(userId: string, file: Express.Multer.File) {
+  static async updateAvatar(userId: string, file: Express.Multer.File) {
     if (!file) throw new AppError("Aucun fichier fourni", 400);
     const uploadDir = path.join(__dirname, "../../public/uploads/avatars");
     await fs.mkdir(uploadDir, { recursive: true });
@@ -93,7 +93,7 @@ class ProfileService {
     const fileUrl = `${apiBaseUrl}/uploads/avatars/${fileName}`;
     await fs.writeFile(filePath, file.buffer);
     const user = await User.findById(userId);
-    if (!user) throw new AppError("Utilisateur non trouvé", 404);
+    if (!user) throw new AppError(USER.ERRORS.NOT_FOUND, 404);
     user.avatarUrl = fileUrl;
     await user.save();
     await user.populate<{ partenaireId: IUserPopulated['partenaireId'] }>({ 
@@ -115,7 +115,7 @@ class ProfileService {
     };
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string, confirmPassword: string) {
+  static async changePassword(userId: string, currentPassword: string, newPassword: string, confirmPassword: string) {
     if (!currentPassword || !newPassword || !confirmPassword) {
       throw new AppError("Tous les champs sont requis.", 400);
     }
@@ -133,13 +133,11 @@ class ProfileService {
       throw new AppError("Le nouveau mot de passe ne respecte pas les règles de sécurité.", 400);
     }
     const user = await User.findById(userId);
-    if (!user) throw new AppError(USER.ERROR_MESSAGES.USER_NOT_FOUND, 404);
+    if (!user) throw new AppError(USER.ERRORS.NOT_FOUND, 404);
     const isMatch = await user.comparerMotDePasse(currentPassword);
     if (!isMatch) throw new AppError("Mot de passe actuel incorrect.", 401);
     user.motDePasse = newPassword;
     await user.save();
     return { message: "Mot de passe mis à jour avec succès." };
   }
-}
-
-export default new ProfileService();
+} 

@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import logger from "../utils/logger.utils";
 
 // Interface pour les erreurs personnalisées
@@ -22,6 +22,7 @@ export const errorHandler = (
   err: Error | AppError,
   req: Request,
   res: Response,
+  next: NextFunction
 ) => {
   let statusCode = 500;
   let message = "Erreur interne du serveur";

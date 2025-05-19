@@ -1,37 +1,45 @@
-import { Response } from "express";
-import User from "../models/user.model";
-import { AUTH } from "../constants";
-import { AuthRequest } from "../middlewares/auth.middleware";
+import { AUTH, USER } from "../constants";
+import { AppError } from "../middlewares/error.middleware";
 import { sendSuccess, sendErrorClient } from '../utils/response.utils';
+import { createAsyncHandler } from '../utils/async.utils';
+import { ParsedQs } from 'qs';
+import { UserService } from '../services/user.service';
+import logger from '../utils/logger.utils';
+
+interface SearchUserQuery extends ParsedQs {
+  query?: string;
+}
 
 // GET /api/users/search?query=...
-export const searchUser = async (
-  req: AuthRequest,
-  res: Response,
-): Promise<void> => {
-  try {
+export const searchUser = createAsyncHandler<Record<string, never>, Record<string, never>, SearchUserQuery>(
+  async (req, res, next): Promise<void> => {
     if (!req.user) {
-      res.status(401).json({ message: AUTH.ERROR_MESSAGES.UNAUTHORIZED });
+      next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
       return;
     }
+
     const { query } = req.query;
-    console.log("[DEBUG] /api/users/search query param:", query);
     if (!query || typeof query !== "string") {
-      sendErrorClient(res, "Paramètre query requis");
+      sendErrorClient(res, USER.ERRORS.QUERY_REQUIRED);
       return;
     }
-    // Recherche par email exact OU nom exact (case insensitive)
-    const searchRegex = new RegExp(`^${query.trim()}$`, "i");
-    console.log("[DEBUG] /api/users/search regex:", searchRegex);
-    const user = await User.findOne({
-      $or: [{ email: searchRegex }, { nom: searchRegex }],
-    }).select("_id nom email");
-    if (!user) {
-      res.status(404).json({ message: "Utilisateur non trouvé" });
-      return;
+
+    try {
+      const user = await UserService.searchUser(query);
+      sendSuccess(res, USER.SUCCESS.FETCHED, user);
+    } catch (error: unknown) {
+      if (error instanceof AppError) {
+        // Erreurs connues avec un message défini dans les constantes
+        if (error.statusCode === 404) {
+          sendErrorClient(res, USER.ERRORS.NOT_FOUND, undefined, error.statusCode);
+        } else {
+          sendErrorClient(res, error.message, undefined, error.statusCode);
+        }
+      } else {
+        // Erreurs inattendues - les transmettre au middleware global
+        logger.error("Erreur inattendue lors de la recherche d'utilisateur:", error);
+        next(new AppError(USER.ERRORS.SEARCH_ERROR, 500));
+      }
     }
-    sendSuccess(res, user, 'Utilisateur trouvé');
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error });
   }
-};
+);

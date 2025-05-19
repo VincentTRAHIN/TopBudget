@@ -1,396 +1,341 @@
-
-import Depense from "../models/depense.model";
-import Categorie from "../models/categorie.model";
+import { Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
 import logger from "../utils/logger.utils";
-import { DEPENSE, AUTH, CATEGORIE, COMMON } from "../constants";
 import { AppError } from "../middlewares/error.middleware";
-import mongoose from "mongoose";
-import { TypeCompte, TypeDepense, IDepensePopulated } from "../types/depense.types";
-import { ICategorie } from "../types/categorie.types";
-import { IUser } from "../types/user.types";
-import { importService } from "../services/ImportService";
+import { AUTH, DEPENSE, COMMON } from "../constants";
+import { ImportService } from "../services/import.service";
 import { sendSuccess, sendErrorClient } from '../utils/response.utils';
-import { IdParams, TypedAuthRequest, DepenseRequest } from '../types/typed-request';
+import { 
+  DepenseCreateBody, 
+  DepenseUpdateBody, 
+  DepenseQueryParams
+} from '../types/typed-request';
 import { createAsyncHandler } from '../utils/async.utils';
+import { AuthRequest } from '../middlewares/auth.middleware';
+import { DepenseService } from "../services/depense.service";
 
-export const ajouterDepense = createAsyncHandler<DepenseRequest.CreateBody>(
-  async (req, res): Promise<void> => {
-    const erreurs = validationResult(req);
-    if (!erreurs.isEmpty()) {
-      sendErrorClient(res, COMMON.ERROR_MESSAGES.VALIDATION_ERROR, 400, erreurs.array());
-      return;
+/**
+ * @swagger
+ * /api/depenses:
+ *   post:
+ *     tags: [Dépenses]
+ *     summary: Créer une nouvelle dépense
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - montant
+ *               - date
+ *               - typeCompte
+ *               - typeDepense
+ *               - categorie
+ *             properties:
+ *               montant:
+ *                 type: number
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               commentaire:
+ *                 type: string
+ *               typeCompte:
+ *                 type: string
+ *                 enum: [compte_courant, compte_epargne]
+ *               typeDepense:
+ *                 type: string
+ *                 enum: [fixe, variable]
+ *               recurrence:
+ *                 type: object
+ *               categorie:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               estChargeFixe:
+ *                 type: boolean
+ *     responses:
+ *       201:
+ *         description: Dépense créée avec succès
+ *       400:
+ *         description: Données invalides
+ *       404:
+ *         description: Catégorie non trouvée
+ */
+export const ajouterDepense = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return sendErrorClient(res, COMMON.ERRORS.VALIDATION_ERROR, errors.array());
     }
 
     try {
-      const {
-        montant,
-        date,
-        commentaire,
-        typeCompte,
-        typeDepense,
-        recurrence,
-        categorie,
-        description,
-        estChargeFixe = false,
-      } = req.body;
-
-      // Validation du montant
-      if (
-        montant < DEPENSE.VALIDATION.MIN_MONTANT ||
-        montant > DEPENSE.VALIDATION.MAX_MONTANT
-      ) {
-        sendErrorClient(res, DEPENSE.ERROR_MESSAGES.INVALID_MONTANT);
-        return;
-      }
-
-      // Validation du type de compte
-      if (!Object.values(DEPENSE.TYPES_COMPTE).includes(typeCompte)) {
-        sendErrorClient(res, DEPENSE.ERROR_MESSAGES.INVALID_TYPE_COMPTE);
-        return;
-      }
-
-      // Validation du type de dépense
-      if (!Object.values(DEPENSE.TYPES_DEPENSE).includes(typeDepense)) {
-        sendErrorClient(res, DEPENSE.ERROR_MESSAGES.INVALID_TYPE_DEPENSE);
-        return;
-      }
-
-      const categorieExistante = await Categorie.findById(categorie);
-      if (!categorieExistante) {
-        sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.CATEGORIE_NOT_FOUND);
-        return;
-      }
-
-      const nouvelleDepense = await Depense.create({
-        montant,
-        date,
-        commentaire,
-        typeCompte,
-        typeDepense,
-        recurrence,
-        categorie,
-        description,
-        utilisateur: req.user ? req.user.id : null,
-        estChargeFixe,
-      });
-
-      const populatedDepense = await Depense.findById(nouvelleDepense._id)
-        .populate<{ categorie: IDepensePopulated['categorie'] }>("categorie", "nom description image")
-        .lean<IDepensePopulated>();
-      sendSuccess(res, populatedDepense, 'Dépense créée', 201);
+      const depense = await DepenseService.create(req.body as DepenseCreateBody, req.user.id);
+      return sendSuccess(res, DEPENSE.SUCCESS.CREATED, depense, 201);
     } catch (error) {
-      logger.error(error);
-      sendErrorClient(res, DEPENSE.ERROR_MESSAGES.SERVER_ERROR_ADD, 500);
-    }
-  }
-);
-
-export const obtenirDepenses = createAsyncHandler<Record<string, never>, Record<string, never>, DepenseRequest.QueryParams>(
-  async (req, res): Promise<void> => {
-    try {
-      if (!req.user) {
-        sendErrorClient(res, AUTH.ERROR_MESSAGES.UNAUTHORIZED, 401);
-        return;
-      }
-
-      const vue = typeof req.query.vue === "string" ? req.query.vue : "moi";
-      const User = (await import("../models/user.model")).default;
-      const fullCurrentUser = await User.findById(req.user.id);
-      if (!fullCurrentUser) {
-        sendErrorClient(res, AUTH.ERROR_MESSAGES.USER_NOT_FOUND, 404);
-        return;
-      }
-
-      const matchFilter: Record<string, unknown> = {};
-      if (vue === "partenaire") {
-        if (!fullCurrentUser.partenaireId) {
-          sendErrorClient(res, COMMON.ERROR_MESSAGES.NO_PARTNER_LINKED, 400);
-          return;
-        }
-        matchFilter.utilisateur = fullCurrentUser.partenaireId;
-      } else if (vue === "couple_complet") {
-        if (!fullCurrentUser.partenaireId) {
-          matchFilter.utilisateur = fullCurrentUser._id;
-        } else {
-          matchFilter.utilisateur = {
-            $in: [fullCurrentUser._id, fullCurrentUser.partenaireId],
-          };
-        }
-      } else {
-        // vue par défaut: moi
-        matchFilter.utilisateur = fullCurrentUser._id;
-      }
-
-      const { 
-        categorie,
-        dateDebut,
-        dateFin,
-        typeCompte,
-        typeDepense,
-        search,
-        page: pageStr,
-        limit: limitStr,
-        sortBy = "date",
-        order = "desc",
-      } = req.query;
-      
-      const page = Number(pageStr) || 1;
-      const limit = Number(limitStr) || DEPENSE.PAGINATION.DEFAULT_LIMIT;
-
-      const skip = (page - 1) * limit;
-      const orderValue = order === "asc" ? 1 : -1;
-
-      // Ajout du filtrage typeDepense TOUJOURS si fourni et valide
-      if (
-        typeof typeDepense === "string" &&
-        typeDepense &&
-        ["Perso", "Commune"].includes(typeDepense)
-      ) {
-        matchFilter.typeDepense = typeDepense as TypeDepense;
-      }
-
-      if (typeof categorie === "string" && categorie) {
-        // S'assurer que l'ID est valide avant de l'utiliser dans le filtre
-        if (mongoose.Types.ObjectId.isValid(categorie)) {
-          matchFilter.categorie = new mongoose.Types.ObjectId(categorie);
-        } else {
-          // Gérer le cas d'un ID de catégorie invalide si nécessaire (ex: ignorer le filtre)
-          logger.warn(
-            `ID de catégorie invalide fourni pour le filtre: ${categorie}`,
-          );
-        }
-      }
-      if (dateDebut || dateFin) {
-        matchFilter.date = {};
-        if (dateDebut)
-          (matchFilter.date as Record<string, Date>)["$gte"] = new Date(
-            dateDebut as string,
-          );
-        if (dateFin)
-          (matchFilter.date as Record<string, Date>)["$lte"] = new Date(
-            dateFin as string,
-          );
-      }
-      if (typeof typeCompte === "string" && typeCompte) {
-        matchFilter.typeCompte = typeCompte as TypeCompte;
-      }
-      if (typeof search === "string" && search.trim()) {
-        const regex = { $regex: search.trim(), $options: "i" };
-        matchFilter.$or = [{ description: regex }, { commentaire: regex }];
-      }
-
-      let depenses;
-
-      if (sortBy === "categorie") {
-        logger.debug("Utilisation de l'agrégation pour trier par catégorie");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const pipeline: ReadonlyArray<any> = [
-          { $match: matchFilter },
-          {
-            $lookup: {
-              from: "categories",
-              localField: "categorie",
-              foreignField: "_id",
-              as: "categorieDetails",
-            },
-          },
-          {
-            $unwind: {
-              path: "$categorieDetails",
-              preserveNullAndEmptyArrays: true,
-            },
-          },
-          {
-            $addFields: {
-              lowerCaseCatName: { $toLower: "$categorieDetails.nom" },
-            },
-          },
-          { $sort: { lowerCaseCatName: orderValue, _id: 1 } },
-          {
-            $lookup: {
-              from: "users",
-              localField: "utilisateur",
-              foreignField: "_id",
-              as: "utilisateurDetails",
-            },
-          },
-          {
-            $unwind: {
-              path: "$utilisateurDetails",
-              preserveNullAndEmptyArrays: true,
-            },
-          },
-          {
-            $facet: {
-              paginatedResults: [
-                { $skip: skip },
-                { $limit: limit },
-                {
-                  $project: {
-                    _id: 1,
-                    montant: 1,
-                    date: 1,
-                    description: 1,
-                    commentaire: 1,
-                    typeCompte: 1,
-                    typeDepense: 1,
-                    recurrence: 1,
-                    utilisateur: {
-                      _id: "$utilisateurDetails._id",
-                      nom: "$utilisateurDetails.nom",
-                    },
-                    createdAt: 1,
-                    updatedAt: 1,
-                    categorie: {
-                      _id: "$categorieDetails._id",
-                      nom: "$categorieDetails.nom",
-                      description: "$categorieDetails.description",
-                      image: "$categorieDetails.image",
-                    },
-                  },
-                },
-              ],
-              totalCount: [{ $count: "count" }],
-            },
-          },
-        ];
-
-        const aggregationResult = await Depense.aggregate(pipeline);
-
-        depenses = aggregationResult[0]?.paginatedResults || [];
-      } else {
-        logger.debug(`Utilisation de find() pour trier par ${sortBy}`);
-        // Utilisation de find() pour les autres tris
-        const sortOptions: { [key: string]: 1 | -1 } = {};
-        if (typeof sortBy === "string") {
-          sortOptions[sortBy] = orderValue;
-        } else {
-          sortOptions["date"] = -1;
-        }
-
-        depenses = await Depense.find(matchFilter)
-          .populate<{ categorie: IDepensePopulated['categorie'] }>("categorie", "nom description image")
-          .populate<{ utilisateur: IDepensePopulated['utilisateur'] }>({
-            path: "utilisateur",
-            select: "nom _id",
-          })
-          .sort(sortOptions)
-          .skip(skip)
-          .limit(limit)
-          .lean<IDepensePopulated[]>(); // lean pour les performances
-      }
-
-      sendSuccess(res, depenses, 'Liste des dépenses');
-    } catch (error) {
-      logger.error("Erreur dans obtenirDepenses:", error);
-      res
-        .status(500)
-        .json({ message: "Erreur lors de la récupération des dépenses" });
+      logger.error(DEPENSE.ERRORS.CREATE_ERROR, error);
+      next(error);
     }
   }
 );
 
-export const modifierDepense = createAsyncHandler<DepenseRequest.UpdateBody, IdParams>(
-  async (req, res): Promise<void> => {
+/**
+ * @swagger
+ * /api/depenses:
+ *   get:
+ *     tags: [Dépenses]
+ *     summary: Obtenir la liste des dépenses
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Numéro de page
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Nombre d'éléments par page
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *         description: Champ de tri
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         description: Ordre de tri
+ *       - in: query
+ *         name: vue
+ *         schema:
+ *           type: string
+ *           enum: [moi, partenaire, couple_complet]
+ *         description: Vue des dépenses
+ *       - in: query
+ *         name: categorie
+ *         schema:
+ *           type: string
+ *         description: ID de la catégorie
+ *       - in: query
+ *         name: dateDebut
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Date de début
+ *       - in: query
+ *         name: dateFin
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Date de fin
+ *       - in: query
+ *         name: typeCompte
+ *         schema:
+ *           type: string
+ *           enum: [compte_courant, compte_epargne]
+ *         description: Type de compte
+ *       - in: query
+ *         name: typeDepense
+ *         schema:
+ *           type: string
+ *           enum: [fixe, variable]
+ *         description: Type de dépense
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Terme de recherche
+ *     responses:
+ *       200:
+ *         description: Liste des dépenses récupérée avec succès
+ */
+export const obtenirDepenses = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
     try {
-      const depense = await Depense.findById(req.params.id);
-
-      if (!depense) {
-        sendErrorClient(res, DEPENSE.ERROR_MESSAGES.DEPENSE_NOT_FOUND, 404);
-        return;
-      }
-
-      if (
-        !req.user ||
-        depense.utilisateur.toString() !== req.user.id.toString()
-      ) {
-        sendErrorClient(res, AUTH.ERROR_MESSAGES.UNAUTHORIZED, 401);
-        return;
-      }
-      if (
-        req.body.typeDepense &&
-        !Object.values(DEPENSE.TYPES_DEPENSE).includes(
-          req.body.typeDepense as TypeDepense,
-        )
-      ) {
-        sendErrorClient(res, DEPENSE.ERROR_MESSAGES.INVALID_TYPE_DEPENSE, 400);
-        return;
-      }
-      if (
-        req.body.typeCompte &&
-        !Object.values(DEPENSE.TYPES_COMPTE).includes(
-          req.body.typeCompte as TypeCompte,
-        )
-      ) {
-        sendErrorClient(res, DEPENSE.ERROR_MESSAGES.INVALID_TYPE_COMPTE, 400);
-        return;
-      }
-      const updated = await Depense.findByIdAndUpdate(req.params.id, req.body, {
-        new: true,
-      })
-        .populate<{
-          categorie: Pick<ICategorie, "_id" | "nom" | "description" | "image">;
-        }>("categorie", "nom description image")
-        .lean();
-
-      if (!updated) {
-        sendErrorClient(res, DEPENSE.ERROR_MESSAGES.DEPENSE_NOT_FOUND, 404);
-        return;
-      }
-
-      sendSuccess(res, updated, 'Dépense modifiée');
+      const result = await DepenseService.getAll(req.query as DepenseQueryParams, req.user.id);
+      return sendSuccess(res, DEPENSE.SUCCESS.FETCHED, result);
     } catch (error) {
-      logger.error("Erreur lors de la modification de la dépense:", error);
-      res
-        .status(500)
-        .json({ message: "Erreur lors de la mise à jour de la dépense" });
+      logger.error(DEPENSE.ERRORS.FETCH_ERROR, error);
+      next(error);
     }
   }
 );
 
-export const supprimerDepense = createAsyncHandler<Record<string, never>, IdParams>(
-  async (req, res): Promise<void> => {
+/**
+ * @swagger
+ * /api/depenses/{id}:
+ *   get:
+ *     tags: [Dépenses]
+ *     summary: Obtenir une dépense par son ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la dépense
+ *     responses:
+ *       200:
+ *         description: Dépense récupérée avec succès
+ *       404:
+ *         description: Dépense non trouvée
+ *       403:
+ *         description: Accès non autorisé
+ */
+export const obtenirDepenseParId = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
     try {
-      const depense = await Depense.findById(req.params.id);
-
-      if (!depense) {
-        sendErrorClient(res, DEPENSE.ERROR_MESSAGES.DEPENSE_NOT_FOUND, 404);
-        return;
-      }
-
-      if (
-        !req.user ||
-        depense.utilisateur.toString() !== req.user.id.toString()
-      ) {
-        sendErrorClient(res, AUTH.ERROR_MESSAGES.UNAUTHORIZED, 401);
-        return;
-      }
-
-      await depense.deleteOne();
-      sendSuccess(res, { message: 'Dépense supprimée' });
+      const depense = await DepenseService.getById(req.params.id, req.user.id);
+      return sendSuccess(res, DEPENSE.SUCCESS.FETCHED, depense);
     } catch (error) {
-      logger.error(error);
-      res
-        .status(500)
-        .json({ message: "Erreur lors de la suppression de la dépense" });
+      logger.error(DEPENSE.ERRORS.FETCH_ERROR, error);
+      next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /api/depenses/{id}:
+ *   put:
+ *     tags: [Dépenses]
+ *     summary: Modifier une dépense
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la dépense
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               montant:
+ *                 type: number
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               commentaire:
+ *                 type: string
+ *               typeCompte:
+ *                 type: string
+ *                 enum: [compte_courant, compte_epargne]
+ *               typeDepense:
+ *                 type: string
+ *                 enum: [fixe, variable]
+ *               recurrence:
+ *                 type: object
+ *               categorie:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               estChargeFixe:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Dépense modifiée avec succès
+ *       400:
+ *         description: Données invalides
+ *       404:
+ *         description: Dépense ou catégorie non trouvée
+ */
+export const modifierDepense = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return sendErrorClient(res, COMMON.ERRORS.VALIDATION_ERROR, errors.array());
+    }
+
+    try {
+      const depense = await DepenseService.update(req.params.id, req.body as DepenseUpdateBody, req.user.id);
+      return sendSuccess(res, DEPENSE.SUCCESS.UPDATED, depense);
+    } catch (error) {
+      logger.error(DEPENSE.ERRORS.UPDATE_ERROR, error);
+      next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /api/depenses/{id}:
+ *   delete:
+ *     tags: [Dépenses]
+ *     summary: Supprimer une dépense
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la dépense
+ *     responses:
+ *       200:
+ *         description: Dépense supprimée avec succès
+ *       404:
+ *         description: Dépense non trouvée
+ */
+export const supprimerDepense = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
+    try {
+      await DepenseService.delete(req.params.id, req.user.id);
+      return sendSuccess(res, DEPENSE.SUCCESS.DELETED);
+    } catch (error) {
+      logger.error(DEPENSE.ERRORS.DELETE_ERROR, error);
+      next(error);
     }
   }
 );
 
 // Import avec Multer qui ajoute req.file
-interface MulterRequest extends TypedAuthRequest {
+interface MulterRequest extends AuthRequest {
   file?: Express.Multer.File;
 }
 
 export const importerDepenses = createAsyncHandler(
   async (req: MulterRequest, res, next): Promise<void> => {
-    if (!req.file) return next(new AppError(COMMON.ERROR_MESSAGES.NO_CSV_FILE, 400));
+    if (!req.file) return next(new AppError(COMMON.ERRORS.NO_CSV_FILE, 400));
     if (!req.user)
-      return next(new AppError(AUTH.ERROR_MESSAGES.UNAUTHORIZED, 401));
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
     try {
-      const result = await importService.importDepensesCsv(req.file.buffer, req.user.id);
-      sendSuccess(res, result);
+      const result = await ImportService.importDepensesCsv(req.file.buffer, req.user.id);
+      sendSuccess(res, DEPENSE.SUCCESS.IMPORTED, result);
     } catch (error) {
       next(error);
     }

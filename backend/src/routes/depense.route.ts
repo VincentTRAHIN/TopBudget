@@ -1,4 +1,4 @@
-import express from "express";
+import { Router } from "express";
 import { proteger } from "../middlewares/auth.middleware";
 import {
   ajouterDepense,
@@ -9,21 +9,23 @@ import {
 } from "../controllers/depense.controller";
 import { creerDepenseValidator } from "../middlewares/validators/depense.validator";
 import uploadCSV from "../middlewares/upload.middleware";
-const router = express.Router();
+import { asyncHandler } from '../utils/async.utils';
+
+const router = Router();
 
 // Créer une dépense
-router.post("/", proteger, creerDepenseValidator, ajouterDepense);
+router.post("/", proteger, creerDepenseValidator, asyncHandler(ajouterDepense));
 
 // Lire toutes les dépenses de l'utilisateur
-router.get("/", proteger, obtenirDepenses);
+router.get("/", proteger, asyncHandler(obtenirDepenses));
 
 // Modifier une dépense
-router.put("/:id", proteger, modifierDepense);
+router.put("/:id", proteger, asyncHandler(modifierDepense));
 
 // Supprimer une dépense
-router.delete("/:id", proteger, supprimerDepense);
+router.delete("/:id", proteger, asyncHandler(supprimerDepense));
 
 // Importer des dépenses
-router.post("/import", proteger, uploadCSV, importerDepenses);
+router.post("/import", proteger, uploadCSV, asyncHandler(importerDepenses));
 
 export default router;

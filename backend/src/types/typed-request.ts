@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import { Query, ParamsDictionary } from "express-serve-static-core";
 import { TypeCompte, TypeDepense } from "./depense.types";
 import { TypeCompteRevenu } from "./revenu.types";
+import mongoose from 'mongoose';
 
 /**
  * Interface pour les paramètres d'URL avec ID
@@ -15,10 +16,10 @@ export interface IdParams extends ParamsDictionary {
  * Interface générique pour les requêtes typées
  */
 export interface TypedRequest<
-  BodyType = any,
+  BodyType = unknown,
   ParamsType extends ParamsDictionary = ParamsDictionary,
   QueryType extends Query = Query
-> extends Request {
+> extends Request<ParamsType, unknown, BodyType, QueryType> {
   body: BodyType;
   params: ParamsType;
   query: QueryType;
@@ -28,7 +29,7 @@ export interface TypedRequest<
  * Interface générique pour les requêtes authentifiées typées
  */
 export interface TypedAuthRequest<
-  BodyType = any,
+  BodyType = unknown,
   ParamsType extends ParamsDictionary = ParamsDictionary,
   QueryType extends Query = Query
 > extends AuthRequest {
@@ -43,162 +44,145 @@ export interface TypedAuthRequest<
 export type ViewType = 'moi' | 'partenaire' | 'couple_complet';
 
 /**
- * Namespace pour les requêtes de dépenses
+ * Types pour les requêtes de dépenses
  */
-export namespace DepenseRequest {
-  // Query parameters
-  export interface QueryParams extends Query {
-    page?: string;
-    limit?: string;
-    categorie?: string;
-    dateDebut?: string;
-    dateFin?: string;
-    typeCompte?: TypeCompte;
-    typeDepense?: TypeDepense;
-    search?: string;
-    sortBy?: string;
-    order?: 'asc' | 'desc';
-    vue?: ViewType;
-  }
+export interface DepenseQueryParams extends Query {
+  page?: string;
+  limit?: string;
+  categorie?: string;
+  dateDebut?: string;
+  dateFin?: string;
+  typeCompte?: TypeCompte;
+  typeDepense?: TypeDepense;
+  search?: string;
+  sortBy?: string;
+  order?: 'asc' | 'desc';
+  vue?: ViewType;
+}
 
-  // Request body - Create
-  export interface CreateBody {
-    montant: number;
-    date: string | Date;
-    commentaire?: string;
-    typeCompte: TypeCompte;
-    typeDepense: TypeDepense;
-    recurrence?: boolean;
-    categorie: string;
-    description?: string;
-    estChargeFixe?: boolean;
-  }
+export interface DepenseCreateBody {
+  montant: number;
+  date: Date;
+  commentaire?: string;
+  typeCompte: TypeCompte;
+  typeDepense: TypeDepense;
+  recurrence?: string;
+  categorie: mongoose.Types.ObjectId;
+  description?: string;
+  estChargeFixe?: boolean;
+}
 
-  // Request body - Update
-  export interface UpdateBody {
-    montant?: number;
-    date?: string | Date;
-    commentaire?: string;
-    typeCompte?: TypeCompte;
-    typeDepense?: TypeDepense;
-    recurrence?: boolean;
-    categorie?: string;
-    description?: string;
-    estChargeFixe?: boolean;
-  }
+export type DepenseUpdateBody = Partial<DepenseCreateBody>;
+
+/**
+ * Types pour les requêtes de revenus
+ */
+export interface RevenuQueryParams extends Query {
+  page?: string;
+  limit?: string;
+  categorieRevenu?: string;
+  dateDebut?: string;
+  dateFin?: string;
+  typeCompte?: TypeCompteRevenu;
+  estRecurrent?: string;
+  search?: string;
+  sortBy?: string;
+  order?: 'asc' | 'desc';
+  vue?: ViewType;
+}
+
+export interface RevenuCreateBody {
+  montant: number;
+  description: string;
+  date: string | Date;
+  typeCompte: TypeCompteRevenu;
+  commentaire?: string;
+  categorieRevenu: string;
+  estRecurrent?: boolean;
+}
+
+export interface RevenuUpdateBody {
+  montant?: number;
+  description?: string;
+  date?: string | Date;
+  typeCompte?: TypeCompteRevenu;
+  commentaire?: string;
+  categorieRevenu?: string;
+  estRecurrent?: boolean;
 }
 
 /**
- * Namespace pour les requêtes de revenus
+ * Types pour les requêtes de statistiques
  */
-export namespace RevenuRequest {
-  // Query parameters
-  export interface QueryParams extends Query {
-    page?: string;
-    limit?: string;
-    categorieRevenu?: string;
-    dateDebut?: string;
-    dateFin?: string;
-    typeCompte?: TypeCompteRevenu;
-    estRecurrent?: string | boolean;
-    search?: string;
-    sortBy?: string;
-    order?: 'asc' | 'desc';
-    vue?: ViewType;
-  }
-
-  // Request body - Create
-  export interface CreateBody {
-    montant: number;
-    description: string;
-    date: string | Date;
-    typeCompte: TypeCompteRevenu;
-    commentaire?: string;
-    categorieRevenu: string;
-    estRecurrent?: boolean;
-  }
-
-  // Request body - Update
-  export interface UpdateBody {
-    montant?: number;
-    description?: string;
-    date?: string | Date;
-    typeCompte?: TypeCompteRevenu;
-    commentaire?: string;
-    categorieRevenu?: string;
-    estRecurrent?: boolean;
-  }
+export interface StatistiqueQueryParams extends Query {
+  mois?: string;
+  annee?: string;
+  contexte?: string;
+  dateDebut?: string;
+  dateFin?: string;
+  categorie?: string;
+  type?: 'depenses' | 'revenus' | 'solde';
+  nbMois?: string;
+  estRecurrent?: string;
+  moisActuel?: string;
+  anneeActuelle?: string;
+  moisPrecedent?: string;
+  anneePrecedente?: string;
 }
 
 /**
- * Namespace pour les requêtes de statistiques
+ * Types pour les requêtes de catégories
  */
-export namespace StatistiqueRequest {
-  // Query parameters
-  export interface QueryParams extends Query {
-    mois?: string;
-    annee?: string;
-    contexte?: string;
-    dateDebut?: string;
-    dateFin?: string;
-    categorie?: string;
-    type?: 'depenses' | 'revenus' | 'solde';
-    nbMois?: string;
-    estRecurrent?: string | boolean;
-    moisActuel?: string;
-    anneeActuelle?: string;
-    moisPrecedent?: string;
-    anneePrecedente?: string;
-  }
+export interface CategorieCreateBody {
+  nom: string;
+  description?: string;
+  image?: string;
+}
+
+export interface CategorieUpdateBody {
+  nom?: string;
+  description?: string;
+  image?: string;
 }
 
 /**
- * Namespace pour les requêtes de catégories
+ * Types pour les requêtes de catégories de revenus
  */
-export namespace CategorieRequest {
-  // Request body - Create
-  export interface CreateBody {
-    nom: string;
-    description?: string;
-    image?: string;
-  }
-
-  // Request body - Update
-  export interface UpdateBody {
-    nom?: string;
-    description?: string;
-    image?: string;
-  }
+export interface CategorieRevenuCreateBody {
+  nom: string;
+  description?: string;
+  image?: string;
 }
 
-/**
- * Namespace pour les requêtes de catégories de revenus
- */
-export namespace CategorieRevenuRequest {
-  // Request body - Create
-  export interface CreateBody {
-    nom: string;
-    description?: string;
-    image?: string;
-  }
-
-  // Request body - Update
-  export interface UpdateBody {
-    nom?: string;
-    description?: string;
-    image?: string;
-  }
+export interface CategorieRevenuUpdateBody {
+  nom?: string;
+  description?: string;
+  image?: string;
 }
 
 /**
  * Type pour les fonctions de contrôleur avec gestion des erreurs
  */
 export type AsyncController<
-  BodyType = any,
+  BodyType = unknown,
   ParamsType extends ParamsDictionary = ParamsDictionary,
   QueryType extends Query = Query
 > = (
   req: TypedAuthRequest<BodyType, ParamsType, QueryType>,
   res: Response,
   next: NextFunction
-) => Promise<void>;
+) => Promise<unknown>;
+
+export interface DepenseQueryParams {
+  vue?: ViewType;
+  categorie?: string;
+  dateDebut?: string;
+  dateFin?: string;
+  typeCompte?: TypeCompte;
+  typeDepense?: TypeDepense;
+  search?: string;
+  page?: string;
+  limit?: string;
+  sortBy?: string;
+  order?: 'asc' | 'desc';
+}

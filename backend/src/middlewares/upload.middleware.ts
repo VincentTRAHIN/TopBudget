@@ -1,8 +1,15 @@
 import multer from "multer";
 import { AppError } from "./error.middleware";
+import path from "path";
 
 // Stockage en mémoire
 const storage = multer.memoryStorage();
+
+// Extensions de fichiers CSV autorisées
+const ALLOWED_CSV_EXTENSIONS = ['.csv'];
+// Tailles maximales des fichiers
+const MAX_CSV_SIZE = 10 * 1024 * 1024; // 10 Mo
+const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2 Mo
 
 // Filtre pour n'accepter que les fichiers CSV
 const fileFilter = (
@@ -10,10 +17,14 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: multer.FileFilterCallback,
 ) => {
-  if (
-    file.mimetype === "text/csv" ||
-    file.originalname.toLowerCase().endsWith(".csv")
-  ) {
+  // Vérification du type MIME
+  const isMimeValid = file.mimetype === "text/csv";
+  
+  // Vérification de l'extension
+  const ext = path.extname(file.originalname).toLowerCase();
+  const isExtensionValid = ALLOWED_CSV_EXTENSIONS.includes(ext);
+  
+  if (isMimeValid && isExtensionValid) {
     cb(null, true);
   } else {
     cb(
@@ -30,20 +41,27 @@ const uploadCSV = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024,
+    fileSize: MAX_CSV_SIZE,
   },
 }).single("csvFile");
 
-// Multer pour l'upload d'avatar utilisateur
-const avatarStorage = multer.memoryStorage();
+// Types d'images acceptés pour les avatars
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif"];
+const ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif'];
 
 const avatarFileFilter = (
   req: Express.Request,
   file: Express.Multer.File,
   cb: multer.FileFilterCallback,
 ) => {
-  if (ACCEPTED_IMAGE_TYPES.includes(file.mimetype)) {
+  // Vérification du type MIME
+  const isMimeValid = ACCEPTED_IMAGE_TYPES.includes(file.mimetype);
+  
+  // Vérification de l'extension
+  const ext = path.extname(file.originalname).toLowerCase();
+  const isExtensionValid = ALLOWED_IMAGE_EXTENSIONS.includes(ext);
+  
+  if (isMimeValid && isExtensionValid) {
     cb(null, true);
   } else {
     cb(
@@ -56,9 +74,11 @@ const avatarFileFilter = (
 };
 
 export const uploadAvatar = multer({
-  storage: avatarStorage,
+  storage: multer.memoryStorage(),
   fileFilter: avatarFileFilter,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2 Mo
+  limits: { 
+    fileSize: MAX_AVATAR_SIZE,
+  },
 }).single("avatar");
 
 export default uploadCSV;

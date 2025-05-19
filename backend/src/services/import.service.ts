@@ -24,8 +24,8 @@ export type ImportResultType = {
   [key: string]: unknown;
 };
 
-class ImportService {
-  async processCsvImport({
+export class ImportService {
+  static async processCsvImport({
     csvBuffer,
     userId,
     model,
@@ -120,7 +120,7 @@ class ImportService {
     };
   }
 
-  public async importDepensesCsv(
+  static async importDepensesCsv(
     csvBuffer: Buffer,
     userId: string
   ): Promise<ImportResultType> {
@@ -161,7 +161,7 @@ class ImportService {
         throw new Error(`Date invalide: ${dateStr}. Format attendu: ${expectedDateFormat}`);
       const montantNumerique = parseFloat(montantStr.replace(",", "."));
       if (isNaN(montantNumerique) || montantNumerique <= 0)
-        throw new Error(`${DEPENSE.ERROR_MESSAGES.INVALID_MONTANT}: ${montantStr}`);
+        throw new Error(`${DEPENSE.ERRORS.INVALID_MONTANT}: ${montantStr}`);
       const categorieId = await getOrCreateCategorieId(categorieStr.trim());
       if (!categorieId)
         throw new Error(`Impossible d'obtenir l'ID pour la catégorie '${categorieStr}'`);
@@ -186,7 +186,7 @@ class ImportService {
     });
   }
 
-  public async importRevenusCsv(
+  static async importRevenusCsv(
     csvBuffer: Buffer,
     userId: string
   ): Promise<ImportResultType> {
@@ -202,7 +202,7 @@ class ImportService {
         {
           $setOnInsert: {
             nom,
-            description: "Catégorie créée automatiquement lors de l'import CSV.",
+            description: CATEGORIE.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE,
           },
         },
         { new: true, upsert: true, lean: true }
@@ -218,45 +218,53 @@ class ImportService {
       row: Record<string, string>,
       userId: string
     ): Promise<Record<string, unknown> | null> => {
-      const { date: dateStr, montant: montantStr, description, categorierevenu, typecompte, commentaire, estrecurrent } = row;
-      if (!dateStr || !montantStr || !description || !categorierevenu)
-        throw new Error("Données manquantes (date, montant, description, categorieRevenu)");
+      const { date: dateStr, montant: montantStr, categorie: categorieStr, description, type_compte: typeCompteStr } = row;
+      if (!dateStr || !montantStr || !categorieStr)
+        throw new Error("Données manquantes (date, montant, catégorie)");
+      
       const expectedDateFormat = "dd/MM/yyyy";
       const date = parse(dateStr, expectedDateFormat, new Date());
       if (!isValid(date))
         throw new Error(`Date invalide: ${dateStr}. Format attendu: ${expectedDateFormat}`);
+      
       const montantNumerique = parseFloat(montantStr.replace(",", "."));
       if (isNaN(montantNumerique) || montantNumerique <= 0)
         throw new Error(`Montant invalide: ${montantStr}`);
-      let typeCompte: TypeCompteRevenu = "Perso";
-      if (typecompte && (typecompte === "Perso" || typecompte === "Conjoint"))
-        typeCompte = typecompte as TypeCompteRevenu;
-      const categorieRevenuId = await getOrCreateCategorieRevenuId(categorierevenu.trim());
-      if (!categorieRevenuId)
-        throw new Error(`Impossible d'obtenir l'ID pour la catégorie de revenu '${categorierevenu}'`);
-      let estRecurrentBool = false;
-      if (typeof estrecurrent === "string")
-        estRecurrentBool = estrecurrent.trim().toLowerCase() === "true" || estrecurrent.trim() === "1";
+      
+      const categorieId = await getOrCreateCategorieRevenuId(categorieStr.trim());
+      if (!categorieId)
+        throw new Error(`Impossible d'obtenir l'ID pour la catégorie '${categorieStr}'`);
+      
+      // Validation du type de compte
+      let typeCompte: TypeCompteRevenu = "Perso"; // Par défaut
+      if (typeCompteStr) {
+        const typeCompteValue = typeCompteStr.trim();
+        if (typeCompteValue.toLowerCase() === "perso") {
+          typeCompte = "Perso";
+        } else if (typeCompteValue.toLowerCase() === "conjoint") {
+          typeCompte = "Conjoint";
+        } else {
+          throw new Error(`Type de compte invalide: ${typeCompteStr}. Valeurs acceptées: Perso, Conjoint`);
+        }
+      }
+      
       return {
         date,
         montant: montantNumerique,
-        description,
-        typeCompte,
-        commentaire: commentaire || "",
-        categorieRevenu: categorieRevenuId,
-        estRecurrent: estRecurrentBool,
+        categorie: categorieId,
+        description: description ? description.trim() : undefined,
         utilisateur: new mongoose.Types.ObjectId(userId),
+        typeCompte,
       };
     };
+    
     return this.processCsvImport({
       csvBuffer,
       userId,
       model: RevenuModel as unknown as mongoose.Model<Record<string, unknown>>,
       entityName: "revenu",
-      csvHeaders: ["date", "montant", "description", "categorierevenu", "typecompte", "commentaire", "estrecurrent"],
+      csvHeaders: ["date", "montant", "categorie", "description", "type_compte"],
       processRowFn: processRevenuRow,
     });
   }
-}
-
-export const importService = new ImportService();
+} 

@@ -6,10 +6,10 @@ export const creerDepenseValidator = [
   body("categorie").isMongoId().withMessage("L'ID de catégorie est invalide"),
   body("typeCompte")
     .isIn(Object.values(DEPENSE.TYPES_COMPTE))
-    .withMessage(DEPENSE.ERROR_MESSAGES.INVALID_TYPE_COMPTE),
+    .withMessage(DEPENSE.ERRORS.INVALID_TYPE_COMPTE),
   body("typeDepense")
     .isIn(Object.values(DEPENSE.TYPES_DEPENSE))
-    .withMessage(DEPENSE.ERROR_MESSAGES.INVALID_TYPE_DEPENSE),
+    .withMessage(DEPENSE.ERRORS.INVALID_TYPE_DEPENSE),
   body("date")
     .isISO8601()
     .toDate()

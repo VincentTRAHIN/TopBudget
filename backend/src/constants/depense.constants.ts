@@ -13,9 +13,18 @@ export const DEPENSE = {
     COMMUNE: "Commune" as TypeDepense,
   },
 
+  // Messages de succès
+  SUCCESS: {
+    CREATED: "Dépense créée avec succès",
+    FETCHED: "Dépense(s) récupérée(s) avec succès",
+    UPDATED: "Dépense mise à jour avec succès",
+    DELETED: "Dépense supprimée avec succès",
+    IMPORTED: "Dépenses importées avec succès",
+  },
+
   // Messages d'erreur
-  ERROR_MESSAGES: {
-    DEPENSE_NOT_FOUND: "Dépense non trouvée",
+  ERRORS: {
+    NOT_FOUND: "Dépense non trouvée",
     INVALID_MONTANT: "Le montant doit être positif",
     INVALID_DATE: "La date est invalide",
     INVALID_TYPE_COMPTE: "Type de compte invalide",
@@ -25,11 +34,10 @@ export const DEPENSE = {
     INVALID_ID: "ID de dépense invalide",
     NOT_AUTHORIZED: "Action non autorisée. Vous ne pouvez modifier que vos propres dépenses.",
     ACCESS_DENIED: "Accès non autorisé à cette ressource.",
-    SERVER_ERROR_ADD: "Erreur serveur lors de l'ajout de la dépense",
-    SERVER_ERROR_GET_LIST: "Erreur serveur lors de la récupération des dépenses",
-    SERVER_ERROR_GET_ONE: "Erreur serveur lors de la récupération de la dépense",
-    SERVER_ERROR_UPDATE: "Erreur serveur lors de la modification de la dépense",
-    SERVER_ERROR_DELETE: "Erreur serveur lors de la suppression de la dépense",
+    CREATE_ERROR: "Erreur serveur lors de l'ajout de la dépense",
+    FETCH_ERROR: "Erreur serveur lors de la récupération des dépenses",
+    UPDATE_ERROR: "Erreur serveur lors de la modification de la dépense",
+    DELETE_ERROR: "Erreur serveur lors de la suppression de la dépense",
   },
 
   // Validation

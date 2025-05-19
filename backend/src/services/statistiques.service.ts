@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 import DepenseModel from "../models/depense.model";
 import RevenuModel from "../models/revenu.model";
 import User from "../models/user.model";
-import { IDepense, IDepensePopulated } from "../types/depense.types";
-import { IRevenu, IRevenuPopulated } from "../types/revenu.types";
+import { IDepensePopulated } from "../types/depense.types";
+import { IUserPopulated } from '../types/user.types';
 
 export type UserIdsType = mongoose.Types.ObjectId | { $in: ReadonlyArray<mongoose.Types.ObjectId> };
 
@@ -36,13 +36,23 @@ interface ContributionCouple {
   readonly solde: number;
 }
 
-class StatistiquesService {
-  public async getTotalFluxMensuel(
+interface EvolutionFluxResult {
+  readonly mois: number;
+  readonly annee: number;
+  readonly total?: number;
+  readonly totalRevenus?: number;
+  readonly totalDepenses?: number;
+  readonly solde?: number;
+}
+
+export class StatistiquesService {
+  static async getTotalFluxMensuel(
     userIds: UserIdsType,
     dateDebut: Date,
     dateFin: Date,
     typeFlux: "depense" | "revenu",
-    model: mongoose.Model<any>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    model: any, 
     additionalMatch: Record<string, unknown> = {}
   ): Promise<number> {
     const match: Record<string, unknown> = {
@@ -57,7 +67,7 @@ class StatistiquesService {
     return result[0]?.total || 0;
   }
 
-  public async getSoldePourPeriode(
+  static async getSoldePourPeriode(
     userIds: UserIdsType,
     dateDebut: Date,
     dateFin: Date
@@ -73,7 +83,7 @@ class StatistiquesService {
     };
   }
 
-  public async getRepartitionParCategorie(
+  static async getRepartitionParCategorie(
     userIds: UserIdsType,
     dateDebut: Date,
     dateFin: Date,
@@ -125,7 +135,7 @@ class StatistiquesService {
     ]);
   }
 
-  public async getComparaisonMois(
+  static async getComparaisonMois(
     userIds: UserIdsType,
     dateActuelle: Date,
     datePrecedente: Date,
@@ -159,14 +169,14 @@ class StatistiquesService {
     }
   }
 
-  public async getEvolutionFluxMensuels(
+  static async getEvolutionFluxMensuels(
     userIds: UserIdsType,
     nbMois: number,
     dateReference: Date,
     typeFlux: "depenses" | "revenus" | "solde",
     options?: { estRecurrent?: boolean }
-  ): Promise<any[]> {
-    const results: any[] = [];
+  ): Promise<EvolutionFluxResult[]> {
+    const results: EvolutionFluxResult[] = [];
     for (let i = nbMois - 1; i >= 0; i--) {
       const date = new Date(dateReference);
       date.setMonth(date.getMonth() - i);
@@ -188,14 +198,7 @@ class StatistiquesService {
     return results;
   }
 
-  /**
-   * Récupère la répartition des revenus par catégorie
-   * @param userIds IDs des utilisateurs
-   * @param dateDebut Date de début
-   * @param dateFin Date de fin
-   * @returns Tableau des catégories avec leurs montants
-   */
-  public async getRepartitionRevenusParCategorie(
+  static async getRepartitionRevenusParCategorie(
     userIds: UserIdsType,
     dateDebut: Date,
     dateFin: Date
@@ -203,15 +206,7 @@ class StatistiquesService {
     return this.getRepartitionParCategorie(userIds, dateDebut, dateFin, "revenu");
   }
 
-  /**
-   * Génère une synthèse mensuelle pour un couple
-   * @param userIdPrincipal ID de l'utilisateur principal
-   * @param partenaireId ID du partenaire
-   * @param dateDebut Date de début
-   * @param dateFin Date de fin
-   * @returns Synthèse mensuelle du couple
-   */
-  public async getSyntheseMensuelleCouple(
+  static async getSyntheseMensuelleCouple(
     userIdPrincipal: string, 
     partenaireId: string, 
     dateDebut: Date, 
@@ -223,90 +218,70 @@ class StatistiquesService {
     ratioDependes: { utilisateurPrincipal: number; partenaire: number };
     ratioRevenus: { utilisateurPrincipal: number; partenaire: number };
   }> {
-    // Si pas de partenaire, renvoyer des données vides
-    if (!partenaireId) {
-      return {
-        soldeGlobal: { totalRevenus: 0, totalDepenses: 0, solde: 0 },
-        utilisateurPrincipal: { nom: "", depenses: 0, revenus: 0, solde: 0 },
-        partenaire: { nom: "", depenses: 0, revenus: 0, solde: 0 },
-        ratioDependes: { utilisateurPrincipal: 0, partenaire: 0 },
-        ratioRevenus: { utilisateurPrincipal: 0, partenaire: 0 },
-      };
-    }
-    
     // Récupérer les utilisateurs
     const [utilisateurPrincipal, partenaire] = await Promise.all([
-      User.findById(userIdPrincipal),
-      User.findById(partenaireId)
+      User.findById(userIdPrincipal).lean<IUserPopulated>(),
+      User.findById(partenaireId).lean<IUserPopulated>()
     ]);
-    
+
     if (!utilisateurPrincipal || !partenaire) {
-      throw new Error("Utilisateur ou partenaire non trouvé");
+      throw new Error("Utilisateur principal ou partenaire non trouvé");
     }
-    
-    // Récupérer les soldes individuels et combinés
-    const [soldeUtilisateurPrincipal, soldePartenaire, soldeGlobal] = await Promise.all([
-      this.getSoldePourPeriode(new mongoose.Types.ObjectId(userIdPrincipal), dateDebut, dateFin),
-      this.getSoldePourPeriode(new mongoose.Types.ObjectId(partenaireId), dateDebut, dateFin),
+
+    // Récupérer les données financières pour chaque utilisateur
+    const [statsPrincipal, statsPartenaire] = await Promise.all([
       this.getSoldePourPeriode(
-        { $in: [new mongoose.Types.ObjectId(userIdPrincipal), new mongoose.Types.ObjectId(partenaireId)] },
-        dateDebut, 
+        new mongoose.Types.ObjectId(userIdPrincipal),
+        dateDebut,
+        dateFin
+      ),
+      this.getSoldePourPeriode(
+        new mongoose.Types.ObjectId(partenaireId),
+        dateDebut,
         dateFin
       )
     ]);
-    
+
+    // Calcul des totaux globaux
+    const totalDepensesCouple = statsPrincipal.totalDepenses + statsPartenaire.totalDepenses;
+    const totalRevenusCouple = statsPrincipal.totalRevenus + statsPartenaire.totalRevenus;
+    const soldeGlobal = totalRevenusCouple - totalDepensesCouple;
+
     // Calcul des ratios
-    const totalDepenses = soldeUtilisateurPrincipal.totalDepenses + soldePartenaire.totalDepenses;
-    const totalRevenus = soldeUtilisateurPrincipal.totalRevenus + soldePartenaire.totalRevenus;
-    
-    const ratioDepensesUtilisateur = totalDepenses > 0 
-      ? (soldeUtilisateurPrincipal.totalDepenses / totalDepenses) * 100 
-      : 0;
-    const ratioDepensesPartenaire = totalDepenses > 0 
-      ? (soldePartenaire.totalDepenses / totalDepenses) * 100 
-      : 0;
-      
-    const ratioRevenusUtilisateur = totalRevenus > 0 
-      ? (soldeUtilisateurPrincipal.totalRevenus / totalRevenus) * 100 
-      : 0;
-    const ratioRevenusPartenaire = totalRevenus > 0 
-      ? (soldePartenaire.totalRevenus / totalRevenus) * 100 
-      : 0;
-    
+    const ratioDependes = {
+      utilisateurPrincipal: totalDepensesCouple === 0 ? 0 : (statsPrincipal.totalDepenses / totalDepensesCouple) * 100,
+      partenaire: totalDepensesCouple === 0 ? 0 : (statsPartenaire.totalDepenses / totalDepensesCouple) * 100
+    };
+
+    const ratioRevenus = {
+      utilisateurPrincipal: totalRevenusCouple === 0 ? 0 : (statsPrincipal.totalRevenus / totalRevenusCouple) * 100,
+      partenaire: totalRevenusCouple === 0 ? 0 : (statsPartenaire.totalRevenus / totalRevenusCouple) * 100
+    };
+
     return {
-      soldeGlobal,
+      soldeGlobal: {
+        totalRevenus: totalRevenusCouple,
+        totalDepenses: totalDepensesCouple,
+        solde: soldeGlobal
+      },
       utilisateurPrincipal: {
-        nom: utilisateurPrincipal.prenom || utilisateurPrincipal.email,
-        depenses: soldeUtilisateurPrincipal.totalDepenses,
-        revenus: soldeUtilisateurPrincipal.totalRevenus,
-        solde: soldeUtilisateurPrincipal.solde
+        nom: utilisateurPrincipal.nom,
+        depenses: statsPrincipal.totalDepenses,
+        revenus: statsPrincipal.totalRevenus,
+        solde: statsPrincipal.solde
       },
       partenaire: {
-        nom: partenaire.prenom || partenaire.email,
-        depenses: soldePartenaire.totalDepenses,
-        revenus: soldePartenaire.totalRevenus,
-        solde: soldePartenaire.solde
+        nom: partenaire.nom,
+        depenses: statsPartenaire.totalDepenses,
+        revenus: statsPartenaire.totalRevenus,
+        solde: statsPartenaire.solde
       },
-      ratioDependes: {
-        utilisateurPrincipal: ratioDepensesUtilisateur,
-        partenaire: ratioDepensesPartenaire
-      },
-      ratioRevenus: {
-        utilisateurPrincipal: ratioRevenusUtilisateur,
-        partenaire: ratioRevenusPartenaire
-      }
+      ratioDependes,
+      ratioRevenus
     };
   }
-  
-  /**
-   * Récupère les contributions d'un couple
-   * @param userIdPrincipal ID de l'utilisateur principal
-   * @param partenaireId ID du partenaire
-   * @param dateDebut Date de début
-   * @param dateFin Date de fin
-   * @returns Informations sur les contributions du couple
-   */
-  public async getContributionsCouple(
+
+  static async getContributionsCouple(
     userIdPrincipal: string, 
     partenaireId: string, 
     dateDebut: Date, 
@@ -317,128 +292,115 @@ class StatistiquesService {
     totalRevenusCouple: number;
     soldeCouple: number;
   }> {
-    if (!partenaireId) {
-      return {
-        contributionsUtilisateurs: [],
-        totalDepensesCouple: 0,
-        totalRevenusCouple: 0,
-        soldeCouple: 0
-      };
-    }
-    
     // Récupérer les utilisateurs
     const [utilisateurPrincipal, partenaire] = await Promise.all([
-      User.findById(userIdPrincipal),
-      User.findById(partenaireId)
+      User.findById(userIdPrincipal).lean<IUserPopulated>(),
+      User.findById(partenaireId).lean<IUserPopulated>()
     ]);
-    
+
     if (!utilisateurPrincipal || !partenaire) {
-      throw new Error("Utilisateur ou partenaire non trouvé");
+      throw new Error("Utilisateur principal ou partenaire non trouvé");
     }
-    
-    // Récupérer les soldes
-    const [soldeUtilisateurPrincipal, soldePartenaire, soldeCouple] = await Promise.all([
-      this.getSoldePourPeriode(new mongoose.Types.ObjectId(userIdPrincipal), dateDebut, dateFin),
-      this.getSoldePourPeriode(new mongoose.Types.ObjectId(partenaireId), dateDebut, dateFin),
+
+    // Récupérer les données financières pour chaque utilisateur
+    const [statsPrincipal, statsPartenaire] = await Promise.all([
       this.getSoldePourPeriode(
-        { $in: [new mongoose.Types.ObjectId(userIdPrincipal), new mongoose.Types.ObjectId(partenaireId)] },
+        new mongoose.Types.ObjectId(userIdPrincipal),
+        dateDebut,
+        dateFin
+      ),
+      this.getSoldePourPeriode(
+        new mongoose.Types.ObjectId(partenaireId),
         dateDebut,
         dateFin
       )
     ]);
+
+    // Calcul des totaux et pourcentages
+    const totalDepensesCouple = statsPrincipal.totalDepenses + statsPartenaire.totalDepenses;
+    const totalRevenusCouple = statsPrincipal.totalRevenus + statsPartenaire.totalRevenus;
     
-    // Calcul des pourcentages
-    const pourcentageDepensesUtilisateur = soldeCouple.totalDepenses > 0 
-      ? (soldeUtilisateurPrincipal.totalDepenses / soldeCouple.totalDepenses) * 100 
-      : 0;
-    const pourcentageDepensesPartenaire = soldeCouple.totalDepenses > 0 
-      ? (soldePartenaire.totalDepenses / soldeCouple.totalDepenses) * 100 
-      : 0;
-      
-    const pourcentageRevenusUtilisateur = soldeCouple.totalRevenus > 0 
-      ? (soldeUtilisateurPrincipal.totalRevenus / soldeCouple.totalRevenus) * 100 
-      : 0;
-    const pourcentageRevenusPartenaire = soldeCouple.totalRevenus > 0 
-      ? (soldePartenaire.totalRevenus / soldeCouple.totalRevenus) * 100 
-      : 0;
+    const pourcentageDepensesPrincipal = totalDepensesCouple === 0 ? 0 : (statsPrincipal.totalDepenses / totalDepensesCouple) * 100;
+    const pourcentageDepensesPartenaire = totalDepensesCouple === 0 ? 0 : (statsPartenaire.totalDepenses / totalDepensesCouple) * 100;
     
+    const pourcentageRevenusPrincipal = totalRevenusCouple === 0 ? 0 : (statsPrincipal.totalRevenus / totalRevenusCouple) * 100;
+    const pourcentageRevenusPartenaire = totalRevenusCouple === 0 ? 0 : (statsPartenaire.totalRevenus / totalRevenusCouple) * 100;
+
     const contributionsUtilisateurs: ContributionCouple[] = [
       {
         utilisateurId: userIdPrincipal,
-        nom: utilisateurPrincipal.prenom || utilisateurPrincipal.email,
-        totalDepenses: soldeUtilisateurPrincipal.totalDepenses,
-        pourcentageDepenses: pourcentageDepensesUtilisateur,
-        totalRevenus: soldeUtilisateurPrincipal.totalRevenus,
-        pourcentageRevenus: pourcentageRevenusUtilisateur,
-        solde: soldeUtilisateurPrincipal.solde
+        nom: utilisateurPrincipal.nom,
+        totalDepenses: statsPrincipal.totalDepenses,
+        pourcentageDepenses: pourcentageDepensesPrincipal,
+        totalRevenus: statsPrincipal.totalRevenus,
+        pourcentageRevenus: pourcentageRevenusPrincipal,
+        solde: statsPrincipal.solde
       },
       {
         utilisateurId: partenaireId,
-        nom: partenaire.prenom || partenaire.email,
-        totalDepenses: soldePartenaire.totalDepenses,
+        nom: partenaire.nom,
+        totalDepenses: statsPartenaire.totalDepenses,
         pourcentageDepenses: pourcentageDepensesPartenaire,
-        totalRevenus: soldePartenaire.totalRevenus,
+        totalRevenus: statsPartenaire.totalRevenus,
         pourcentageRevenus: pourcentageRevenusPartenaire,
-        solde: soldePartenaire.solde
+        solde: statsPartenaire.solde
       }
     ];
-    
+
     return {
       contributionsUtilisateurs,
-      totalDepensesCouple: soldeCouple.totalDepenses,
-      totalRevenusCouple: soldeCouple.totalRevenus,
-      soldeCouple: soldeCouple.solde
+      totalDepensesCouple,
+      totalRevenusCouple,
+      soldeCouple: totalRevenusCouple - totalDepensesCouple
     };
   }
-  
-  /**
-   * Récupère les charges fixes d'un couple
-   * @param userIdPrincipal ID de l'utilisateur principal
-   * @param partenaireId ID du partenaire
-   * @param dateDebut Date de début
-   * @param dateFin Date de fin
-   * @returns Informations sur les charges fixes du couple
-   */
-  public async getChargesFixesCouple(
+
+  static async getChargesFixesCouple(
     userIdPrincipal: string, 
     partenaireId: string, 
     dateDebut: Date, 
     dateFin: Date
   ): Promise<{
-    chargesUtilisateurPrincipal: IDepense[];
-    chargesPartenaire: IDepense[];
+    chargesUtilisateurPrincipal: IDepensePopulated[];
+    chargesPartenaire: IDepensePopulated[];
     totalChargesUtilisateurPrincipal: number;
     totalChargesPartenaire: number;
     totalChargesCouple: number;
   }> {
-    if (!partenaireId) {
-      return {
-        chargesUtilisateurPrincipal: [],
-        chargesPartenaire: [],
-        totalChargesUtilisateurPrincipal: 0,
-        totalChargesPartenaire: 0,
-        totalChargesCouple: 0
-      };
-    }
-    
-    // Récupérer les charges fixes (dépenses récurrentes)
-    const chargesUtilisateurPrincipal = await DepenseModel.find({
-      utilisateur: new mongoose.Types.ObjectId(userIdPrincipal),
-      date: { $gte: dateDebut, $lte: dateFin },
-      estRecurrent: true
-    }).populate('categorie').sort({ date: -1 });
-    
-    const chargesPartenaire = await DepenseModel.find({
-      utilisateur: new mongoose.Types.ObjectId(partenaireId),
-      date: { $gte: dateDebut, $lte: dateFin },
-      estRecurrent: true
-    }).populate('categorie').sort({ date: -1 });
-    
+    // Récupérer les charges fixes pour chaque utilisateur
+    const [chargesUtilisateurPrincipal, chargesPartenaire] = await Promise.all([
+      DepenseModel.find({
+        utilisateur: new mongoose.Types.ObjectId(userIdPrincipal),
+        date: { $gte: dateDebut, $lte: dateFin },
+        estChargeFixe: true
+      })
+      .populate("categorie", "nom")
+      .sort({ date: -1 })
+      .lean<IDepensePopulated[]>(),
+      
+      DepenseModel.find({
+        utilisateur: new mongoose.Types.ObjectId(partenaireId),
+        date: { $gte: dateDebut, $lte: dateFin },
+        estChargeFixe: true
+      })
+      .populate("categorie", "nom")
+      .sort({ date: -1 })
+      .lean<IDepensePopulated[]>()
+    ]);
+
     // Calculer les totaux
-    const totalChargesUtilisateurPrincipal = chargesUtilisateurPrincipal.reduce((sum, depense) => sum + depense.montant, 0);
-    const totalChargesPartenaire = chargesPartenaire.reduce((sum, depense) => sum + depense.montant, 0);
-    const totalChargesCouple = totalChargesUtilisateurPrincipal + totalChargesPartenaire;
+    const totalChargesUtilisateurPrincipal = chargesUtilisateurPrincipal.reduce(
+      (acc, charge) => acc + charge.montant,
+      0
+    );
     
+    const totalChargesPartenaire = chargesPartenaire.reduce(
+      (acc, charge) => acc + charge.montant,
+      0
+    );
+
+    const totalChargesCouple = totalChargesUtilisateurPrincipal + totalChargesPartenaire;
+
     return {
       chargesUtilisateurPrincipal,
       chargesPartenaire,
@@ -447,6 +409,4 @@ class StatistiquesService {
       totalChargesCouple
     };
   }
-}
-
-export const statistiquesService = new StatistiquesService();
+} 

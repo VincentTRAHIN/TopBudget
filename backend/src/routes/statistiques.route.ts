@@ -1,9 +1,15 @@
-import express, { NextFunction, Request, Response } from "express";
+import { Router } from "express";
 import { proteger } from "../middlewares/auth.middleware";
 import {
+  getTotalFluxMensuel,
+  getRepartitionParCategorie,
+  getEvolutionFluxMensuels,
+  getSoldePourPeriode,
+  getComparaisonMois,
+  getContributionsCouple,
+  getChargesFixesCouple,
+  getSyntheseMensuelleCouple,
   totalDepensesMensuelles,
-  repartitionParCategorie,
-  comparaisonMois,
   getEvolutionDepensesMensuelles,
   getCoupleContributionsSummary,
   getCoupleFixedCharges,
@@ -11,37 +17,104 @@ import {
   getSoldeMensuel,
   getEvolutionRevenusMensuels,
   getEvolutionSoldesMensuels,
+  repartitionParCategorie
 } from "../controllers/statistiques.controller";
+import { Request, Response, NextFunction } from "express";
+import { validationResult } from "express-validator";
+import { 
+  validateDateRange, 
+  validateType, 
+  validateEvolutionFlux, 
+  validateComparaisonMois 
+} from "../middlewares/validators/statistiques.validator";
+import { asyncHandler } from "../utils/async.utils";
 
-const router = express.Router();
+const router = Router();
 
-router.get("/total-mensuel", proteger, totalDepensesMensuelles);
-router.get("/par-categorie", proteger, repartitionParCategorie);
-router.get("/comparaison-mois", proteger, comparaisonMois);
-router.get("/solde-mensuel", proteger, getSoldeMensuel);
+// Middleware pour valider les requêtes
+const validateReq = (req: Request, res: Response, next: NextFunction): void => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({ errors: errors.array() });
+    return;
+  }
+  next();
+};
+
+// Routes avec validation
 router.get(
-  "/evolution-mensuelle",
-  (_: Request, res: Response, next: NextFunction) => {
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
-    next();
-  },
+  "/flux-mensuel",
   proteger,
-  getEvolutionDepensesMensuelles,
+  [...validateDateRange, ...validateType],
+  validateReq,
+  getTotalFluxMensuel
 );
+
 router.get(
-  "/evolution-revenus-mensuels",
+  "/repartition-categorie",
   proteger,
-  getEvolutionRevenusMensuels,
+  [...validateDateRange, ...validateType],
+  validateReq,
+  getRepartitionParCategorie
 );
-router.get("/evolution-soldes-mensuels", proteger, getEvolutionSoldesMensuels);
+
 router.get(
-  "/couple/resume-contributions",
+  "/evolution-flux",
   proteger,
-  getCoupleContributionsSummary,
+  validateEvolutionFlux,
+  validateReq,
+  getEvolutionFluxMensuels
 );
-router.get("/couple/charges-fixes", proteger, getCoupleFixedCharges);
-router.get("/synthese-mensuelle", proteger, getSyntheseMensuelle);
+
+router.get(
+  "/solde-periode",
+  proteger,
+  validateDateRange,
+  validateReq,
+  getSoldePourPeriode
+);
+
+router.get(
+  "/comparaison-mois",
+  proteger,
+  validateComparaisonMois,
+  validateReq,
+  getComparaisonMois
+);
+
+router.get(
+  "/contributions-couple",
+  proteger,
+  validateDateRange,
+  validateReq,
+  getContributionsCouple
+);
+
+router.get(
+  "/charges-fixes-couple",
+  proteger,
+  validateDateRange,
+  validateReq,
+  getChargesFixesCouple
+);
+
+router.get(
+  "/synthese-mensuelle-couple",
+  proteger,
+  validateDateRange,
+  validateReq,
+  getSyntheseMensuelleCouple
+);
+
+// Routes supplémentaires de l'ancien fichier (compatibilité)
+router.get("/total-mensuel", proteger, asyncHandler(totalDepensesMensuelles));
+router.get("/par-categorie", proteger, asyncHandler(repartitionParCategorie));
+router.get("/solde-mensuel", proteger, asyncHandler(getSoldeMensuel));
+router.get("/evolution-mensuelle", proteger, asyncHandler(getEvolutionDepensesMensuelles));
+router.get("/evolution-revenus-mensuels", proteger, asyncHandler(getEvolutionRevenusMensuels));
+router.get("/evolution-soldes-mensuels", proteger, asyncHandler(getEvolutionSoldesMensuels));
+router.get("/couple/resume-contributions", proteger, asyncHandler(getCoupleContributionsSummary));
+router.get("/couple/charges-fixes", proteger, asyncHandler(getCoupleFixedCharges));
+router.get("/synthese-mensuelle", proteger, asyncHandler(getSyntheseMensuelle));
 
 export default router;

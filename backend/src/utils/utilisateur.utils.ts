@@ -20,7 +20,7 @@ export async function getUserIdsFromContext(
   contexte?: string
 ): Promise<{ userIds: UserIdsType, utilisateurFilter: UserIdsType } | null> {
   if (!req.user) {
-    sendErrorClient(res, AUTH.ERROR_MESSAGES.UNAUTHORIZED);
+    sendErrorClient(res, AUTH.ERRORS.UNAUTHORIZED);
     return null;
   }
   

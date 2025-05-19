@@ -1,4 +1,4 @@
-import express from "express";
+import { Router } from "express";
 import {
   inscription as inscriptionController,
   connexion as connexionController,
@@ -9,20 +9,14 @@ import {
   registerValidator,
 } from "../middlewares/validators/user.validator";
 import { proteger } from "../middlewares/auth.middleware";
+import { asyncHandler } from "../utils/async.utils";
 
-const router = express.Router();
+const router = Router();
 
-router.post("/register", registerValidator, inscriptionController);
+router.post("/register", registerValidator, asyncHandler(inscriptionController));
 
-router.post("/login", loginValidator, connexionController);
-console.log("Chargement de auth.route.ts...");
-router.get(
-  "/me",
-  (_, __, next) => {
-    next();
-  },
-  proteger,
-  getMeController,
-);
+router.post("/login", loginValidator, asyncHandler(connexionController));
+
+router.get("/me", proteger, asyncHandler(getMeController));
 
 export default router;

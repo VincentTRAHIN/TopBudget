@@ -1,6 +1,4 @@
 import { Document, Types } from "mongoose";
-import { ICategorie } from "./categorie.types";
-import { IUser } from "./user.types";
 
 export type TypeCompte = "Perso" | "Conjoint";
 export type TypeDepense = "Perso" | "Commune";
@@ -22,8 +20,16 @@ export interface IDepense extends Document {
  * Interface pour les documents de dépense avec champs populés
  */
 export interface IDepensePopulated extends Omit<IDepense, 'categorie' | 'utilisateur'> {
-  categorie: Pick<ICategorie, "_id" | "nom" | "description" | "image">;
-  utilisateur: Pick<IUser, "_id" | "nom">;
+  categorie: {
+    _id: Types.ObjectId;
+    nom: string;
+    description?: string;
+    image?: string;
+  };
+  utilisateur: {
+    _id: Types.ObjectId;
+    nom: string;
+  };
 }
 
 export interface IDepenseInput {

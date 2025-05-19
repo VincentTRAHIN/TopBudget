@@ -75,6 +75,7 @@
 │   │   ├── depense.types.ts
 │   │   ├── request.types.ts
 │   │   ├── revenu.types.ts
+│   │   ├── statistiques.types.ts
 │   │   ├── typed-request.ts
 │   │   ├── user.types.ts
 │   ├── utils

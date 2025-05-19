@@ -1,179 +1,197 @@
+import { Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
-import logger from "../utils/logger.utils";
-import Categorie from "../models/categorie.model";
-import Depense from "../models/depense.model";
+import { createAsyncHandler } from "../utils/async.utils";
+import { sendSuccess, sendErrorClient } from "../utils/response.utils";
+import { CategorieService } from "../services/categorie.service";
+import { TypedAuthRequest, CategorieCreateBody, CategorieUpdateBody, IdParams } from "../types/typed-request";
 import { CATEGORIE, COMMON } from "../constants";
-import { sendSuccess, sendErrorClient } from '../utils/response.utils';
-import { IdParams, CategorieRequest } from '../types/typed-request';
-import { createAsyncHandler } from '../utils/async.utils';
 
 /**
- * Ajouter une nouvelle catégorie
- * POST /api/categories
+ * @swagger
+ * /api/categories:
+ *   post:
+ *     summary: Créer une nouvelle catégorie
+ *     tags: [Catégories]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nom
+ *             properties:
+ *               nom:
+ *                 type: string
+ *                 description: Nom de la catégorie
+ *               description:
+ *                 type: string
+ *                 description: Description de la catégorie
+ *     responses:
+ *       201:
+ *         description: Catégorie créée avec succès
+ *       400:
+ *         description: Données invalides
+ *       409:
+ *         description: La catégorie existe déjà
  */
-export const ajouterCategorie = createAsyncHandler<CategorieRequest.CreateBody>(
-  async (req, res): Promise<void> => {
-    const erreurs = validationResult(req);
-    if (!erreurs.isEmpty()) {
-      sendErrorClient(res, COMMON.ERROR_MESSAGES.VALIDATION_ERROR, 400, erreurs.array());
-      return;
-    }
-
+export const ajouterCategorie = createAsyncHandler(
+  async (req: TypedAuthRequest<CategorieCreateBody>, res: Response, next: NextFunction) => {
     try {
-      const { nom: nomInitial, description, image } = req.body;
-      const nom = nomInitial.trim();
-
-      if (
-        nom.length < CATEGORIE.VALIDATION.MIN_NOM_LENGTH ||
-        nom.length > CATEGORIE.VALIDATION.MAX_NOM_LENGTH
-      ) {
-        sendErrorClient(res, `Le nom doit contenir entre ${CATEGORIE.VALIDATION.MIN_NOM_LENGTH} et ${CATEGORIE.VALIDATION.MAX_NOM_LENGTH} caractères`);
-        return;
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return sendErrorClient(res, COMMON.ERRORS.VALIDATION_ERROR, errors.array());
       }
 
-      if (
-        description &&
-        description.length > CATEGORIE.VALIDATION.MAX_DESCRIPTION_LENGTH
-      ) {
-        sendErrorClient(res, `La description ne peut pas dépasser ${CATEGORIE.VALIDATION.MAX_DESCRIPTION_LENGTH} caractères`);
-        return;
-      }
-
-      const categorieExistante = await Categorie.findOne({
-        nom: { $regex: new RegExp(`^${nom}$`, "i") },
-      });
-      if (categorieExistante) {
-        sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.CATEGORIE_ALREADY_EXISTS);
-        return;
-      }
-
-      const nouvelleCategorie = await Categorie.create({
-        nom,
-        description,
-        image,
-      });
-      sendSuccess(res, nouvelleCategorie, 'Catégorie créée', 201);
+      const categorie = await CategorieService.create(req.body);
+      return sendSuccess(res, CATEGORIE.SUCCESS.CREATED, categorie, 201);
     } catch (error) {
-      logger.error(error);
-      sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.SERVER_ERROR_ADD, 500);
+      next(error);
     }
   }
 );
 
 /**
- * Obtenir la liste des catégories
- * GET /api/categories
+ * @swagger
+ * /api/categories:
+ *   get:
+ *     summary: Obtenir la liste des catégories
+ *     tags: [Catégories]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des catégories récupérée avec succès
  */
 export const obtenirCategories = createAsyncHandler(
-  async (req, res): Promise<void> => {
+  async (req: TypedAuthRequest, res: Response, next: NextFunction) => {
     try {
-      const categories = await Categorie.find().sort({ nom: 1 });
-      sendSuccess(res, categories, 'Liste des catégories');
+      const categories = await CategorieService.getAll();
+      return sendSuccess(res, CATEGORIE.SUCCESS.FETCHED, categories);
     } catch (error) {
-      logger.error(error);
-      sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.SERVER_ERROR_GET_LIST, 500);
+      next(error);
     }
   }
 );
 
 /**
- * Modifier une catégorie existante
- * PUT /api/categories/:id
+ * @swagger
+ * /api/categories/{id}:
+ *   get:
+ *     summary: Obtenir une catégorie par son ID
+ *     tags: [Catégories]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la catégorie
+ *     responses:
+ *       200:
+ *         description: Catégorie récupérée avec succès
+ *       404:
+ *         description: Catégorie non trouvée
  */
-export const modifierCategorie = createAsyncHandler<CategorieRequest.UpdateBody, IdParams>(
-  async (req, res): Promise<void> => {
+export const obtenirCategorieParId = createAsyncHandler(
+  async (req: TypedAuthRequest<unknown, IdParams>, res: Response, next: NextFunction) => {
     try {
-      const categorie = await Categorie.findById(req.params.id);
-
-      if (!categorie) {
-        sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.CATEGORIE_NOT_FOUND);
-        return;
-      }
-
-      if (req.body.nom) {
-        const nomExiste = await Categorie.findOne({
-          _id: { $ne: req.params.id },
-          nom: { $regex: new RegExp(`^${req.body.nom.trim()}$`, "i") },
-        });
-
-        if (nomExiste) {
-          sendErrorClient(
-            res,
-            CATEGORIE.ERROR_MESSAGES.CATEGORIE_ALREADY_EXISTS,
-          );
-          return;
-        }
-      }
-
-      Object.assign(categorie, req.body);
-
-      if (categorie.nom) {
-        if (
-          categorie.nom.length < CATEGORIE.VALIDATION.MIN_NOM_LENGTH ||
-          categorie.nom.length > CATEGORIE.VALIDATION.MAX_NOM_LENGTH
-        ) {
-          sendErrorClient(
-            res,
-            `Le nom doit contenir entre ${CATEGORIE.VALIDATION.MIN_NOM_LENGTH} et ${CATEGORIE.VALIDATION.MAX_NOM_LENGTH} caractères`,
-          );
-          return;
-        }
-      }
-
-      if (
-        categorie.description &&
-        categorie.description.length > CATEGORIE.VALIDATION.MAX_DESCRIPTION_LENGTH
-      ) {
-        sendErrorClient(
-          res,
-          `La description ne peut pas dépasser ${CATEGORIE.VALIDATION.MAX_DESCRIPTION_LENGTH} caractères`,
-        );
-        return;
-      }
-
-      await categorie.save();
-      sendSuccess(res, categorie, 'Catégorie modifiée');
+      const categorie = await CategorieService.getById(req.params.id);
+      return sendSuccess(res, CATEGORIE.SUCCESS.FETCHED, categorie);
     } catch (error) {
-      logger.error(error);
-      sendErrorClient(
-        res,
-        CATEGORIE.ERROR_MESSAGES.SERVER_ERROR_UPDATE,
-        500,
-      );
+      next(error);
     }
   }
 );
 
 /**
- * Supprimer une catégorie
- * DELETE /api/categories/:id
+ * @swagger
+ * /api/categories/{id}:
+ *   put:
+ *     summary: Modifier une catégorie
+ *     tags: [Catégories]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la catégorie
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nom:
+ *                 type: string
+ *                 description: Nouveau nom de la catégorie
+ *               description:
+ *                 type: string
+ *                 description: Nouvelle description de la catégorie
+ *     responses:
+ *       200:
+ *         description: Catégorie modifiée avec succès
+ *       400:
+ *         description: Données invalides
+ *       404:
+ *         description: Catégorie non trouvée
+ *       409:
+ *         description: La catégorie existe déjà
  */
-export const supprimerCategorie = createAsyncHandler<Record<string, never>, IdParams>(
-  async (req, res): Promise<void> => {
+export const modifierCategorie = createAsyncHandler(
+  async (req: TypedAuthRequest<CategorieUpdateBody, IdParams>, res: Response, next: NextFunction) => {
     try {
-      const categorie = await Categorie.findById(req.params.id);
-      if (!categorie) {
-        sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.CATEGORIE_NOT_FOUND);
-        return;
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return sendErrorClient(res, COMMON.ERRORS.VALIDATION_ERROR, errors.array());
       }
 
-      const depensesAssociees = await Depense.findOne({
-        categorie: req.params.id,
-      });
-      if (depensesAssociees) {
-        sendErrorClient(res, CATEGORIE.ERROR_MESSAGES.CATEGORIE_IN_USE);
-        return;
-      }
-
-      await categorie.deleteOne();
-      sendSuccess(res, { message: "Catégorie supprimée" });
+      const categorie = await CategorieService.update(req.params.id, req.body);
+      return sendSuccess(res, CATEGORIE.SUCCESS.UPDATED, categorie);
     } catch (error) {
-      logger.error(error);
-      sendErrorClient(
-        res,
-        CATEGORIE.ERROR_MESSAGES.SERVER_ERROR_DELETE,
-        500,
-      );
+      next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /api/categories/{id}:
+ *   delete:
+ *     summary: Supprimer une catégorie
+ *     tags: [Catégories]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la catégorie
+ *     responses:
+ *       200:
+ *         description: Catégorie supprimée avec succès
+ *       400:
+ *         description: Catégorie en cours d'utilisation
+ *       404:
+ *         description: Catégorie non trouvée
+ */
+export const supprimerCategorie = createAsyncHandler(
+  async (req: TypedAuthRequest<unknown, IdParams>, res: Response, next: NextFunction) => {
+    try {
+      await CategorieService.delete(req.params.id);
+      return sendSuccess(res, CATEGORIE.SUCCESS.DELETED, null);
+    } catch (error) {
+      next(error);
     }
   }
 );

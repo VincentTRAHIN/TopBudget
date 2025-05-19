@@ -1,23 +1,35 @@
 import { COMMON } from "./common.constants";
 
 export const AUTH = {
-  // Durée de validité du token JWT (24 heures)
-  JWT_EXPIRES_IN: "24h",
+  // Durée de validité du token JWT (7 jours)
+  JWT_EXPIRES_IN: "7d",
 
   // Longueur minimale du mot de passe
   MIN_PASSWORD_LENGTH: 8,
 
-  // Messages d'erreur d'authentification
-  ERROR_MESSAGES: {
+  // Messages de succès
+  SUCCESS: {
+    LOGIN: "Connexion réussie",
+    SIGNUP: "Inscription réussie",
+    LOGOUT: "Déconnexion réussie",
+    PASSWORD_RESET: "Mot de passe réinitialisé avec succès",
+    PASSWORD_CHANGED: "Mot de passe modifié avec succès",
+    PROFILE_FETCHED: "Profil utilisateur récupéré avec succès"
+  },
+
+  // Messages d'erreur
+  ERRORS: {
     INVALID_CREDENTIALS: "Email ou mot de passe incorrect",
-    USER_NOT_FOUND: COMMON.ERROR_MESSAGES.USER_NOT_FOUND,
-    EMAIL_ALREADY_EXISTS: COMMON.ERROR_MESSAGES.EMAIL_ALREADY_EXISTS,
-    UNAUTHORIZED: COMMON.ERROR_MESSAGES.UNAUTHORIZED,
-    UNAUTHORIZED_USER: COMMON.ERROR_MESSAGES.UNAUTHORIZED_USER,
+    NOT_FOUND: "Utilisateur non trouvé",
+    ALREADY_EXISTS: "Cette adresse email est déjà utilisée",
+    UNAUTHORIZED: "Non authentifié",
+    UNAUTHORIZED_USER: COMMON.ERRORS.UNAUTHORIZED_USER,
     TOKEN_EXPIRED: "Token expiré",
     INVALID_TOKEN: "Token invalide",
-    SERVER_ERROR_SIGNUP: "Erreur lors de l'inscription",
-    SERVER_ERROR_LOGIN: "Erreur lors de la connexion",
+    SIGNUP_ERROR: "Erreur lors de l'inscription",
+    LOGIN_ERROR: "Erreur lors de la connexion",
+    PROFILE_FETCH_ERROR: "Erreur lors de la récupération du profil",
+    VALIDATION_ERROR: "Erreur de validation"
   },
 
   // Règles de validation du mot de passe

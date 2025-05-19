@@ -1,90 +1,171 @@
-import { Response } from "express";
-import { AuthRequest } from "../middlewares/auth.middleware";
-import logger from "../utils/logger.utils";
-import { AUTH, PROFILE } from "../constants";
+import { Response, NextFunction } from "express";
+import { validationResult } from "express-validator";
+import { createAsyncHandler } from "../utils/async.utils";
+import { sendSuccess, sendErrorClient } from "../utils/response.utils";
+import { ProfileService } from "../services/profile.service";
+import { TypedAuthRequest } from "../types/typed-request";
 import { IUserProfileUpdateInput } from "../types/user.types";
+import { AUTH, PROFILE } from "../constants";
 import { AppError } from "../middlewares/error.middleware";
-import ProfileService from "../services/ProfileService";
-import { sendSuccess, sendErrorClient } from '../utils/response.utils';
+
+interface ChangePasswordBody { 
+  currentPassword: string; 
+  newPassword: string; 
+  confirmPassword: string; 
+}
 
 /**
- * Mise à jour du profil utilisateur
- * @route PUT /api/profile
- * @access Privé
+ * @swagger
+ * /api/profile:
+ *   put:
+ *     summary: Mettre à jour le profil utilisateur
+ *     tags: [Profil]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nom:
+ *                 type: string
+ *                 description: Nom de l'utilisateur
+ *               prenom:
+ *                 type: string
+ *                 description: Prénom de l'utilisateur
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email de l'utilisateur
+ *     responses:
+ *       200:
+ *         description: Profil mis à jour avec succès
+ *       400:
+ *         description: Données invalides
+ *       401:
+ *         description: Non autorisé
  */
-export const updateUserProfile = async (
-  req: AuthRequest,
-  res: Response,
-): Promise<void> => {
-  try {
-    if (!req.user) {
-      res.status(401).json({ message: AUTH.ERROR_MESSAGES.UNAUTHORIZED });
-      return;
-    }
-    const userId = req.user.id;
-    const result = await ProfileService.updateUserProfileData(userId, req.body as IUserProfileUpdateInput);
-    sendSuccess(res, result);
-  } catch (error) {
-    if (error instanceof AppError) {
-      sendErrorClient(res, error.message);
-    } else {
-      logger.error("Erreur lors de la mise à jour du profil:", error);
-      sendErrorClient(res, PROFILE.ERROR_MESSAGES.SERVER_ERROR_UPDATE, 500);
+export const updateUserProfile = createAsyncHandler(
+  async (req: TypedAuthRequest<IUserProfileUpdateInput>, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+      }
+
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return sendErrorClient(res, "Erreur de validation", errors.array());
+      }
+
+      const result = await ProfileService.updateUserProfileData(req.user.id, req.body);
+      return sendSuccess(res, "Profil mis à jour avec succès", result);
+    } catch (error) {
+      next(error);
     }
   }
-};
+);
 
 /**
- * Téléchargement d'un avatar utilisateur
- * @route POST /api/profile/avatar
- * @access Privé
+ * @swagger
+ * /api/profile/avatar:
+ *   post:
+ *     summary: Télécharger un avatar utilisateur
+ *     tags: [Profil]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *                 description: Image de l'avatar
+ *     responses:
+ *       200:
+ *         description: Avatar mis à jour avec succès
+ *       400:
+ *         description: Aucun fichier fourni
+ *       401:
+ *         description: Non autorisé
  */
-export const uploadUserAvatar = async (
-  req: AuthRequest,
-  res: Response,
-): Promise<void> => {
-  try {
-    if (!req.user) {
-      res.status(401).json({ message: AUTH.ERROR_MESSAGES.UNAUTHORIZED });
-      return;
-    }
-    const userId = req.user.id;
-    const result = await ProfileService.updateAvatar(userId, req.file!);
-    sendSuccess(res, result);
-  } catch (error) {
-    if (error instanceof AppError) {
-      sendErrorClient(res, error.message);
-    } else {
-      logger.error("Erreur lors de l'upload de l'avatar:", error);
-      sendErrorClient(res, PROFILE.ERROR_MESSAGES.SERVER_ERROR_UPLOAD_AVATAR, 500);
+export const uploadUserAvatar = createAsyncHandler(
+  async (req: TypedAuthRequest, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+      }
+
+      if (!req.file) {
+        return sendErrorClient(res, PROFILE.ERRORS.NO_FILE);
+      }
+
+      const result = await ProfileService.updateAvatar(req.user.id, req.file);
+      return sendSuccess(res, "Avatar mis à jour avec succès", result);
+    } catch (error) {
+      next(error);
     }
   }
-};
+);
 
 /**
- * Changement du mot de passe utilisateur
- * @route PUT /api/profile/me/change-password
- * @access Privé
+ * @swagger
+ * /api/profile/me/change-password:
+ *   put:
+ *     summary: Changer le mot de passe utilisateur
+ *     tags: [Profil]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: Mot de passe actuel
+ *               newPassword:
+ *                 type: string
+ *                 description: Nouveau mot de passe
+ *               confirmPassword:
+ *                 type: string
+ *                 description: Confirmation du nouveau mot de passe
+ *     responses:
+ *       200:
+ *         description: Mot de passe changé avec succès
+ *       400:
+ *         description: Données invalides
+ *       401:
+ *         description: Non autorisé
  */
-export const changeUserPassword = async (
-  req: AuthRequest,
-  res: Response,
-): Promise<void> => {
-  try {
-    if (!req.user) {
-      res.status(401).json({ message: AUTH.ERROR_MESSAGES.UNAUTHORIZED });
-      return;
-    }
-    const userId = req.user.id;
-    const { currentPassword, newPassword, confirmPassword } = req.body;
-    const result = await ProfileService.changePassword(userId, currentPassword, newPassword, confirmPassword);
-    sendSuccess(res, result);
-  } catch (error) {
-    if (error instanceof AppError) {
-      sendErrorClient(res, error.message);
-    } else {
-      logger.error("Erreur lors du changement de mot de passe:", error);
-      sendErrorClient(res, PROFILE.ERROR_MESSAGES.SERVER_ERROR_PASSWORD_CHANGE, 500);
+export const changeUserPassword = createAsyncHandler(
+  async (req: TypedAuthRequest<ChangePasswordBody>, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+      }
+
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return sendErrorClient(res, "Erreur de validation", errors.array());
+      }
+
+      const { currentPassword, newPassword, confirmPassword } = req.body;
+      const result = await ProfileService.changePassword(req.user.id, currentPassword, newPassword, confirmPassword);
+      return sendSuccess(res, "Mot de passe changé avec succès", result);
+    } catch (error) {
+      next(error);
     }
   }
-};
+);

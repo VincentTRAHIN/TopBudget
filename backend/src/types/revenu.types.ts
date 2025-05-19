@@ -1,4 +1,4 @@
-import { Types } from "mongoose";
+import { Document, Types } from "mongoose";
 import { IUser } from "./user.types";
 
 export type TypeCompteRevenu = "Perso" | "Conjoint";
@@ -10,7 +10,7 @@ export interface ICategorieRevenu {
   image?: string;
 }
 
-export interface IRevenu {
+export interface IRevenu extends Document {
   _id: string | Types.ObjectId;
   montant: number;
   description: string;

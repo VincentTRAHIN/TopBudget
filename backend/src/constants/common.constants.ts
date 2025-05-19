@@ -1,12 +1,17 @@
-
 /**
  * Constantes communes partagées entre plusieurs modules
  * Permet d'éviter la duplication de messages d'erreur
  */
 export const COMMON = {
-  ERROR_MESSAGES: {
-    USER_NOT_FOUND: "Utilisateur non trouvé",
-    EMAIL_ALREADY_EXISTS: "Cet email est déjà utilisé",
+  SUCCESS: {
+    CREATED: "Création réussie",
+    FETCHED: "Récupération réussie",
+    UPDATED: "Mise à jour réussie",
+    DELETED: "Suppression réussie",
+  },
+  ERRORS: {
+    NOT_FOUND: "Ressource non trouvée",
+    ALREADY_EXISTS: "Cette ressource existe déjà",
     UNAUTHORIZED: "Non autorisé",
     UNAUTHORIZED_USER: "Utilisateur non authentifié",
     VALIDATION_ERROR: "Erreur de validation",
@@ -14,5 +19,16 @@ export const COMMON = {
     ACCESS_DENIED: "Accès non autorisé à cette ressource",
     NO_PARTNER_LINKED: "Aucun partenaire lié",
     NO_CSV_FILE: "Aucun fichier CSV fourni",
+    USER_NOT_FOUND: "Utilisateur non trouvé",
+    EMAIL_ALREADY_EXISTS: "Cette adresse email est déjà utilisée",
+    INVALID_CREDENTIALS: "Identifiants invalides",
+    INVALID_TOKEN: "Token invalide ou expiré",
+    INVALID_REQUEST: "Requête invalide",
+    INVALID_FILE_TYPE: "Type de fichier non autorisé",
+    FILE_TOO_LARGE: "Fichier trop volumineux",
+  },
+  VALIDATION: {
+    MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
+    ALLOWED_FILE_TYPES: ["image/jpeg", "image/png", "image/gif", "text/csv"],
   },
 } as const;
