@@ -12,10 +12,8 @@ import { asyncHandler } from "../utils/async.utils";
 
 const router = Router();
 
-// Protéger toutes les routes de ce router
 router.use(proteger);
 
-// Routes pour toutes les catégories
 router.post(
   "/",
   [
@@ -33,7 +31,6 @@ router.post(
 );
 router.get("/", asyncHandler(obtenirCategoriesRevenu));
 
-// Route pour une catégorie spécifique (par ID)
 router.get("/:id", asyncHandler(obtenirCategorieRevenuParId));
 router.put(
   "/:id",

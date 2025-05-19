@@ -242,11 +242,16 @@ export class StatistiquesService {
         59,
         999,
       );
+      
+      const baseResult = {
+        mois: start.getMonth() + 1,
+        annee: start.getFullYear(),
+      };
+      
       if (typeFlux === "solde") {
         const solde = await this.getSoldePourPeriode(userIds, start, end);
         results.push({
-          mois: start.getMonth() + 1,
-          annee: start.getFullYear(),
+          ...baseResult,
           ...solde,
         });
       } else {
@@ -263,13 +268,41 @@ export class StatistiquesService {
           model,
           match,
         );
-        results.push({
-          mois: start.getMonth() + 1,
-          annee: start.getFullYear(),
-          total,
-        });
+        
+        if (typeFlux === "depenses") {
+          const totalRevenus = await this.getTotalFluxMensuel(
+            userIds,
+            start,
+            end,
+            "revenu",
+            RevenuModel
+          );
+          
+          results.push({
+            ...baseResult,
+            totalDepenses: total,
+            totalRevenus,
+            solde: totalRevenus - total,
+          });
+        } else if (typeFlux === "revenus") {
+          const totalDepenses = await this.getTotalFluxMensuel(
+            userIds,
+            start,
+            end,
+            "depense",
+            DepenseModel
+          );
+          
+          results.push({
+            ...baseResult,
+            totalRevenus: total,
+            totalDepenses,
+            solde: total - totalDepenses,
+          });
+        }
       }
     }
+    
     return results;
   }
 

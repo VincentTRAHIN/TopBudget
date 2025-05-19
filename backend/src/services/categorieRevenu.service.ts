@@ -69,7 +69,6 @@ export class CategorieRevenuService {
   }
 
   static async getAll(userId: string) {
-    // Rechercher les catégories pour cet utilisateur
     return CategorieRevenu.find({ utilisateur: userId }).sort({ nom: 1 });
   }
   
@@ -142,7 +141,6 @@ export class CategorieRevenuService {
       throw new AppError(CATEGORIE_REVENU.ERRORS.NOT_FOUND, 404);
     }
 
-    // Vérifier si la catégorie est utilisée par des revenus
     const revenuCount = await RevenuModel.countDocuments({ 
       categorieRevenu: id,
       utilisateur: userId 

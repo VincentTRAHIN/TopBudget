@@ -13,7 +13,7 @@ export const useMonthlyFlowsEvolution = (
     url += `&contexte=couple`;
   }
   if (dataType) {
-    url += `&dataType=${dataType}`;
+    url += `&type=${dataType}`;
   }
 
   const safeFetcher = createSafeDataFetcher<MonthlyEvolutionDataPoint[]>(
@@ -28,13 +28,18 @@ export const useMonthlyFlowsEvolution = (
 
   const { data, error, isLoading, mutate } = useSWR(url, safeFetcher, {
     fallbackData: [] as MonthlyEvolutionDataPoint[],
-    shouldRetryOnError: false,
-    revalidateIfStale: false,
+    shouldRetryOnError: true,
+    revalidateIfStale: true,
     revalidateOnFocus: false,
+    dedupingInterval: 60000,
   });
 
+  const formattedData = Array.isArray(data) 
+    ? data.filter(item => item.mois && typeof item.mois === 'string')
+    : [];
+
   return {
-    data: Array.isArray(data) ? data : [] as MonthlyEvolutionDataPoint[],
+    data: formattedData,
     isLoading,
     isError: !!error && error.status !== 404,
     mutate,

@@ -19,9 +19,6 @@ const CategorieRevenuSchema: Schema<ICategorieRevenuDocument> = new Schema(
   { timestamps: true },
 );
 
-// Supprimer l'ancien index et créer un nouvel index composé
-// Note: Dans MongoDB, on ne peut pas vraiment "supprimer" un index via le schéma
-// mais on peut s'assurer que l'index unique est sur la combinaison nom+utilisateur
 CategorieRevenuSchema.index({ nom: 1, utilisateur: 1 }, { unique: true, background: true });
 
 export default mongoose.model<ICategorieRevenuDocument>(

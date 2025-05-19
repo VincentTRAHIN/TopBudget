@@ -24,10 +24,9 @@ export const CATEGORIE_REVENU = {
     MAX_NOM_LENGTH: 50,
     MAX_DESCRIPTION_LENGTH: 200,
   },
-  
-  // Aucune catégorie de revenu par défaut pour éviter les doublons dans la base de données
+
   DEFAULT_CATEGORIES_REVENU: [],
-  
+
   IMPORT: {
     DEFAULT_DESCRIPTION_AUTOCREATE:
       "Catégorie de revenu créée automatiquement lors de l'import CSV.",
