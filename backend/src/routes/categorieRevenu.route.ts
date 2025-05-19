@@ -4,6 +4,7 @@ import { proteger } from "../middlewares/auth.middleware";
 import {
   ajouterCategorieRevenu,
   obtenirCategoriesRevenu,
+  obtenirCategorieRevenuParId,
   modifierCategorieRevenu,
   supprimerCategorieRevenu,
 } from "../controllers/categorieRevenu.controller";
@@ -11,9 +12,12 @@ import { asyncHandler } from "../utils/async.utils";
 
 const router = Router();
 
+// Protéger toutes les routes de ce router
+router.use(proteger);
+
+// Routes pour toutes les catégories
 router.post(
   "/",
-  proteger,
   [
     check("nom").notEmpty().withMessage("Le nom est requis"),
     check("description")
@@ -27,11 +31,12 @@ router.post(
   ],
   asyncHandler(ajouterCategorieRevenu),
 );
-router.get("/", proteger, asyncHandler(obtenirCategoriesRevenu));
-router.put("/:id", proteger, asyncHandler(modifierCategorieRevenu));
+router.get("/", asyncHandler(obtenirCategoriesRevenu));
+
+// Route pour une catégorie spécifique (par ID)
+router.get("/:id", asyncHandler(obtenirCategorieRevenuParId));
 router.put(
   "/:id",
-  proteger,
   [
     check("nom").optional().notEmpty().withMessage("Le nom est requis"),
     check("description")
@@ -45,6 +50,6 @@ router.put(
   ],
   asyncHandler(modifierCategorieRevenu),
 );
-router.delete("/:id", proteger, asyncHandler(supprimerCategorieRevenu));
+router.delete("/:id", asyncHandler(supprimerCategorieRevenu));
 
 export default router;

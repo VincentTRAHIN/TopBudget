@@ -1,11 +1,12 @@
+import mongoose from "mongoose";
 import CategorieRevenu from "../models/categorieRevenu.model";
-import { CATEGORIE_REVENU } from "../constants";
+import RevenuModel from "../models/revenu.model";
 import { AppError } from "../middlewares/error.middleware";
+import { CATEGORIE_REVENU } from "../constants";
 import {
   CategorieRevenuCreateBody,
   CategorieRevenuUpdateBody,
 } from "../types/typed-request";
-import mongoose from "mongoose";
 
 export class CategorieRevenuService {
   private static validateNomLength(nom: string): void {
@@ -37,8 +38,11 @@ export class CategorieRevenuService {
     const query = {
       nom: { $regex: new RegExp(`^${nom.trim()}$`, "i") },
       utilisateur: userId,
-      ...(excludeId && { _id: { $ne: excludeId } }),
     };
+    
+    if (excludeId) {
+      Object.assign(query, { _id: { $ne: excludeId } });
+    }
 
     const categorieExistante = await CategorieRevenu.findOne(query);
     if (categorieExistante) {
@@ -47,15 +51,14 @@ export class CategorieRevenuService {
   }
 
   static async create(data: CategorieRevenuCreateBody, userId: string) {
-    const { nom: nomInitial, description, image } = data;
-    const nom = nomInitial.trim();
-
+    const { nom, description, image } = data;
+    
     this.validateNomLength(nom);
     this.validateDescriptionLength(description);
     await this.checkNomExists(nom, userId);
 
     const categorieRevenu = new CategorieRevenu({
-      nom,
+      nom: nom.trim(),
       description,
       image,
       utilisateur: userId,
@@ -66,7 +69,25 @@ export class CategorieRevenuService {
   }
 
   static async getAll(userId: string) {
+    // Rechercher les catégories pour cet utilisateur
     return CategorieRevenu.find({ utilisateur: userId }).sort({ nom: 1 });
+  }
+  
+  static async getById(id: string, userId: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new AppError(CATEGORIE_REVENU.ERRORS.INVALID_ID, 400);
+    }
+
+    const categorieRevenu = await CategorieRevenu.findOne({ 
+      _id: id,
+      utilisateur: userId 
+    });
+    
+    if (!categorieRevenu) {
+      throw new AppError(CATEGORIE_REVENU.ERRORS.NOT_FOUND, 404);
+    }
+
+    return categorieRevenu;
   }
 
   static async update(
@@ -82,6 +103,7 @@ export class CategorieRevenuService {
       _id: id,
       utilisateur: userId,
     });
+    
     if (!categorieRevenu) {
       throw new AppError(CATEGORIE_REVENU.ERRORS.NOT_FOUND, 404);
     }
@@ -93,7 +115,7 @@ export class CategorieRevenuService {
       categorieRevenu.nom = nom;
     }
 
-    if (data.description) {
+    if (data.description !== undefined) {
       this.validateDescriptionLength(data.description);
       categorieRevenu.description = data.description;
     }
@@ -115,8 +137,19 @@ export class CategorieRevenuService {
       _id: id,
       utilisateur: userId,
     });
+    
     if (!categorieRevenu) {
       throw new AppError(CATEGORIE_REVENU.ERRORS.NOT_FOUND, 404);
+    }
+
+    // Vérifier si la catégorie est utilisée par des revenus
+    const revenuCount = await RevenuModel.countDocuments({ 
+      categorieRevenu: id,
+      utilisateur: userId 
+    });
+    
+    if (revenuCount > 0) {
+      throw new AppError(CATEGORIE_REVENU.ERRORS.IN_USE, 400);
     }
 
     await categorieRevenu.deleteOne();

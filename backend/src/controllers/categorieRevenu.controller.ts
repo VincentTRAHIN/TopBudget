@@ -112,6 +112,42 @@ export const obtenirCategoriesRevenu = createAsyncHandler(
 /**
  * @swagger
  * /api/categories-revenu/{id}:
+ *   get:
+ *     tags: [Categories Revenu]
+ *     summary: Obtenir une catégorie de revenu par son ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Catégorie de revenu récupérée avec succès
+ *       404:
+ *         description: Catégorie non trouvée
+ */
+export const obtenirCategorieRevenuParId = createAsyncHandler<
+  Record<string, never>,
+  IdParams
+>(async (req, res, next): Promise<void> => {
+  try {
+    const categorieRevenu = await CategorieRevenuService.getById(
+      req.params.id,
+      req.user!.id,
+    );
+    sendSuccess(res, CATEGORIE_REVENU.SUCCESS.FETCHED, categorieRevenu);
+  } catch (error) {
+    logger.error(CATEGORIE_REVENU.ERRORS.FETCH_ERROR, error);
+    next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /api/categories-revenu/{id}:
  *   put:
  *     tags: [Categories Revenu]
  *     summary: Modifier une catégorie de revenu existante

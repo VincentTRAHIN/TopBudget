@@ -241,7 +241,7 @@ export default function TableRevenus({
                 className="px-4 py-2 text-left cursor-pointer"
                 onClick={() => handleSort('categorieRevenu')}
               >
-                Catégorie Revenu{' '}
+                Catégorie{' '}
                 {currentSort.sortBy === 'categorieRevenu'
                   ? currentSort.order === 'asc'
                     ? '↑'
