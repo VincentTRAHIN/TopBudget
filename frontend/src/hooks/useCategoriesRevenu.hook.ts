@@ -13,11 +13,15 @@ export const useCategoriesRevenu = () => {
       fallbackData: [],
       onSuccess: (data) => {
         console.log('[DEBUG] useCategoriesRevenu - données reçues:', data);
-        console.log('[DEBUG] useCategoriesRevenu - type de données:', typeof data, Array.isArray(data));
+        console.log(
+          '[DEBUG] useCategoriesRevenu - type de données:',
+          typeof data,
+          Array.isArray(data),
+        );
       },
       onError: (err) => {
         console.error('[ERROR] useCategoriesRevenu - erreur:', err);
-      }
+      },
     },
   );
 

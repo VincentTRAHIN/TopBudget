@@ -7,7 +7,7 @@ import Categorie from "../models/categorie.model";
 import CategorieRevenuModel from "../models/categorieRevenu.model";
 import { DEPENSE, CATEGORIE, CATEGORIE_REVENU } from "../constants";
 import { parse, isValid } from "date-fns";
-import {  TypeCompteRevenu } from "../types/revenu.types";
+import { TypeCompteRevenu } from "../types/revenu.types";
 
 export type ImportResultType = {
   message: string;
@@ -23,7 +23,6 @@ export type ImportResultType = {
   [key: string]: unknown;
 };
 
-// Interface pour les erreurs MongoDB avec un code
 interface MongoError extends Error {
   code?: number;
 }
@@ -70,8 +69,7 @@ export class ImportService {
           .pipe(
             csvParser({
               ...parsingOptions,
-              // Si headers est déjà défini dans parsingOptions, l'utiliser
-              // Sinon, utiliser le mapHeadersConfig s'il est défini
+
               ...(!parsingOptions.headers && {
                 mapHeaders: mapHeadersConfig
                   ? ({ header }: { header: string }) => {
@@ -80,7 +78,8 @@ export class ImportService {
                       );
                       return found?.newHeader || header.trim().toLowerCase();
                     }
-                  : ({ header }: { header: string }) => header.trim().toLowerCase(),
+                  : ({ header }: { header: string }) =>
+                      header.trim().toLowerCase(),
                 headers: csvHeaders.length > 0 ? csvHeaders : undefined,
               }),
             }),
@@ -90,14 +89,23 @@ export class ImportService {
             const currentLine = ligneCourante;
             const processLine = async () => {
               try {
-                console.log(`[DEBUG] Traitement ligne ${currentLine}:`, JSON.stringify(row));
+                console.log(
+                  `[DEBUG] Traitement ligne ${currentLine}:`,
+                  JSON.stringify(row),
+                );
                 const item = await processRowFn(row, userId, additionalContext);
                 if (item) {
-                  console.log(`[DEBUG] Ligne ${currentLine} validée:`, JSON.stringify(item));
+                  console.log(
+                    `[DEBUG] Ligne ${currentLine} validée:`,
+                    JSON.stringify(item),
+                  );
                   itemsAImporter.push(item);
                 }
               } catch (err) {
-                console.error(`[ERROR] Erreur lors du traitement de la ligne ${currentLine}:`, err);
+                console.error(
+                  `[ERROR] Erreur lors du traitement de la ligne ${currentLine}:`,
+                  err,
+                );
                 erreursImport.push({
                   ligne: currentLine,
                   data: row,
@@ -113,19 +121,31 @@ export class ImportService {
           .on("end", async () => {
             try {
               await Promise.allSettled(lineProcessingPromises);
-              
+
               if (itemsAImporter.length > 0) {
-                console.log(`[DEBUG] Tentative d'insertion de ${itemsAImporter.length} ${entityName}s en base de données...`);
-                console.log('[DEBUG] Premier document à insérer:', JSON.stringify(itemsAImporter[0]));
-                
+                console.log(
+                  `[DEBUG] Tentative d'insertion de ${itemsAImporter.length} ${entityName}s en base de données...`,
+                );
+                console.log(
+                  "[DEBUG] Premier document à insérer:",
+                  JSON.stringify(itemsAImporter[0]),
+                );
+
                 try {
                   const insertResult = await model.create(itemsAImporter);
-                  const insertedCount = Array.isArray(insertResult) ? insertResult.length : 1;
-                  console.log(`[DEBUG] Insertion réussie de ${insertedCount} documents en base de données`);
-                  
+                  const insertedCount = Array.isArray(insertResult)
+                    ? insertResult.length
+                    : 1;
+                  console.log(
+                    `[DEBUG] Insertion réussie de ${insertedCount} documents en base de données`,
+                  );
+
                   return resolveStream();
                 } catch (dbError) {
-                  console.error('[ERROR] Erreur lors de l\'insertion en base de données:', dbError);
+                  console.error(
+                    "[ERROR] Erreur lors de l'insertion en base de données:",
+                    dbError,
+                  );
                   if (dbError instanceof Error) {
                     erreursImport.push({
                       ligne: 0,
@@ -136,7 +156,7 @@ export class ImportService {
                   return rejectStream(dbError);
                 }
               } else {
-                console.log('[DEBUG] Aucun document à insérer');
+                console.log("[DEBUG] Aucun document à insérer");
                 return resolveStream();
               }
             } catch (error) {
@@ -177,14 +197,12 @@ export class ImportService {
 
     const getOrCreateCategorieId = async (nom: string) => {
       const nomLower = nom.toLowerCase();
-      
-      // 1. Vérifier d'abord dans le cache en mémoire si la catégorie existe déjà
+
       if (categorieMap.has(nomLower)) {
         return new mongoose.Types.ObjectId(categorieMap.get(nomLower));
       }
 
-      // 2. Rechercher la catégorie dans la base de données de manière insensible à la casse
-      const escapedNom = nom.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+      const escapedNom = nom.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
       const existingCat = await Categorie.findOne({
         nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
       }).lean();
@@ -195,7 +213,6 @@ export class ImportService {
         return new mongoose.Types.ObjectId(idStr);
       }
 
-      // 3. Rechercher une deuxième fois avec une requête exacte pour éviter les conflits
       const exactMatch = await Categorie.findOne({ nom: nom }).lean();
       if (exactMatch && exactMatch._id) {
         const idStr = String(exactMatch._id);
@@ -203,7 +220,6 @@ export class ImportService {
         return new mongoose.Types.ObjectId(idStr);
       }
 
-      // 4. Si la catégorie n'existe pas, la créer avec gestion de conflit
       try {
         const newCat = await Categorie.create({
           nom,
@@ -216,11 +232,13 @@ export class ImportService {
           return new mongoose.Types.ObjectId(idStr);
         }
       } catch (error: unknown) {
-        // En cas d'erreur de duplication, rechercher à nouveau la catégorie
-        if (error instanceof Error && 'code' in error && (error as MongoError).code === 11000) {
-          // Attendre un petit délai pour laisser la base de données se mettre à jour
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
+        if (
+          error instanceof Error &&
+          "code" in error &&
+          (error as MongoError).code === 11000
+        ) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
           const duplicateCat = await Categorie.findOne({
             nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
           }).lean();
@@ -286,19 +304,22 @@ export class ImportService {
     csvBuffer: Buffer,
     userId: string,
   ): Promise<ImportResultType> {
-    console.log('[DEBUG] Début de l\'import des revenus');
-    
-    // Analyser les premières lignes du CSV pour comprendre sa structure
-    const bufferString = csvBuffer.toString('utf-8');
-    const lines = bufferString.split('\n').slice(0, 5); // Prendre les 5 premières lignes
-    console.log('[DEBUG] Aperçu du fichier CSV:');
+    console.log("[DEBUG] Début de l'import des revenus");
+
+    const bufferString = csvBuffer.toString("utf-8");
+    const lines = bufferString.split("\n").slice(0, 5);
+    console.log("[DEBUG] Aperçu du fichier CSV:");
     lines.forEach((line, index) => {
       console.log(`[DEBUG] Ligne ${index}: ${line}`);
     });
-    
-    const categorieDocs = await CategorieRevenuModel.find({ utilisateur: userId }).lean();
-    console.log(`[DEBUG] ${categorieDocs.length} catégories de revenus trouvées`);
-    
+
+    const categorieDocs = await CategorieRevenuModel.find({
+      utilisateur: userId,
+    }).lean();
+    console.log(
+      `[DEBUG] ${categorieDocs.length} catégories de revenus trouvées`,
+    );
+
     const categorieMap = new Map(
       categorieDocs.map((cat) => [
         String(cat.nom).toLowerCase(),
@@ -307,39 +328,44 @@ export class ImportService {
     );
 
     const getOrCreateCategorieRevenuId = async (nom: string) => {
-      console.log(`[DEBUG] Recherche/création de la catégorie de revenu: ${nom}`);
+      console.log(
+        `[DEBUG] Recherche/création de la catégorie de revenu: ${nom}`,
+      );
       const nomLower = nom.toLowerCase();
-      
-      // 1. Vérifier d'abord dans le cache en mémoire si la catégorie existe déjà
+
       if (categorieMap.has(nomLower)) {
-        console.log(`[DEBUG] Catégorie trouvée dans le cache: ${nom} => ${categorieMap.get(nomLower)}`);
+        console.log(
+          `[DEBUG] Catégorie trouvée dans le cache: ${nom} => ${categorieMap.get(
+            nomLower,
+          )}`,
+        );
         return new mongoose.Types.ObjectId(categorieMap.get(nomLower));
       }
 
-      // 2. Rechercher la catégorie dans la base de données de manière insensible à la casse
-      const escapedNom = nom.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+      const escapedNom = nom.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
       console.log(`[DEBUG] Recherche par regex: ${escapedNom}`);
-      
-      // Recherche exacte insensible à la casse
+
       const existingCat = await CategorieRevenuModel.findOne({
         nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
-        utilisateur: userId
+        utilisateur: userId,
       }).lean();
-      
-      // Si pas trouvé, essayer une recherche plus souple (contient le nom)
+
       if (!existingCat) {
         console.log(`[DEBUG] Recherche étendue pour: ${nom}`);
         const similarCats = await CategorieRevenuModel.find({
           nom: { $regex: new RegExp(escapedNom, "i") },
-          utilisateur: userId
+          utilisateur: userId,
         }).lean();
-        
+
         if (similarCats && similarCats.length > 0) {
-          // Prendre la correspondance la plus proche
-          console.log(`[DEBUG] ${similarCats.length} catégories similaires trouvées`);
+          console.log(
+            `[DEBUG] ${similarCats.length} catégories similaires trouvées`,
+          );
           const closestMatch = similarCats[0];
           const idStr = String(closestMatch._id);
-          console.log(`[DEBUG] Correspondance la plus proche: ${closestMatch.nom} => ${idStr}`);
+          console.log(
+            `[DEBUG] Correspondance la plus proche: ${closestMatch.nom} => ${idStr}`,
+          );
           categorieMap.set(nomLower, idStr);
           return new mongoose.Types.ObjectId(idStr);
         }
@@ -352,36 +378,42 @@ export class ImportService {
         return new mongoose.Types.ObjectId(idStr);
       }
 
-      // 3. Rechercher une deuxième fois avec une requête exacte pour éviter les conflits
       console.log(`[DEBUG] Recherche exacte: ${nom}`);
-      const exactMatch = await CategorieRevenuModel.findOne({ 
+      const exactMatch = await CategorieRevenuModel.findOne({
         nom: nom,
-        utilisateur: userId
+        utilisateur: userId,
       }).lean();
       if (exactMatch && exactMatch._id) {
         const idStr = String(exactMatch._id);
-        console.log(`[DEBUG] Catégorie trouvée par recherche exacte: ${nom} => ${idStr}`);
+        console.log(
+          `[DEBUG] Catégorie trouvée par recherche exacte: ${nom} => ${idStr}`,
+        );
         categorieMap.set(nomLower, idStr);
         return new mongoose.Types.ObjectId(idStr);
       }
 
-      // 4. Si la catégorie n'existe pas, la créer avec gestion de conflit
-      console.log(`[DEBUG] Création d'une nouvelle catégorie de revenu: ${nom}`);
+      console.log(
+        `[DEBUG] Création d'une nouvelle catégorie de revenu: ${nom}`,
+      );
       try {
-        // Valider le nom selon les contraintes du modèle CategorieRevenu
-        if (!nom || nom.length < CATEGORIE_REVENU.VALIDATION.MIN_NOM_LENGTH || 
-            nom.length > CATEGORIE_REVENU.VALIDATION.MAX_NOM_LENGTH) {
-          console.log(`[DEBUG] Nom de catégorie invalide: ${nom}, longueur: ${nom?.length}`);
+        if (
+          !nom ||
+          nom.length < CATEGORIE_REVENU.VALIDATION.MIN_NOM_LENGTH ||
+          nom.length > CATEGORIE_REVENU.VALIDATION.MAX_NOM_LENGTH
+        ) {
+          console.log(
+            `[DEBUG] Nom de catégorie invalide: ${nom}, longueur: ${nom?.length}`,
+          );
           return null;
         }
-        
+
         const newCatData = {
           nom,
           description: CATEGORIE_REVENU.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE,
-          utilisateur: userId
+          utilisateur: userId,
         };
         console.log(`[DEBUG] Données pour nouvelle catégorie:`, newCatData);
-        
+
         const newCat = await CategorieRevenuModel.create(newCatData);
         console.log(`[DEBUG] Nouvelle catégorie créée:`, newCat);
 
@@ -394,92 +426,117 @@ export class ImportService {
           console.log(`[DEBUG] Échec de la création: pas d'ID retourné`);
         }
       } catch (error: unknown) {
-        console.error(`[ERROR] Erreur lors de la création de la catégorie:`, error);
-        
-        // En cas d'erreur de duplication, rechercher à nouveau la catégorie
-        if (error instanceof Error && 'code' in error) {
+        console.error(
+          `[ERROR] Erreur lors de la création de la catégorie:`,
+          error,
+        );
+
+        if (error instanceof Error && "code" in error) {
           const mongoError = error as MongoError;
           console.log(`[DEBUG] Code d'erreur MongoDB: ${mongoError.code}`);
-          
+
           if (mongoError.code === 11000) {
-            console.log(`[DEBUG] Erreur de duplication détectée, nouvelle tentative de recherche après délai`);
-            // Attendre un petit délai pour laisser la base de données se mettre à jour
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            // Rechercher à nouveau dans la base de données
-            console.log(`[DEBUG] Recherche après erreur de duplication: ${nom}`);
-                          const duplicateCat = await CategorieRevenuModel.findOne({
-                nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
-                utilisateur: userId
-              }).lean();
+            console.log(
+              `[DEBUG] Erreur de duplication détectée, nouvelle tentative de recherche après délai`,
+            );
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            console.log(
+              `[DEBUG] Recherche après erreur de duplication: ${nom}`,
+            );
+            const duplicateCat = await CategorieRevenuModel.findOne({
+              nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
+              utilisateur: userId,
+            }).lean();
 
             if (duplicateCat && duplicateCat._id) {
               const idStr = String(duplicateCat._id);
-              console.log(`[DEBUG] Catégorie trouvée après erreur de duplication: ${nom} => ${idStr}`);
+              console.log(
+                `[DEBUG] Catégorie trouvée après erreur de duplication: ${nom} => ${idStr}`,
+              );
               categorieMap.set(nomLower, idStr);
               return new mongoose.Types.ObjectId(idStr);
             } else {
-              console.log(`[DEBUG] Catégorie non trouvée après erreur de duplication, recherche de correspondance proche`);
-              // Dernière tentative: rechercher des correspondances similaires
+              console.log(
+                `[DEBUG] Catégorie non trouvée après erreur de duplication, recherche de correspondance proche`,
+              );
               const similarCat = await CategorieRevenuModel.findOne({
-                nom: { $regex: new RegExp(escapedNom.substring(0, Math.max(3, escapedNom.length - 3)), "i") },
-                utilisateur: userId
+                nom: {
+                  $regex: new RegExp(
+                    escapedNom.substring(0, Math.max(3, escapedNom.length - 3)),
+                    "i",
+                  ),
+                },
+                utilisateur: userId,
               }).lean();
-              
+
               if (similarCat && similarCat._id) {
                 const idStr = String(similarCat._id);
-                console.log(`[DEBUG] Catégorie similaire trouvée: ${similarCat.nom} => ${idStr}`);
+                console.log(
+                  `[DEBUG] Catégorie similaire trouvée: ${similarCat.nom} => ${idStr}`,
+                );
                 categorieMap.set(nomLower, idStr);
                 return new mongoose.Types.ObjectId(idStr);
               }
             }
           }
         } else {
-          console.log(`[DEBUG] L'erreur n'est pas une erreur MongoDB avec code`);
+          console.log(
+            `[DEBUG] L'erreur n'est pas une erreur MongoDB avec code`,
+          );
         }
       }
 
-      // 5. Dernière tentative: forcer une création avec un suffixe de sécurité
       try {
-        console.log(`[DEBUG] Tentative de création avec un suffixe de sécurité`);
+        console.log(
+          `[DEBUG] Tentative de création avec un suffixe de sécurité`,
+        );
         const timestamp = Date.now().toString().slice(-4);
         const suffixedNom = `${nom} (${timestamp})`;
-        
+
         if (suffixedNom.length <= CATEGORIE_REVENU.VALIDATION.MAX_NOM_LENGTH) {
           const newSuffixedCat = await CategorieRevenuModel.create({
             nom: suffixedNom,
             description: `${CATEGORIE_REVENU.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE}`,
-            utilisateur: userId
+            utilisateur: userId,
           });
 
           if (newSuffixedCat && newSuffixedCat._id) {
             const idStr = String(newSuffixedCat._id);
-            console.log(`[DEBUG] Catégorie créée avec suffixe: ${suffixedNom} => ${idStr}`);
-            categorieMap.set(nomLower, idStr); // On garde quand même la référence avec le nom original
+            console.log(
+              `[DEBUG] Catégorie créée avec suffixe: ${suffixedNom} => ${idStr}`,
+            );
+            categorieMap.set(nomLower, idStr);
             return new mongoose.Types.ObjectId(idStr);
           }
         } else {
-          // Si le nom avec suffixe est trop long, essayer une version tronquée
-          const maxLength = CATEGORIE_REVENU.VALIDATION.MAX_NOM_LENGTH - 7; // -7 pour " (XXXX)"
+          const maxLength = CATEGORIE_REVENU.VALIDATION.MAX_NOM_LENGTH - 7;
           const truncatedName = nom.substring(0, maxLength);
           const truncatedSuffixedNom = `${truncatedName} (${timestamp})`;
-          
-          console.log(`[DEBUG] Tentative avec nom tronqué: ${truncatedSuffixedNom}`);
+
+          console.log(
+            `[DEBUG] Tentative avec nom tronqué: ${truncatedSuffixedNom}`,
+          );
           const newTruncatedCat = await CategorieRevenuModel.create({
             nom: truncatedSuffixedNom,
             description: `${CATEGORIE_REVENU.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE} (Nom original: ${nom})`,
-            utilisateur: userId
+            utilisateur: userId,
           });
-          
+
           if (newTruncatedCat && newTruncatedCat._id) {
             const idStr = String(newTruncatedCat._id);
-            console.log(`[DEBUG] Catégorie créée avec nom tronqué: ${truncatedSuffixedNom} => ${idStr}`);
+            console.log(
+              `[DEBUG] Catégorie créée avec nom tronqué: ${truncatedSuffixedNom} => ${idStr}`,
+            );
             categorieMap.set(nomLower, idStr);
             return new mongoose.Types.ObjectId(idStr);
           }
         }
       } catch (finalError) {
-        console.error(`[ERROR] Échec final de la création de catégorie:`, finalError);
+        console.error(
+          `[ERROR] Échec final de la création de catégorie:`,
+          finalError,
+        );
       }
 
       console.log(`[DEBUG] Échec complet, retourne null`);
@@ -489,40 +546,32 @@ export class ImportService {
       row: Record<string, string>,
       userId: string,
     ): Promise<Record<string, unknown> | null> => {
-      // Afficher le contenu complet et les clés disponibles
-      console.log('[DEBUG] Contenu complet de la ligne:', JSON.stringify(row));
-      console.log('[DEBUG] Clés disponibles dans row:', Object.keys(row));
-      
-      // Si l'objet est vide ou n'a pas de clés, on ignore cette ligne
+      console.log("[DEBUG] Contenu complet de la ligne:", JSON.stringify(row));
+      console.log("[DEBUG] Clés disponibles dans row:", Object.keys(row));
+
       if (Object.keys(row).length === 0) {
-        console.log('[DEBUG] Ligne ignorée: objet vide');
+        console.log("[DEBUG] Ligne ignorée: objet vide");
         return null;
       }
-      
-      // Approche alternative: traiter l'objet comme un tableau et prendre les valeurs par index
-      // Cela peut aider si les en-têtes ne sont pas correctement détectés
+
       const rowValues = Object.values(row);
-      console.log('[DEBUG] Valeurs disponibles par index:', rowValues);
-      
-      // Tenter d'extraire les données des colonnes qu'on espère être dans un ordre standard
-      // Généralement: Date, Montant, Catégorie, Description, Type Compte
+      console.log("[DEBUG] Valeurs disponibles par index:", rowValues);
+
       let dateStr, montantStr, categorieStr, descriptionStr, typeCompteStr;
-      
+
       if (rowValues.length >= 3) {
-        // On suppose que les 3 premières colonnes sont date, montant, catégorie
         dateStr = rowValues[0];
         montantStr = rowValues[1];
         categorieStr = rowValues[2];
-        
+
         if (rowValues.length >= 4) {
           descriptionStr = rowValues[3];
         }
-        
+
         if (rowValues.length >= 5) {
           typeCompteStr = rowValues[4];
         }
       } else {
-        // Essayer l'approche précédente basée sur les noms des colonnes
         const detectColumn = (possibleNames: string[]): string | undefined => {
           for (const name of possibleNames) {
             if (row[name] !== undefined) {
@@ -531,23 +580,62 @@ export class ImportService {
           }
           return undefined;
         };
-        
-        dateStr = detectColumn(['date', 'Date', 'DATE']);
-        montantStr = detectColumn(['montant', 'Montant', 'MONTANT', 'amount', 'Amount', 'AMOUNT']);
-        categorieStr = detectColumn(['categorie', 'Categorie', 'CATEGORIE', 'categorieRevenu', 'CategorieRevenu']);
-        descriptionStr = detectColumn(['description', 'Description', 'DESCRIPTION', 'desc', 'Desc', 'libelle', 'Libelle', 'LIBELLE']);
-        typeCompteStr = detectColumn(['type_compte', 'TypeCompte', 'typeCompte', 'Type compte', 'type compte', 'TYPE COMPTE']);
+
+        dateStr = detectColumn(["date", "Date", "DATE"]);
+        montantStr = detectColumn([
+          "montant",
+          "Montant",
+          "MONTANT",
+          "amount",
+          "Amount",
+          "AMOUNT",
+        ]);
+        categorieStr = detectColumn([
+          "categorie",
+          "Categorie",
+          "CATEGORIE",
+          "categorieRevenu",
+          "CategorieRevenu",
+        ]);
+        descriptionStr = detectColumn([
+          "description",
+          "Description",
+          "DESCRIPTION",
+          "desc",
+          "Desc",
+          "libelle",
+          "Libelle",
+          "LIBELLE",
+        ]);
+        typeCompteStr = detectColumn([
+          "type_compte",
+          "TypeCompte",
+          "typeCompte",
+          "Type compte",
+          "type compte",
+          "TYPE COMPTE",
+        ]);
       }
-      
-      console.log('[DEBUG] Champs détectés:', { dateStr, montantStr, categorieStr, descriptionStr, typeCompteStr });
-      
+
+      console.log("[DEBUG] Champs détectés:", {
+        dateStr,
+        montantStr,
+        categorieStr,
+        descriptionStr,
+        typeCompteStr,
+      });
+
       if (!dateStr || !montantStr || !categorieStr)
         throw new Error("Données manquantes (date, montant, catégorie)");
 
-      // Essayer différents formats de date
       let date: Date | null = null;
-      const dateFormats = ["dd/MM/yyyy", "yyyy-MM-dd", "MM/dd/yyyy", "dd-MM-yyyy"];
-      
+      const dateFormats = [
+        "dd/MM/yyyy",
+        "yyyy-MM-dd",
+        "MM/dd/yyyy",
+        "dd-MM-yyyy",
+      ];
+
       for (const format of dateFormats) {
         const parsedDate = parse(dateStr, format, new Date());
         if (isValid(parsedDate)) {
@@ -555,30 +643,37 @@ export class ImportService {
           break;
         }
       }
-      
+
       if (!date || !isValid(date)) {
-        throw new Error(`Date invalide: ${dateStr}. Formats acceptés: ${dateFormats.join(", ")}`);
+        throw new Error(
+          `Date invalide: ${dateStr}. Formats acceptés: ${dateFormats.join(
+            ", ",
+          )}`,
+        );
       }
 
-      // Nettoyer et convertir le montant
       const montantClean = montantStr.replace(/[^\d.,]/g, "").replace(",", ".");
       const montantNumerique = parseFloat(montantClean);
-      
+
       if (isNaN(montantNumerique) || montantNumerique <= 0)
         throw new Error(`Montant invalide: ${montantStr}`);
 
-      console.log(`[DEBUG] Récupération/création de la catégorie: ${categorieStr.trim()}`);
+      console.log(
+        `[DEBUG] Récupération/création de la catégorie: ${categorieStr.trim()}`,
+      );
       const categorieId = await getOrCreateCategorieRevenuId(
         categorieStr.trim(),
       );
-      
+
       if (!categorieId) {
-        console.log(`[ERROR] Impossible d'obtenir l'ID pour la catégorie '${categorieStr}'`);
+        console.log(
+          `[ERROR] Impossible d'obtenir l'ID pour la catégorie '${categorieStr}'`,
+        );
         throw new Error(
           `Impossible d'obtenir l'ID pour la catégorie '${categorieStr}'`,
         );
       }
-      
+
       console.log(`[DEBUG] ID de catégorie obtenu: ${categorieId}`);
 
       let typeCompte: TypeCompteRevenu = "Perso";
@@ -589,16 +684,18 @@ export class ImportService {
         } else if (typeCompteValue.toLowerCase() === "conjoint") {
           typeCompte = "Conjoint";
         } else {
-          typeCompte = "Perso"; // Par défaut Perso même si la valeur n'est pas reconnue
+          typeCompte = "Perso";
         }
       }
 
-      const description = descriptionStr 
-        ? descriptionStr.trim() 
+      const description = descriptionStr
+        ? descriptionStr.trim()
         : `Revenu de ${categorieStr.trim()}`;
 
-      console.log(`[DEBUG] Données validées: date=${dateStr} (${date.toISOString()}), montant=${montantNumerique}, categorie=${categorieStr}, description=${description}`);
-      
+      console.log(
+        `[DEBUG] Données validées: date=${dateStr} (${date.toISOString()}), montant=${montantNumerique}, categorie=${categorieStr}, description=${description}`,
+      );
+
       const revenuObj = {
         date,
         montant: montantNumerique,
@@ -607,15 +704,22 @@ export class ImportService {
         utilisateur: new mongoose.Types.ObjectId(userId),
         typeCompte,
       };
-      
-      console.log(`[DEBUG] Objet revenu final:`, JSON.stringify(revenuObj, null, 2));
-      
-      // Vérification du schéma avant retour
-      if (!revenuObj.date || !revenuObj.montant || !revenuObj.categorieRevenu || !revenuObj.description) {
+
+      console.log(
+        `[DEBUG] Objet revenu final:`,
+        JSON.stringify(revenuObj, null, 2),
+      );
+
+      if (
+        !revenuObj.date ||
+        !revenuObj.montant ||
+        !revenuObj.categorieRevenu ||
+        !revenuObj.description
+      ) {
         console.log(`[ERROR] Validation de l'objet revenu échouée:`, revenuObj);
         throw new Error(`Données de revenu incomplètes ou invalides`);
       }
-      
+
       return revenuObj;
     };
 
@@ -632,7 +736,7 @@ export class ImportService {
       },
     });
 
-    console.log('[DEBUG] Résultat de l\'import:', result);
+    console.log("[DEBUG] Résultat de l'import:", result);
     return result;
   }
 }

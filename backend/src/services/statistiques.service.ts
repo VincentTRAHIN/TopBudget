@@ -4,6 +4,7 @@ import RevenuModel from "../models/revenu.model";
 import User from "../models/user.model";
 import { IDepensePopulated } from "../types/depense.types";
 import { IUserPopulated } from "../types/user.types";
+import logger from "../utils/logger.utils";
 
 export type UserIdsType =
   | mongoose.Types.ObjectId
@@ -62,11 +63,18 @@ export class StatistiquesService {
       date: { $gte: dateDebut, $lte: dateFin },
       ...additionalMatch,
     };
+    logger.info(
+      `getTotalFluxMensuel - type: ${typeFlux}, userIds: ${JSON.stringify(userIds)}, dateDebut: ${dateDebut.toISOString()}, dateFin: ${dateFin.toISOString()}`,
+    );
+    logger.debug("getTotalFluxMensuel - Match query:", match);
+
     const result = await model.aggregate([
       { $match: match },
       { $group: { _id: null, total: { $sum: "$montant" } } },
     ]);
-    return result[0]?.total || 0;
+    const total = result[0]?.total || 0;
+    logger.info(`getTotalFluxMensuel - Résultat pour ${typeFlux}: ${total}`);
+    return total;
   }
 
   static async getSoldePourPeriode(
@@ -74,6 +82,10 @@ export class StatistiquesService {
     dateDebut: Date,
     dateFin: Date,
   ): Promise<{ totalRevenus: number; totalDepenses: number; solde: number }> {
+    logger.info(
+      `getSoldePourPeriode - userIds: ${JSON.stringify(userIds)}, dateDebut: ${dateDebut.toISOString()}, dateFin: ${dateFin.toISOString()}`,
+    );
+
     const [totalRevenus, totalDepenses] = await Promise.all([
       this.getTotalFluxMensuel(
         userIds,
@@ -90,6 +102,14 @@ export class StatistiquesService {
         DepenseModel,
       ),
     ]);
+
+    const solde = totalRevenus - totalDepenses;
+    logger.info("getSoldePourPeriode - Calculé:", {
+      totalRevenus,
+      totalDepenses,
+      solde,
+    });
+
     return {
       totalRevenus,
       totalDepenses,
@@ -242,12 +262,12 @@ export class StatistiquesService {
         59,
         999,
       );
-      
+
       const baseResult = {
         mois: start.getMonth() + 1,
         annee: start.getFullYear(),
       };
-      
+
       if (typeFlux === "solde") {
         const solde = await this.getSoldePourPeriode(userIds, start, end);
         results.push({
@@ -268,16 +288,16 @@ export class StatistiquesService {
           model,
           match,
         );
-        
+
         if (typeFlux === "depenses") {
           const totalRevenus = await this.getTotalFluxMensuel(
             userIds,
             start,
             end,
             "revenu",
-            RevenuModel
+            RevenuModel,
           );
-          
+
           results.push({
             ...baseResult,
             totalDepenses: total,
@@ -290,9 +310,9 @@ export class StatistiquesService {
             start,
             end,
             "depense",
-            DepenseModel
+            DepenseModel,
           );
-          
+
           results.push({
             ...baseResult,
             totalRevenus: total,
@@ -302,7 +322,7 @@ export class StatistiquesService {
         }
       }
     }
-    
+
     return results;
   }
 
@@ -532,12 +552,12 @@ export class StatistiquesService {
     ]);
 
     const totalChargesUtilisateurPrincipal = chargesUtilisateurPrincipal.reduce(
-      (acc, charge) => acc + charge.montant,
+      (acc: number, charge: IDepensePopulated) => acc + charge.montant,
       0,
     );
 
     const totalChargesPartenaire = chargesPartenaire.reduce(
-      (acc, charge) => acc + charge.montant,
+      (acc: number, charge: IDepensePopulated) => acc + charge.montant,
       0,
     );
 

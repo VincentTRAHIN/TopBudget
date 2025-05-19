@@ -39,7 +39,7 @@ export class CategorieRevenuService {
       nom: { $regex: new RegExp(`^${nom.trim()}$`, "i") },
       utilisateur: userId,
     };
-    
+
     if (excludeId) {
       Object.assign(query, { _id: { $ne: excludeId } });
     }
@@ -52,7 +52,7 @@ export class CategorieRevenuService {
 
   static async create(data: CategorieRevenuCreateBody, userId: string) {
     const { nom, description, image } = data;
-    
+
     this.validateNomLength(nom);
     this.validateDescriptionLength(description);
     await this.checkNomExists(nom, userId);
@@ -71,17 +71,17 @@ export class CategorieRevenuService {
   static async getAll(userId: string) {
     return CategorieRevenu.find({ utilisateur: userId }).sort({ nom: 1 });
   }
-  
+
   static async getById(id: string, userId: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError(CATEGORIE_REVENU.ERRORS.INVALID_ID, 400);
     }
 
-    const categorieRevenu = await CategorieRevenu.findOne({ 
+    const categorieRevenu = await CategorieRevenu.findOne({
       _id: id,
-      utilisateur: userId 
+      utilisateur: userId,
     });
-    
+
     if (!categorieRevenu) {
       throw new AppError(CATEGORIE_REVENU.ERRORS.NOT_FOUND, 404);
     }
@@ -102,7 +102,7 @@ export class CategorieRevenuService {
       _id: id,
       utilisateur: userId,
     });
-    
+
     if (!categorieRevenu) {
       throw new AppError(CATEGORIE_REVENU.ERRORS.NOT_FOUND, 404);
     }
@@ -136,16 +136,16 @@ export class CategorieRevenuService {
       _id: id,
       utilisateur: userId,
     });
-    
+
     if (!categorieRevenu) {
       throw new AppError(CATEGORIE_REVENU.ERRORS.NOT_FOUND, 404);
     }
 
-    const revenuCount = await RevenuModel.countDocuments({ 
+    const revenuCount = await RevenuModel.countDocuments({
       categorieRevenu: id,
-      utilisateur: userId 
+      utilisateur: userId,
     });
-    
+
     if (revenuCount > 0) {
       throw new AppError(CATEGORIE_REVENU.ERRORS.IN_USE, 400);
     }

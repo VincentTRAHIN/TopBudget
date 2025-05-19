@@ -19,7 +19,10 @@ const CategorieRevenuSchema: Schema<ICategorieRevenuDocument> = new Schema(
   { timestamps: true },
 );
 
-CategorieRevenuSchema.index({ nom: 1, utilisateur: 1 }, { unique: true, background: true });
+CategorieRevenuSchema.index(
+  { nom: 1, utilisateur: 1 },
+  { unique: true, background: true },
+);
 
 export default mongoose.model<ICategorieRevenuDocument>(
   "CategorieRevenu",

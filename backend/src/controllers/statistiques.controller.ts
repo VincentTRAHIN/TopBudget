@@ -1023,6 +1023,12 @@ export const getSoldeMensuel = async (
       contexte,
     } = req.query as { mois?: string; annee?: string; contexte?: string };
 
+    logger.info("Début getSoldeMensuel - Query params:", {
+      moisQuery,
+      anneeQuery,
+      contexte,
+    });
+
     const now = new Date();
     const currentMonth = moisQuery
       ? parseInt(moisQuery, 10) - 1
@@ -1034,15 +1040,26 @@ export const getSoldeMensuel = async (
     const dateDebutMois = startOfMonth(new Date(currentYear, currentMonth));
     const dateFinMois = endOfMonth(new Date(currentYear, currentMonth));
 
+    logger.info("Dates calculées pour le mois:", {
+      dateDebutMois: dateDebutMois.toISOString(),
+      dateFinMois: dateFinMois.toISOString(),
+    });
+
     const userContext = await getUserIdsFromContext(req, res, contexte);
     if (!userContext) {
+      logger.warn("Contexte utilisateur non résolu dans getSoldeMensuel");
       return;
     }
+    logger.info("User context résolu:", { userIds: userContext.userIds });
 
     const resultatSolde = await StatistiquesService.getSoldePourPeriode(
       userContext.userIds,
       dateDebutMois,
       dateFinMois,
+    );
+    logger.info(
+      "Résultat de StatistiquesService.getSoldePourPeriode:",
+      resultatSolde,
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.SOLDE_MENSUEL, {
@@ -1130,11 +1147,11 @@ export const getEvolutionDepensesMensuelles = async (
     const nbMoisQuery = req.query.nbMois as string | undefined;
     let nbMois = 6;
     const { contexte, dataType } = req.query;
-    
-    // Déterminer le type de données à récupérer (dépenses par défaut)
-    const fluxType = (dataType as string === 'revenus' || dataType as string === 'solde')
-      ? dataType as "depenses" | "revenus" | "solde"
-      : "depenses";
+
+    const fluxType =
+      (dataType as string) === "revenus" || (dataType as string) === "solde"
+        ? (dataType as "depenses" | "revenus" | "solde")
+        : "depenses";
 
     if (nbMoisQuery) {
       const parsedNbMois = parseInt(nbMoisQuery, 10);
@@ -1159,8 +1176,7 @@ export const getEvolutionDepensesMensuelles = async (
     }
 
     const dateActuelle = new Date();
-    
-    // Options pour les filtres supplémentaires (comme estRecurrent)
+
     const options: { estRecurrent?: boolean } = {};
     if (req.query.estRecurrent !== undefined) {
       options.estRecurrent = req.query.estRecurrent === "true";
@@ -1171,33 +1187,33 @@ export const getEvolutionDepensesMensuelles = async (
       nbMois,
       dateActuelle,
       fluxType,
-      options
+      options,
     );
 
-    // Formater les résultats pour qu'ils soient uniformes au format YYYY-MM
-    const formattedEvolution = evolution.map(item => {
-      // Utiliser des valeurs par défaut pour éviter les erreurs
-      // TypeScript ne détecte pas toujours que ces champs sont initialisés dans notre service
-      const totalRevenus = typeof item.totalRevenus === 'number' ? item.totalRevenus : 0;
-      const totalDepenses = typeof item.totalDepenses === 'number' ? item.totalDepenses : 0;
-      // Utiliser le solde existant ou calculer la différence
-      const soldeMensuel = typeof item.solde === 'number' ? item.solde : (totalRevenus - totalDepenses);
-      
+    const formattedEvolution = evolution.map((item) => {
+      const totalRevenus =
+        typeof item.totalRevenus === "number" ? item.totalRevenus : 0;
+      const totalDepenses =
+        typeof item.totalDepenses === "number" ? item.totalDepenses : 0;
+      const soldeMensuel =
+        typeof item.solde === "number"
+          ? item.solde
+          : totalRevenus - totalDepenses;
+
       return {
-        mois: `${item.annee}-${String(item.mois).padStart(2, '0')}`,
+        mois: `${item.annee}-${String(item.mois).padStart(2, "0")}`,
         totalDepenses,
         totalRevenus,
-        soldeMensuel
+        soldeMensuel,
       };
     });
 
-    // Choisir le message de succès approprié en fonction du type de flux
     let successMessage;
     switch (fluxType) {
-      case 'revenus':
+      case "revenus":
         successMessage = STATISTIQUES.SUCCESS.EVOLUTION_REVENUS;
         break;
-      case 'solde':
+      case "solde":
         successMessage = STATISTIQUES.SUCCESS.EVOLUTION_SOLDES;
         break;
       default:
@@ -1206,7 +1222,10 @@ export const getEvolutionDepensesMensuelles = async (
 
     sendSuccess(res, successMessage, formattedEvolution);
   } catch (error) {
-    logger.error(`Erreur lors du calcul de l'évolution des flux mensuels (${req.query.dataType}):`, error);
+    logger.error(
+      `Erreur lors du calcul de l'évolution des flux mensuels (${req.query.dataType}):`,
+      error,
+    );
     next(new AppError(STATISTIQUES.ERRORS.EVOLUTION_DEPENSES, 500));
   }
 };

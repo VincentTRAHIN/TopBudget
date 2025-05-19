@@ -34,8 +34,8 @@ export const useMonthlyFlowsEvolution = (
     dedupingInterval: 60000,
   });
 
-  const formattedData = Array.isArray(data) 
-    ? data.filter(item => item.mois && typeof item.mois === 'string')
+  const formattedData = Array.isArray(data)
+    ? data.filter((item) => item.mois && typeof item.mois === 'string')
     : [];
 
   return {

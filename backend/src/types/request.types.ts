@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-namespace */
- 
 
 /**
  * @deprecated Ce fichier est obsolète. Utilisez plutôt les types définis dans typed-request.ts

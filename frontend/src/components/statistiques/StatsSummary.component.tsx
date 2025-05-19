@@ -3,18 +3,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useMonthlyFlowsEvolution } from '@/hooks/useMonthlyExpensesEvolution.hook';
 import { useCurrentMonthFlows } from '@/hooks/useCurrentMonthTotal.hook';
-import { ArrowDownRight, ArrowUpRight, Activity, HelpCircle } from 'lucide-react';
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Activity,
+  HelpCircle,
+} from 'lucide-react';
 
-// Composant Tooltip réutilisable
-const Tooltip = ({ 
-  children, 
-  content, 
-  isOpen, 
+const Tooltip = ({
+  children,
+  content,
+  isOpen,
   onToggle,
-  onClickOutside
-}: { 
-  children: React.ReactNode; 
-  content: React.ReactNode; 
+  onClickOutside,
+}: {
+  children: React.ReactNode;
+  content: React.ReactNode;
   isOpen: boolean;
   onToggle: () => void;
   onClickOutside: () => void;
@@ -23,7 +27,10 @@ const Tooltip = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (tooltipRef.current && !tooltipRef.current.contains(event.target as Node)) {
+      if (
+        tooltipRef.current &&
+        !tooltipRef.current.contains(event.target as Node)
+      ) {
         onClickOutside();
       }
     };
@@ -39,7 +46,7 @@ const Tooltip = ({
 
   return (
     <div className="relative inline-block" ref={tooltipRef}>
-      <div 
+      <div
         onClick={onToggle}
         className="inline-flex items-center cursor-pointer text-gray-400 hover:text-gray-600"
         aria-expanded={isOpen}
@@ -56,19 +63,17 @@ const Tooltip = ({
   );
 };
 
-// Fonction pour formater les dates YYYY-MM en format localisé
 const formatMonthYear = (dateStr: string): string => {
   if (!dateStr) return 'Date inconnue';
-  
-  // Vérifier que le format est bien YYYY-MM
+
   if (!/^\d{4}-\d{2}$/.test(dateStr)) {
     return 'Date incorrecte';
   }
-  
+
   try {
     const date = new Date(`${dateStr}-01`);
     if (isNaN(date.getTime())) return 'Date incorrecte';
-    
+
     return date.toLocaleDateString('fr-FR', {
       month: 'long',
       year: 'numeric',
@@ -78,12 +83,13 @@ const formatMonthYear = (dateStr: string): string => {
   }
 };
 
-// Fonction pour calculer le pourcentage avec gestion de la division par zéro
 const calculatePercentage = (current: number, average: number): string => {
   if (average === 0) {
-    return "N/A (moyenne à 0)";
+    return 'N/A (moyenne à 0)';
   }
-  return ((Math.abs(current - average) / Math.abs(average)) * 100).toFixed(1) + '%';
+  return (
+    ((Math.abs(current - average) / Math.abs(average)) * 100).toFixed(1) + '%'
+  );
 };
 
 export default function StatsSummary({
@@ -109,75 +115,68 @@ export default function StatsSummary({
     isLoading: currentMonthLoading,
   } = useCurrentMonthFlows(statsContext);
 
-  // États pour gérer l'ouverture/fermeture des tooltips
   const [depensesTooltipOpen, setDepensesTooltipOpen] = useState(false);
   const [revenuesTooltipOpen, setRevenuesTooltipOpen] = useState(false);
   const [soldeTooltipOpen, setSoldeTooltipOpen] = useState(false);
 
-  function computeStats(arr: { value?: number; mois: string }[], currentValue: number) {
-    // Filtrer d'abord toutes les entrées avec des valeurs valides (non-nulles, non-zéro)
-    const filtered = arr.filter((item) => typeof item.value === 'number' && item.value !== 0);
-    
-    // Également inclure les données du mois en cours dans notre analyse
-    // seulement si nous avons des données historiques
+  function computeStats(
+    arr: { value?: number; mois: string }[],
+    currentValue: number,
+  ) {
+    const filtered = arr.filter(
+      (item) => typeof item.value === 'number' && item.value !== 0,
+    );
+
     const hasCurrentValue = currentValue !== 0;
-    const currentMonthEntry = hasCurrentValue ? 
-      { value: currentValue, mois: 'Mois en cours' } : null;
-    
-    // Combinons les données historiques et celles du mois en cours pour l'analyse
+    const currentMonthEntry = hasCurrentValue
+      ? { value: currentValue, mois: 'Mois en cours' }
+      : null;
+
     const dataForAnalysis = filtered.slice();
     if (currentMonthEntry) {
       dataForAnalysis.push(currentMonthEntry);
     }
-    
-    // Vérifier si nous avons suffisamment de données pour des statistiques pertinentes
-    // On considère qu'il faut au moins 2 points de données pour des statistiques utiles
+
     const hasEnoughData = dataForAnalysis.length >= 2;
-    
-    // Si nous n'avons aucune donnée du tout, retourner des valeurs par défaut
+
     if (dataForAnalysis.length === 0) {
       return {
         average: 0,
         minimum: { value: 0, month: 'Aucune donnée' },
         maximum: { value: 0, month: 'Aucune donnée' },
         trend: 'stable',
-        hasEnoughData: false
+        hasEnoughData: false,
       };
     }
-    
-    // Calculer la moyenne de toutes les entrées disponibles
-    const average = dataForAnalysis.reduce((sum, item) => sum + (item.value ?? 0), 0) / dataForAnalysis.length;
-    
-    // Trouver le minimum et le maximum
+
+    const average =
+      dataForAnalysis.reduce((sum, item) => sum + (item.value ?? 0), 0) /
+      dataForAnalysis.length;
+
     let min = dataForAnalysis[0];
     let max = dataForAnalysis[0];
-    
+
     dataForAnalysis.forEach((item) => {
       if ((item.value ?? 0) < (min.value ?? 0)) min = item;
       if ((item.value ?? 0) > (max.value ?? 0)) max = item;
     });
-    
-    // Déterminer la tendance en utilisant les dernières entrées (pas seulement le mois en cours)
+
     let trend = 'stable';
-    
+
     if (hasEnoughData) {
-      // Trier les données par mois (en supposant que les mois sont au format "YYYY-MM")
       const sortedData = [...dataForAnalysis].sort((a, b) => {
-        // Si l'un d'eux est "Mois en cours", cela devrait être à la fin
         if (a.mois === 'Mois en cours') return 1;
         if (b.mois === 'Mois en cours') return -1;
-        
-        // Sinon, comparer les dates au format YYYY-MM
+
         return a.mois.localeCompare(b.mois);
       });
-      
-      // Prenons les 3 dernières entrées pour déterminer la tendance
+
       const lastThree = sortedData.slice(-3);
-      
+
       if (lastThree.length >= 2) {
         const firstValue = lastThree[0].value ?? 0;
         const lastValue = lastThree[lastThree.length - 1].value ?? 0;
-        
+
         if (firstValue === 0) {
           trend = lastValue > 0 ? 'up' : 'stable';
         } else {
@@ -187,7 +186,7 @@ export default function StatsSummary({
         }
       }
     }
-    
+
     return {
       average,
       minimum: {
@@ -199,7 +198,7 @@ export default function StatsSummary({
         month: max.mois,
       },
       trend,
-      hasEnoughData
+      hasEnoughData,
     };
   }
 
@@ -258,14 +257,19 @@ export default function StatsSummary({
               <Activity className="text-blue-600 mr-2" size={20} />
               <h4 className="text-md font-medium text-blue-700">Dépenses</h4>
             </div>
-            <Tooltip 
+            <Tooltip
               isOpen={depensesTooltipOpen}
-              onToggle={() => setDepensesTooltipOpen(prev => !prev)}
+              onToggle={() => setDepensesTooltipOpen((prev) => !prev)}
               onClickOutside={() => setDepensesTooltipOpen(false)}
               content={
                 <div>
                   <p className="font-medium mb-1">À propos des dépenses</p>
-                  <p>Ce bloc résume vos dépenses. 'Moyenne mensuelle' est calculée sur les 12 derniers mois. 'Mois en cours' sont les dépenses depuis le début du mois actuel. La tendance indique si vos dépenses récentes augmentent ou diminuent.</p>
+                  <p>
+                    Ce bloc résume vos dépenses. 'Moyenne mensuelle' est
+                    calculée sur les 12 derniers mois. 'Mois en cours' sont les
+                    dépenses depuis le début du mois actuel. La tendance indique
+                    si vos dépenses récentes augmentent ou diminuent.
+                  </p>
                 </div>
               }
             >
@@ -278,7 +282,9 @@ export default function StatsSummary({
               {depensesStats.average.toFixed(2)}€
             </span>
             {!depensesStats.hasEnoughData && (
-              <span className="text-xs text-gray-500 ml-1">(basée sur le mois en cours)</span>
+              <span className="text-xs text-gray-500 ml-1">
+                (basée sur le mois en cours)
+              </span>
             )}
           </p>
           <p className="text-gray-700">
@@ -290,16 +296,26 @@ export default function StatsSummary({
               totalDepenses > depensesStats.average ? (
                 <span className="text-red-500 flex items-center">
                   <ArrowUpRight size={16} className="inline mr-1" />
-                  {calculatePercentage(totalDepenses, depensesStats.average)} au-dessus de la moyenne
+                  {calculatePercentage(
+                    totalDepenses,
+                    depensesStats.average,
+                  )}{' '}
+                  au-dessus de la moyenne
                 </span>
               ) : (
                 <span className="text-green-500 flex items-center">
                   <ArrowDownRight size={16} className="inline mr-1" />
-                  {calculatePercentage(totalDepenses, depensesStats.average)} en-dessous de la moyenne
+                  {calculatePercentage(
+                    totalDepenses,
+                    depensesStats.average,
+                  )}{' '}
+                  en-dessous de la moyenne
                 </span>
               )
             ) : (
-              <span className="text-gray-500">Pas assez de données historiques</span>
+              <span className="text-gray-500">
+                Pas assez de données historiques
+              </span>
             )}
           </p>
           <p className="text-gray-700">
@@ -308,9 +324,12 @@ export default function StatsSummary({
               {depensesStats.maximum.value.toFixed(2)}€
             </span>{' '}
             <span className="text-sm ml-1">
-              ({typeof depensesStats.maximum.month === 'string' && depensesStats.maximum.month !== 'Mois en cours' 
-                ? formatMonthYear(depensesStats.maximum.month) 
-                : depensesStats.maximum.month})
+              (
+              {typeof depensesStats.maximum.month === 'string' &&
+              depensesStats.maximum.month !== 'Mois en cours'
+                ? formatMonthYear(depensesStats.maximum.month)
+                : depensesStats.maximum.month}
+              )
             </span>
           </p>
           <p className="text-gray-700">
@@ -319,9 +338,12 @@ export default function StatsSummary({
               {depensesStats.minimum.value.toFixed(2)}€
             </span>{' '}
             <span className="text-sm ml-1">
-              ({typeof depensesStats.minimum.month === 'string' && depensesStats.minimum.month !== 'Mois en cours' 
-                ? formatMonthYear(depensesStats.minimum.month) 
-                : depensesStats.minimum.month})
+              (
+              {typeof depensesStats.minimum.month === 'string' &&
+              depensesStats.minimum.month !== 'Mois en cours'
+                ? formatMonthYear(depensesStats.minimum.month)
+                : depensesStats.minimum.month}
+              )
             </span>
           </p>
           <p className="text-gray-700 text-sm mt-1">
@@ -334,7 +356,9 @@ export default function StatsSummary({
                 <span className="text-gray-500">Stable</span>
               )
             ) : (
-              <span className="text-gray-500">Pas assez de données historiques</span>
+              <span className="text-gray-500">
+                Pas assez de données historiques
+              </span>
             )}
           </p>
         </div>
@@ -345,14 +369,19 @@ export default function StatsSummary({
               <Activity className="text-green-600 mr-2" size={20} />
               <h4 className="text-md font-medium text-green-700">Revenus</h4>
             </div>
-            <Tooltip 
+            <Tooltip
               isOpen={revenuesTooltipOpen}
-              onToggle={() => setRevenuesTooltipOpen(prev => !prev)}
+              onToggle={() => setRevenuesTooltipOpen((prev) => !prev)}
               onClickOutside={() => setRevenuesTooltipOpen(false)}
               content={
                 <div>
                   <p className="font-medium mb-1">À propos des revenus</p>
-                  <p>Ce bloc résume vos revenus. 'Moyenne mensuelle' est calculée sur les 12 derniers mois. 'Mois en cours' sont les revenus depuis le début du mois actuel. La tendance indique si vos revenus récents augmentent ou diminuent.</p>
+                  <p>
+                    Ce bloc résume vos revenus. 'Moyenne mensuelle' est calculée
+                    sur les 12 derniers mois. 'Mois en cours' sont les revenus
+                    depuis le début du mois actuel. La tendance indique si vos
+                    revenus récents augmentent ou diminuent.
+                  </p>
                 </div>
               }
             >
@@ -365,7 +394,9 @@ export default function StatsSummary({
               {revenusStats.average.toFixed(2)}€
             </span>
             {!revenusStats.hasEnoughData && (
-              <span className="text-xs text-gray-500 ml-1">(basée sur le mois en cours)</span>
+              <span className="text-xs text-gray-500 ml-1">
+                (basée sur le mois en cours)
+              </span>
             )}
           </p>
           <p className="text-gray-700">
@@ -377,16 +408,20 @@ export default function StatsSummary({
               totalRevenus > revenusStats.average ? (
                 <span className="text-green-500 flex items-center">
                   <ArrowUpRight size={16} className="inline mr-1" />
-                  {calculatePercentage(totalRevenus, revenusStats.average)} au-dessus de la moyenne
+                  {calculatePercentage(totalRevenus, revenusStats.average)}{' '}
+                  au-dessus de la moyenne
                 </span>
               ) : (
                 <span className="text-red-500 flex items-center">
                   <ArrowDownRight size={16} className="inline mr-1" />
-                  {calculatePercentage(totalRevenus, revenusStats.average)} en-dessous de la moyenne
+                  {calculatePercentage(totalRevenus, revenusStats.average)}{' '}
+                  en-dessous de la moyenne
                 </span>
               )
             ) : (
-              <span className="text-gray-500">Pas assez de données historiques</span>
+              <span className="text-gray-500">
+                Pas assez de données historiques
+              </span>
             )}
           </p>
           <p className="text-gray-700">
@@ -395,9 +430,12 @@ export default function StatsSummary({
               {revenusStats.maximum.value.toFixed(2)}€
             </span>{' '}
             <span className="text-sm ml-1">
-              ({typeof revenusStats.maximum.month === 'string' && revenusStats.maximum.month !== 'Mois en cours' 
-                ? formatMonthYear(revenusStats.maximum.month) 
-                : revenusStats.maximum.month})
+              (
+              {typeof revenusStats.maximum.month === 'string' &&
+              revenusStats.maximum.month !== 'Mois en cours'
+                ? formatMonthYear(revenusStats.maximum.month)
+                : revenusStats.maximum.month}
+              )
             </span>
           </p>
           <p className="text-gray-700">
@@ -406,9 +444,12 @@ export default function StatsSummary({
               {revenusStats.minimum.value.toFixed(2)}€
             </span>{' '}
             <span className="text-sm ml-1">
-              ({typeof revenusStats.minimum.month === 'string' && revenusStats.minimum.month !== 'Mois en cours' 
-                ? formatMonthYear(revenusStats.minimum.month) 
-                : revenusStats.minimum.month})
+              (
+              {typeof revenusStats.minimum.month === 'string' &&
+              revenusStats.minimum.month !== 'Mois en cours'
+                ? formatMonthYear(revenusStats.minimum.month)
+                : revenusStats.minimum.month}
+              )
             </span>
           </p>
           <p className="text-gray-700 text-sm mt-1">
@@ -421,7 +462,9 @@ export default function StatsSummary({
                 <span className="text-gray-500">Stable</span>
               )
             ) : (
-              <span className="text-gray-500">Pas assez de données historiques</span>
+              <span className="text-gray-500">
+                Pas assez de données historiques
+              </span>
             )}
           </p>
         </div>
@@ -432,14 +475,20 @@ export default function StatsSummary({
               <Activity className="text-indigo-600 mr-2" size={20} />
               <h4 className="text-md font-medium text-indigo-700">Solde</h4>
             </div>
-            <Tooltip 
+            <Tooltip
               isOpen={soldeTooltipOpen}
-              onToggle={() => setSoldeTooltipOpen(prev => !prev)}
+              onToggle={() => setSoldeTooltipOpen((prev) => !prev)}
               onClickOutside={() => setSoldeTooltipOpen(false)}
               content={
                 <div>
                   <p className="font-medium mb-1">À propos du solde</p>
-                  <p>Ce bloc montre votre solde (Revenus - Dépenses). 'Moyenne mensuelle' est calculée sur les 12 derniers mois. 'Mois en cours' est le solde depuis le début du mois actuel. La tendance indique si votre solde récent s'améliore ou se dégrade.</p>
+                  <p>
+                    Ce bloc montre votre solde (Revenus - Dépenses). 'Moyenne
+                    mensuelle' est calculée sur les 12 derniers mois. 'Mois en
+                    cours' est le solde depuis le début du mois actuel. La
+                    tendance indique si votre solde récent s'améliore ou se
+                    dégrade.
+                  </p>
                 </div>
               }
             >
@@ -450,7 +499,9 @@ export default function StatsSummary({
             Moyenne mensuelle:{' '}
             <span className="font-bold">{soldeStats.average.toFixed(2)}€</span>
             {!soldeStats.hasEnoughData && (
-              <span className="text-xs text-gray-500 ml-1">(basée sur le mois en cours)</span>
+              <span className="text-xs text-gray-500 ml-1">
+                (basée sur le mois en cours)
+              </span>
             )}
           </p>
           <p className="text-gray-700">
@@ -462,20 +513,22 @@ export default function StatsSummary({
               solde > soldeStats.average ? (
                 <span className="text-green-500 flex items-center">
                   <ArrowUpRight size={16} className="inline mr-1" />
-                  {soldeStats.average !== 0 ? 
-                    `${calculatePercentage(solde, soldeStats.average)} au-dessus de la moyenne` : 
-                    'Pas de comparaison possible (moyenne à 0)'}
+                  {soldeStats.average !== 0
+                    ? `${calculatePercentage(solde, soldeStats.average)} au-dessus de la moyenne`
+                    : 'Pas de comparaison possible (moyenne à 0)'}
                 </span>
               ) : (
                 <span className="text-red-500 flex items-center">
                   <ArrowDownRight size={16} className="inline mr-1" />
-                  {soldeStats.average !== 0 ? 
-                    `${calculatePercentage(solde, soldeStats.average)} en-dessous de la moyenne` : 
-                    'Pas de comparaison possible (moyenne à 0)'}
+                  {soldeStats.average !== 0
+                    ? `${calculatePercentage(solde, soldeStats.average)} en-dessous de la moyenne`
+                    : 'Pas de comparaison possible (moyenne à 0)'}
                 </span>
               )
             ) : (
-              <span className="text-gray-500">Pas assez de données historiques</span>
+              <span className="text-gray-500">
+                Pas assez de données historiques
+              </span>
             )}
           </p>
           <p className="text-gray-700">
@@ -484,9 +537,12 @@ export default function StatsSummary({
               {soldeStats.maximum.value.toFixed(2)}€
             </span>{' '}
             <span className="text-sm ml-1">
-              ({typeof soldeStats.maximum.month === 'string' && soldeStats.maximum.month !== 'Mois en cours' 
-                ? formatMonthYear(soldeStats.maximum.month) 
-                : soldeStats.maximum.month})
+              (
+              {typeof soldeStats.maximum.month === 'string' &&
+              soldeStats.maximum.month !== 'Mois en cours'
+                ? formatMonthYear(soldeStats.maximum.month)
+                : soldeStats.maximum.month}
+              )
             </span>
           </p>
           <p className="text-gray-700">
@@ -495,9 +551,12 @@ export default function StatsSummary({
               {soldeStats.minimum.value.toFixed(2)}€
             </span>{' '}
             <span className="text-sm ml-1">
-              ({typeof soldeStats.minimum.month === 'string' && soldeStats.minimum.month !== 'Mois en cours' 
-                ? formatMonthYear(soldeStats.minimum.month) 
-                : soldeStats.minimum.month})
+              (
+              {typeof soldeStats.minimum.month === 'string' &&
+              soldeStats.minimum.month !== 'Mois en cours'
+                ? formatMonthYear(soldeStats.minimum.month)
+                : soldeStats.minimum.month}
+              )
             </span>
           </p>
           <p className="text-gray-700 text-sm mt-1">
@@ -510,7 +569,9 @@ export default function StatsSummary({
                 <span className="text-gray-500">Stable</span>
               )
             ) : (
-              <span className="text-gray-500">Pas assez de données historiques</span>
+              <span className="text-gray-500">
+                Pas assez de données historiques
+              </span>
             )}
           </p>
         </div>

@@ -40,7 +40,9 @@ export const useRevenuDistributionByCategorie = (
   });
 
   return {
-    revenuDistribution: Array.isArray(data) ? data : [] as RevenuDistributionDataPoint[],
+    revenuDistribution: Array.isArray(data)
+      ? data
+      : ([] as RevenuDistributionDataPoint[]),
     isLoading,
     isError: error && error.status !== 404,
     mutate,
