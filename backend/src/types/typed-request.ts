@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import { Query, ParamsDictionary } from "express-serve-static-core";
 import { TypeCompte, TypeDepense } from "./depense.types";
 import { TypeCompteRevenu } from "./revenu.types";
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 /**
  * Interface pour les paramètres d'URL avec ID
@@ -18,7 +18,7 @@ export interface IdParams extends ParamsDictionary {
 export interface TypedRequest<
   BodyType = unknown,
   ParamsType extends ParamsDictionary = ParamsDictionary,
-  QueryType extends Query = Query
+  QueryType extends Query = Query,
 > extends Request<ParamsType, unknown, BodyType, QueryType> {
   body: BodyType;
   params: ParamsType;
@@ -31,7 +31,7 @@ export interface TypedRequest<
 export interface TypedAuthRequest<
   BodyType = unknown,
   ParamsType extends ParamsDictionary = ParamsDictionary,
-  QueryType extends Query = Query
+  QueryType extends Query = Query,
 > extends AuthRequest {
   body: BodyType;
   params: ParamsType;
@@ -41,7 +41,7 @@ export interface TypedAuthRequest<
 /**
  * Types de vues communs
  */
-export type ViewType = 'moi' | 'partenaire' | 'couple_complet';
+export type ViewType = "moi" | "partenaire" | "couple_complet";
 
 /**
  * Types pour les requêtes de dépenses
@@ -56,7 +56,7 @@ export interface DepenseQueryParams extends Query {
   typeDepense?: TypeDepense;
   search?: string;
   sortBy?: string;
-  order?: 'asc' | 'desc';
+  order?: "asc" | "desc";
   vue?: ViewType;
 }
 
@@ -87,7 +87,7 @@ export interface RevenuQueryParams extends Query {
   estRecurrent?: string;
   search?: string;
   sortBy?: string;
-  order?: 'asc' | 'desc';
+  order?: "asc" | "desc";
   vue?: ViewType;
 }
 
@@ -121,7 +121,7 @@ export interface StatistiqueQueryParams extends Query {
   dateDebut?: string;
   dateFin?: string;
   categorie?: string;
-  type?: 'depenses' | 'revenus' | 'solde';
+  type?: "depenses" | "revenus" | "solde";
   nbMois?: string;
   estRecurrent?: string;
   moisActuel?: string;
@@ -166,11 +166,11 @@ export interface CategorieRevenuUpdateBody {
 export type AsyncController<
   BodyType = unknown,
   ParamsType extends ParamsDictionary = ParamsDictionary,
-  QueryType extends Query = Query
+  QueryType extends Query = Query,
 > = (
   req: TypedAuthRequest<BodyType, ParamsType, QueryType>,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => Promise<unknown>;
 
 export interface DepenseQueryParams {
@@ -184,5 +184,5 @@ export interface DepenseQueryParams {
   page?: string;
   limit?: string;
   sortBy?: string;
-  order?: 'asc' | 'desc';
+  order?: "asc" | "desc";
 }

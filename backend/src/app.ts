@@ -21,13 +21,11 @@ dotenv.config();
 
 const app = express();
 
-// Middlewares globaux
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-// Configuration de Morgan pour ignorer les requêtes de healthcheck
 app.use(
   morgan("combined", {
     skip: (req) => req.url === "/api/health",
@@ -35,13 +33,10 @@ app.use(
   }),
 );
 
-// Documentation Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Health check endpoint amélioré
 app.get("/api/health", (_req, res) => {
   try {
-    // Vérifier la connexion MongoDB
     if (mongoose.connection.readyState !== 1) {
       res.status(503).json({
         status: "error",
@@ -69,7 +64,6 @@ app.get("/api/health", (_req, res) => {
   }
 });
 
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/depenses", depenseRoutes);
 app.use("/api/categories", categorieRoutes);
@@ -79,15 +73,12 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/revenus", revenuRoutes);
 
-// Gestion des erreurs 404
 app.use((_req, _res, next) => {
   next(new AppError("Route non trouvée", 404));
 });
 
-// Middleware de gestion des erreurs
 app.use(errorHandler);
 
-// Fonction de connexion à MongoDB
 const connectDB = async () => {
   try {
     const mongoUri = process.env.MONGO_URI;
@@ -103,7 +94,6 @@ const connectDB = async () => {
   }
 };
 
-// Lancer le serveur
 const PORT = process.env.PORT || 5001;
 
 const startServer = async () => {
@@ -113,7 +103,6 @@ const startServer = async () => {
       logger.info(`🚀 Serveur backend démarré sur le port ${PORT}`);
     });
 
-    // Gérer les erreurs du serveur
     server.on("error", (error: NodeJS.ErrnoException) => {
       if (error.code === "EADDRINUSE") {
         logger.error(`Le port ${PORT} est déjà utilisé`);

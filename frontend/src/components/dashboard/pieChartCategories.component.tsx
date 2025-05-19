@@ -52,7 +52,6 @@ export default function PieChartCategories({
     statsContext,
   );
 
-  // Remplace le titre dynamiquement
   const monthNames = [
     'Janvier',
     'Février',
@@ -70,7 +69,6 @@ export default function PieChartCategories({
   const defaultTitle = `Répartition par Catégorie - ${monthNames[selectedMonth - 1]} ${selectedYear}`;
   const chartTitle = customTitle || defaultTitle;
 
-  // Initialisation des données du graphique
   let labels: string[] = [];
   let dataValues: number[] = [];
   let chartData: {

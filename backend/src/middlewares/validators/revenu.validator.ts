@@ -63,7 +63,7 @@ export const modifierRevenuValidator = [
     .isIn(["Perso", "Conjoint"] as TypeCompteRevenu[])
     .withMessage("Type de compte invalide pour le revenu"),
   body("commentaire")
-    .optional({ checkFalsy: true }) // Permet de passer null ou une chaîne vide pour effacer le commentaire
+    .optional({ checkFalsy: true })
     .isString()
     .trim()
     .isLength({ max: 500 })

@@ -1,11 +1,13 @@
-import mongoose from 'mongoose';
-import User from '../models/user.model';
-import { AuthRequest } from '../middlewares/auth.middleware';
-import { sendErrorClient } from './response.utils';
-import { Response } from 'express';
-import { AUTH } from '../constants';
+import mongoose from "mongoose";
+import User from "../models/user.model";
+import { AuthRequest } from "../middlewares/auth.middleware";
+import { sendErrorClient } from "./response.utils";
+import { Response } from "express";
+import { AUTH } from "../constants";
 
-export type UserIdsType = mongoose.Types.ObjectId | { $in: mongoose.Types.ObjectId[] };
+export type UserIdsType =
+  | mongoose.Types.ObjectId
+  | { $in: mongoose.Types.ObjectId[] };
 
 /**
  * Récupère l'ID de l'utilisateur ou les IDs du couple selon le contexte
@@ -17,16 +19,16 @@ export type UserIdsType = mongoose.Types.ObjectId | { $in: mongoose.Types.Object
 export async function getUserIdsFromContext(
   req: AuthRequest,
   res: Response,
-  contexte?: string
-): Promise<{ userIds: UserIdsType, utilisateurFilter: UserIdsType } | null> {
+  contexte?: string,
+): Promise<{ userIds: UserIdsType; utilisateurFilter: UserIdsType } | null> {
   if (!req.user) {
     sendErrorClient(res, AUTH.ERRORS.UNAUTHORIZED);
     return null;
   }
-  
+
   let userIds: UserIdsType = new mongoose.Types.ObjectId(req.user.id);
   let utilisateurFilter: UserIdsType = userIds;
-  
+
   if (contexte === "couple") {
     const fullCurrentUser = await User.findById(req.user.id);
     if (fullCurrentUser && fullCurrentUser.partenaireId) {
@@ -39,6 +41,6 @@ export async function getUserIdsFromContext(
       userIds = utilisateurFilter;
     }
   }
-  
+
   return { userIds, utilisateurFilter };
 }

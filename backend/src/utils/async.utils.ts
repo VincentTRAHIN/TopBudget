@@ -10,7 +10,7 @@ import { Query } from "express-serve-static-core";
  * @returns Fonction contrôleur avec gestion d'erreur
  */
 export const asyncHandler = <T extends Request = Request>(
-  fn: (req: T, res: Response, next: NextFunction) => Promise<void | unknown>
+  fn: (req: T, res: Response, next: NextFunction) => Promise<void | unknown>,
 ) => {
   return (req: T, res: Response, next: NextFunction): Promise<void> => {
     return Promise.resolve(fn(req, res, next)).catch(next) as Promise<void>;
@@ -21,7 +21,11 @@ export const asyncHandler = <T extends Request = Request>(
  * Version spécifique du wrapper pour les contrôleurs authentifiés
  */
 export const asyncAuthHandler = (
-  fn: (req: AuthRequest, res: Response, next: NextFunction) => Promise<void | unknown>
+  fn: (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ) => Promise<void | unknown>,
 ) => {
   return asyncHandler<AuthRequest>(fn);
 };
@@ -30,11 +34,17 @@ export const asyncAuthHandler = (
  * Wrapper typé pour les contrôleurs avec authentification et gestion des erreurs
  */
 export function createAsyncHandler<
-  Body = unknown, 
-  Params extends ParamsDictionary = ParamsDictionary, 
-  QueryParams extends Query = Query
+  Body = unknown,
+  Params extends ParamsDictionary = ParamsDictionary,
+  QueryParams extends Query = Query,
 >(handler: AsyncController<Body, Params, QueryParams>) {
-  return (req: TypedAuthRequest<Body, Params, QueryParams>, res: Response, next: NextFunction): Promise<void> => {
-    return Promise.resolve(handler(req, res, next)).catch(next) as Promise<void>;
+  return (
+    req: TypedAuthRequest<Body, Params, QueryParams>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    return Promise.resolve(handler(req, res, next)).catch(
+      next,
+    ) as Promise<void>;
   };
-};
+}

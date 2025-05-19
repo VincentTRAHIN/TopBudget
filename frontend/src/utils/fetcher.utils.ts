@@ -6,9 +6,10 @@ const fetcher = async <T>(
     typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
   const isAuthMeEndpoint = url.includes('/auth/me');
 
-  // Debug log pour tracer si le token est présent
   if (!isAuthMeEndpoint) {
-    console.log(`[DEBUG] Fetcher appelé pour ${url} avec token: ${token ? 'présent' : 'absent'}`);
+    console.log(
+      `[DEBUG] Fetcher appelé pour ${url} avec token: ${token ? 'présent' : 'absent'}`,
+    );
   }
 
   const headers = new Headers();
@@ -73,13 +74,11 @@ const fetcher = async <T>(
           console.error(
             `fetcher: Accès non autorisé (401) sur ${url}. Token présent: ${!!token}`,
           );
-          
-          // Si problème d'authentification persistant, on force la déconnexion
+
           if (!isAuthMeEndpoint && token) {
             console.warn('Problème de token, tentative de nettoyage...');
             if (typeof window !== 'undefined') {
               localStorage.removeItem('authToken');
-              // Redirection vers la page de connexion après un court délai
               setTimeout(() => {
                 window.location.href = '/auth/login';
               }, 100);
@@ -106,16 +105,20 @@ const fetcher = async <T>(
     ) {
       return undefined as T;
     }
-    
+
     const responseData = await response.json();
-    
-    // Adaptation pour la nouvelle structure de réponse
-    // Si les données sont encapsulées dans un objet avec success et data, on extrait data
-    if (responseData && responseData.success === true && 'data' in responseData) {
-      console.log(`[DEBUG] Extraction des données de la réponse encapsulée pour ${url}`);
+
+    if (
+      responseData &&
+      responseData.success === true &&
+      'data' in responseData
+    ) {
+      console.log(
+        `[DEBUG] Extraction des données de la réponse encapsulée pour ${url}`,
+      );
       return responseData.data as T;
     }
-    
+
     return responseData;
   } catch (error) {
     if (
@@ -137,28 +140,30 @@ const fetcher = async <T>(
  */
 export const createSafeDataFetcher = <T>(
   defaultValue: T,
-  errorHandler?: (error: any) => void
+  errorHandler?: (error: any) => void,
 ) => {
   return async (url: string) => {
     try {
       const result = await fetcher(url);
       return result || defaultValue;
     } catch (error: any) {
-      // Log l'erreur
-      console.error(`Erreur lors du chargement des données depuis ${url}:`, error);
-      
-      // Appeler le gestionnaire d'erreur personnalisé si fourni
+      console.error(
+        `Erreur lors du chargement des données depuis ${url}:`,
+        error,
+      );
+
       if (errorHandler) {
         errorHandler(error);
       }
-      
-      // En cas d'erreur 404, retourner simplement la valeur par défaut
+
       if (error.status === 404) {
-        console.warn(`Route non trouvée (404) pour ${url} - utilisation de la valeur par défaut`, defaultValue);
+        console.warn(
+          `Route non trouvée (404) pour ${url} - utilisation de la valeur par défaut`,
+          defaultValue,
+        );
         return defaultValue;
       }
-      
-      // Propager les autres erreurs
+
       throw error;
     }
   };

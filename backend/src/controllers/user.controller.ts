@@ -1,45 +1,52 @@
 import { AUTH, USER } from "../constants";
 import { AppError } from "../middlewares/error.middleware";
-import { sendSuccess, sendErrorClient } from '../utils/response.utils';
-import { createAsyncHandler } from '../utils/async.utils';
-import { ParsedQs } from 'qs';
-import { UserService } from '../services/user.service';
-import logger from '../utils/logger.utils';
+import { sendSuccess, sendErrorClient } from "../utils/response.utils";
+import { createAsyncHandler } from "../utils/async.utils";
+import { ParsedQs } from "qs";
+import { UserService } from "../services/user.service";
+import logger from "../utils/logger.utils";
 
 interface SearchUserQuery extends ParsedQs {
   query?: string;
 }
 
-// GET /api/users/search?query=...
-export const searchUser = createAsyncHandler<Record<string, never>, Record<string, never>, SearchUserQuery>(
-  async (req, res, next): Promise<void> => {
-    if (!req.user) {
-      next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
-      return;
-    }
+export const searchUser = createAsyncHandler<
+  Record<string, never>,
+  Record<string, never>,
+  SearchUserQuery
+>(async (req, res, next): Promise<void> => {
+  if (!req.user) {
+    next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    return;
+  }
 
-    const { query } = req.query;
-    if (!query || typeof query !== "string") {
-      sendErrorClient(res, USER.ERRORS.QUERY_REQUIRED);
-      return;
-    }
+  const { query } = req.query;
+  if (!query || typeof query !== "string") {
+    sendErrorClient(res, USER.ERRORS.QUERY_REQUIRED);
+    return;
+  }
 
-    try {
-      const user = await UserService.searchUser(query);
-      sendSuccess(res, USER.SUCCESS.FETCHED, user);
-    } catch (error: unknown) {
-      if (error instanceof AppError) {
-        // Erreurs connues avec un message défini dans les constantes
-        if (error.statusCode === 404) {
-          sendErrorClient(res, USER.ERRORS.NOT_FOUND, undefined, error.statusCode);
-        } else {
-          sendErrorClient(res, error.message, undefined, error.statusCode);
-        }
+  try {
+    const user = await UserService.searchUser(query);
+    sendSuccess(res, USER.SUCCESS.FETCHED, user);
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      if (error.statusCode === 404) {
+        sendErrorClient(
+          res,
+          USER.ERRORS.NOT_FOUND,
+          undefined,
+          error.statusCode,
+        );
       } else {
-        // Erreurs inattendues - les transmettre au middleware global
-        logger.error("Erreur inattendue lors de la recherche d'utilisateur:", error);
-        next(new AppError(USER.ERRORS.SEARCH_ERROR, 500));
+        sendErrorClient(res, error.message, undefined, error.statusCode);
       }
+    } else {
+      logger.error(
+        "Erreur inattendue lors de la recherche d'utilisateur:",
+        error,
+      );
+      next(new AppError(USER.ERRORS.SEARCH_ERROR, 500));
     }
   }
-);
+});

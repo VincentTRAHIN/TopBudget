@@ -1,7 +1,9 @@
 import { IDepensePopulated } from "./depense.types";
 import mongoose from "mongoose";
 
-export type UserIdsType = mongoose.Types.ObjectId | { $in: ReadonlyArray<mongoose.Types.ObjectId> };
+export type UserIdsType =
+  | mongoose.Types.ObjectId
+  | { $in: ReadonlyArray<mongoose.Types.ObjectId> };
 
 export interface CategorieRepartition {
   readonly _id: mongoose.Types.ObjectId;
@@ -86,4 +88,4 @@ export interface ContributionsCouple {
   readonly totalDepensesCouple: number;
   readonly totalRevenusCouple: number;
   readonly soldeCouple: number;
-} 
+}

@@ -115,11 +115,12 @@ export default function TableDepenses({
             className="input"
           >
             <option value="">Toutes</option>
-            {Array.isArray(categories) && categories.map((categorie) => (
-              <option key={categorie._id} value={categorie._id}>
-                {categorie.nom}
-              </option>
-            ))}
+            {Array.isArray(categories) &&
+              categories.map((categorie) => (
+                <option key={categorie._id} value={categorie._id}>
+                  {categorie.nom}
+                </option>
+              ))}
           </select>
         </div>
         <div className="flex-grow min-w-[130px]">

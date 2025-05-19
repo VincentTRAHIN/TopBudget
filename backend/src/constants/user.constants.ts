@@ -2,14 +2,12 @@ import { UserRole } from "../types/user.types";
 import { COMMON } from "./common.constants";
 
 export const USER = {
-  // Rôles disponibles
   ROLES: {
     PERSO: "Perso" as UserRole,
     CONJOINT: "Conjoint" as UserRole,
     ADMIN: "Admin" as UserRole,
   },
 
-  // Messages de succès
   SUCCESS: {
     FETCHED: "Utilisateur trouvé",
     CREATED: "Utilisateur créé avec succès",
@@ -17,7 +15,6 @@ export const USER = {
     DELETED: "Utilisateur supprimé avec succès",
   },
 
-  // Messages d'erreur
   ERRORS: {
     NOT_FOUND: COMMON.ERRORS.USER_NOT_FOUND,
     ALREADY_EXISTS: COMMON.ERRORS.EMAIL_ALREADY_EXISTS,
@@ -28,7 +25,6 @@ export const USER = {
     SEARCH_ERROR: "Erreur lors de la recherche d'utilisateur",
   },
 
-  // Validation
   VALIDATION: {
     MIN_NAME_LENGTH: 2,
     MAX_NAME_LENGTH: 50,

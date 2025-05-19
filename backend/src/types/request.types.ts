@@ -23,7 +23,7 @@ export interface IRouteParams {
  * Types de vues communs
  * @deprecated Utiliser ViewType de typed-request.ts
  */
-export type ViewType = 'moi' | 'partenaire' | 'couple_complet';
+export type ViewType = "moi" | "partenaire" | "couple_complet";
 
 /**
  * Namespace pour les requêtes de dépenses pour éviter les conflits de noms
@@ -43,7 +43,7 @@ export namespace DepenseRequest {
     typeDepense?: TypeDepense;
     search?: string;
     sortBy?: string;
-    order?: 'asc' | 'desc';
+    order?: "asc" | "desc";
     vue?: ViewType;
   }
 
@@ -58,7 +58,7 @@ export namespace DepenseRequest {
     typeCompte: TypeCompte;
     typeDepense: TypeDepense;
     recurrence?: boolean;
-    categorie: string; // ID MongoDB
+    categorie: string;
     description?: string;
     estChargeFixe?: boolean;
   }
@@ -74,7 +74,7 @@ export namespace DepenseRequest {
     typeCompte?: TypeCompte;
     typeDepense?: TypeDepense;
     recurrence?: boolean;
-    categorie?: string; // ID MongoDB
+    categorie?: string;
     description?: string;
     estChargeFixe?: boolean;
   }
@@ -98,7 +98,7 @@ export namespace RevenuRequest {
     estRecurrent?: string | boolean;
     search?: string;
     sortBy?: string;
-    order?: 'asc' | 'desc';
+    order?: "asc" | "desc";
     vue?: ViewType;
   }
 
@@ -112,7 +112,7 @@ export namespace RevenuRequest {
     date: string | Date;
     typeCompte: TypeCompteRevenu;
     commentaire?: string;
-    categorieRevenu: string; // ID MongoDB
+    categorieRevenu: string;
     estRecurrent?: boolean;
   }
 
@@ -126,7 +126,7 @@ export namespace RevenuRequest {
     date?: string | Date;
     typeCompte?: TypeCompteRevenu;
     commentaire?: string;
-    categorieRevenu?: string; // ID MongoDB
+    categorieRevenu?: string;
     estRecurrent?: boolean;
   }
 }
@@ -146,7 +146,7 @@ export namespace StatistiqueRequest {
     dateDebut?: string;
     dateFin?: string;
     categorie?: string;
-    type?: 'depenses' | 'revenus' | 'solde';
+    type?: "depenses" | "revenus" | "solde";
     nbMois?: string;
     estRecurrent?: string | boolean;
     moisActuel?: string;
@@ -206,7 +206,6 @@ export namespace CategorieRevenuRequest {
   }
 }
 
-// Interfaces de compatibilité avec le code existant (à supprimer progressivement)
 /**
  * @deprecated Utiliser DepenseQueryParams de typed-request.ts
  */
@@ -246,11 +245,13 @@ export interface ICategorieUpdateBody extends CategorieRequest.UpdateBody {}
 /**
  * @deprecated Utiliser CategorieRevenuCreateBody de typed-request.ts
  */
-export interface ICategorieRevenuAddBody extends CategorieRevenuRequest.AddBody {}
+export interface ICategorieRevenuAddBody
+  extends CategorieRevenuRequest.AddBody {}
 /**
  * @deprecated Utiliser CategorieRevenuUpdateBody de typed-request.ts
  */
-export interface ICategorieRevenuUpdateBody extends CategorieRevenuRequest.UpdateBody {}
+export interface ICategorieRevenuUpdateBody
+  extends CategorieRevenuRequest.UpdateBody {}
 
 /**
  * Interface pour les query params des requêtes de statistiques
@@ -263,7 +264,7 @@ export interface IStatistiquesQueryParams {
   dateDebut?: string;
   dateFin?: string;
   categorie?: string;
-  type?: 'depenses' | 'revenus' | 'solde';
+  type?: "depenses" | "revenus" | "solde";
   nbMois?: string;
   estRecurrent?: string | boolean;
   moisActuel?: string;
@@ -314,18 +315,18 @@ export interface ICategorieRevenuUpdateBody {
 
 /**
  * Interface pour les requêtes authentifiées avec typage fort
- * 
+ *
  * Permet de typer fortement les objets req.body, req.params, et req.query
- * 
+ *
  * @template B - Type du body (req.body)
  * @template P - Type des paramètres d'URL (req.params)
  * @template Q - Type des paramètres de requête (req.query)
  * @deprecated Utilisez TypedAuthRequest de typed-request.ts
  */
 export interface TypedRequest<
-  B = Record<string, unknown>, 
-  P extends ParamsDictionary = ParamsDictionary, 
-  Q = ParsedQs
+  B = Record<string, unknown>,
+  P extends ParamsDictionary = ParamsDictionary,
+  Q = ParsedQs,
 > extends Request<P, any, B, Q> {
   user?: { id: string; name: string; email: string };
 }

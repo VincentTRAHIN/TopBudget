@@ -4,14 +4,14 @@ import logger from "../utils/logger.utils";
 import { AppError } from "../middlewares/error.middleware";
 import { AUTH, DEPENSE, COMMON } from "../constants";
 import { ImportService } from "../services/import.service";
-import { sendSuccess, sendErrorClient } from '../utils/response.utils';
-import { 
-  DepenseCreateBody, 
-  DepenseUpdateBody, 
-  DepenseQueryParams
-} from '../types/typed-request';
-import { createAsyncHandler } from '../utils/async.utils';
-import { AuthRequest } from '../middlewares/auth.middleware';
+import { sendSuccess, sendErrorClient } from "../utils/response.utils";
+import {
+  DepenseCreateBody,
+  DepenseUpdateBody,
+  DepenseQueryParams,
+} from "../types/typed-request";
+import { createAsyncHandler } from "../utils/async.utils";
+import { AuthRequest } from "../middlewares/auth.middleware";
 import { DepenseService } from "../services/depense.service";
 
 /**
@@ -72,17 +72,24 @@ export const ajouterDepense = createAsyncHandler(
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return sendErrorClient(res, COMMON.ERRORS.VALIDATION_ERROR, errors.array());
+      return sendErrorClient(
+        res,
+        COMMON.ERRORS.VALIDATION_ERROR,
+        errors.array(),
+      );
     }
 
     try {
-      const depense = await DepenseService.create(req.body as DepenseCreateBody, req.user.id);
+      const depense = await DepenseService.create(
+        req.body as DepenseCreateBody,
+        req.user.id,
+      );
       return sendSuccess(res, DEPENSE.SUCCESS.CREATED, depense, 201);
     } catch (error) {
       logger.error(DEPENSE.ERRORS.CREATE_ERROR, error);
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -166,13 +173,16 @@ export const obtenirDepenses = createAsyncHandler(
     }
 
     try {
-      const result = await DepenseService.getAll(req.query as DepenseQueryParams, req.user.id);
+      const result = await DepenseService.getAll(
+        req.query as DepenseQueryParams,
+        req.user.id,
+      );
       return sendSuccess(res, DEPENSE.SUCCESS.FETCHED, result);
     } catch (error) {
       logger.error(DEPENSE.ERRORS.FETCH_ERROR, error);
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -211,7 +221,7 @@ export const obtenirDepenseParId = createAsyncHandler(
       logger.error(DEPENSE.ERRORS.FETCH_ERROR, error);
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -273,17 +283,25 @@ export const modifierDepense = createAsyncHandler(
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return sendErrorClient(res, COMMON.ERRORS.VALIDATION_ERROR, errors.array());
+      return sendErrorClient(
+        res,
+        COMMON.ERRORS.VALIDATION_ERROR,
+        errors.array(),
+      );
     }
 
     try {
-      const depense = await DepenseService.update(req.params.id, req.body as DepenseUpdateBody, req.user.id);
+      const depense = await DepenseService.update(
+        req.params.id,
+        req.body as DepenseUpdateBody,
+        req.user.id,
+      );
       return sendSuccess(res, DEPENSE.SUCCESS.UPDATED, depense);
     } catch (error) {
       logger.error(DEPENSE.ERRORS.UPDATE_ERROR, error);
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -320,10 +338,9 @@ export const supprimerDepense = createAsyncHandler(
       logger.error(DEPENSE.ERRORS.DELETE_ERROR, error);
       next(error);
     }
-  }
+  },
 );
 
-// Import avec Multer qui ajoute req.file
 interface MulterRequest extends AuthRequest {
   file?: Express.Multer.File;
 }
@@ -331,13 +348,15 @@ interface MulterRequest extends AuthRequest {
 export const importerDepenses = createAsyncHandler(
   async (req: MulterRequest, res, next): Promise<void> => {
     if (!req.file) return next(new AppError(COMMON.ERRORS.NO_CSV_FILE, 400));
-    if (!req.user)
-      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    if (!req.user) return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
     try {
-      const result = await ImportService.importDepensesCsv(req.file.buffer, req.user.id);
+      const result = await ImportService.importDepensesCsv(
+        req.file.buffer,
+        req.user.id,
+      );
       sendSuccess(res, DEPENSE.SUCCESS.IMPORTED, result);
     } catch (error) {
       next(error);
     }
-  }
+  },
 );

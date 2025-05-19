@@ -4,9 +4,9 @@ import { validationResult } from "express-validator";
 import logger from "../utils/logger.utils";
 import { AUTH, COMMON } from "../constants";
 import { AuthInscriptionBody, AuthConnexionBody } from "../types/auth.types";
-import { sendSuccess, sendErrorClient } from '../utils/response.utils';
-import { createAsyncHandler } from '../utils/async.utils';
-import { AuthService } from '../services/auth.service';
+import { sendSuccess, sendErrorClient } from "../utils/response.utils";
+import { createAsyncHandler } from "../utils/async.utils";
+import { AuthService } from "../services/auth.service";
 
 /**
  * @swagger
@@ -40,7 +40,10 @@ import { AuthService } from '../services/auth.service';
  *         description: Email déjà utilisé
  */
 export const inscription = createAsyncHandler(
-  async (req: Request & { body: AuthInscriptionBody }, res: Response): Promise<void> => {
+  async (
+    req: Request & { body: AuthInscriptionBody },
+    res: Response,
+  ): Promise<void> => {
     const erreurs = validationResult(req);
     if (!erreurs.isEmpty()) {
       sendErrorClient(res, COMMON.ERRORS.VALIDATION_ERROR, erreurs.array());
@@ -54,7 +57,7 @@ export const inscription = createAsyncHandler(
       logger.error((error as Error).message);
       sendErrorClient(res, AUTH.ERRORS.SIGNUP_ERROR);
     }
-  }
+  },
 );
 
 /**
@@ -89,7 +92,10 @@ export const inscription = createAsyncHandler(
  *         description: Identifiants invalides
  */
 export const connexion = createAsyncHandler(
-  async (req: Request & { body: AuthConnexionBody }, res: Response): Promise<void> => {
+  async (
+    req: Request & { body: AuthConnexionBody },
+    res: Response,
+  ): Promise<void> => {
     const erreurs = validationResult(req);
     if (!erreurs.isEmpty()) {
       sendErrorClient(res, COMMON.ERRORS.VALIDATION_ERROR, erreurs.array());
@@ -103,7 +109,7 @@ export const connexion = createAsyncHandler(
       logger.error((error as Error).message);
       sendErrorClient(res, AUTH.ERRORS.LOGIN_ERROR);
     }
-  }
+  },
 );
 
 /**
@@ -147,5 +153,5 @@ export const getMe = createAsyncHandler(
       logger.error("Erreur dans getMe:", error);
       sendErrorClient(res, AUTH.ERRORS.PROFILE_FETCH_ERROR);
     }
-  }
+  },
 );

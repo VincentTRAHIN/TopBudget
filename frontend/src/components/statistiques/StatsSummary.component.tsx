@@ -10,19 +10,17 @@ export default function StatsSummary({
 }: {
   statsContext?: 'moi' | 'couple';
 }) {
-  // Dépenses
   const { data: depensesData, isLoading: depensesLoading } =
     useMonthlyFlowsEvolution(12, statsContext, 'depenses');
-  // Revenus
+
   const { data: revenusData, isLoading: revenusLoading } =
     useMonthlyFlowsEvolution(12, statsContext, 'revenus');
-  // Solde
   const { data: soldeData, isLoading: soldeLoading } = useMonthlyFlowsEvolution(
     12,
     statsContext,
     'solde',
   );
-  // Mois courant
+
   const {
     totalDepenses,
     totalRevenus,
@@ -30,7 +28,6 @@ export default function StatsSummary({
     isLoading: currentMonthLoading,
   } = useCurrentMonthFlows(statsContext);
 
-  // Helper pour stats (moyenne, min, max, trend)
   function computeStats(arr: { value?: number; mois: string }[]) {
     const filtered = arr.filter((item) => typeof item.value === 'number');
     if (filtered.length === 0)
@@ -49,7 +46,6 @@ export default function StatsSummary({
       if ((item.value ?? 0) < (min.value ?? 0)) min = item;
       if ((item.value ?? 0) > (max.value ?? 0)) max = item;
     });
-    // Trend
     const lastThree = filtered.slice(-3);
     let trend = 'stable';
     if (lastThree.length >= 2) {
@@ -78,21 +74,20 @@ export default function StatsSummary({
     };
   }
 
-  // S'assurer que les données sont des tableaux
-  const depensesArr = Array.isArray(depensesData) 
+  const depensesArr = Array.isArray(depensesData)
     ? depensesData.map((item) => ({
         value: item.totalDepenses ?? 0,
         mois: item.mois,
       }))
     : [];
-    
+
   const revenusArr = Array.isArray(revenusData)
     ? revenusData.map((item) => ({
         value: item.totalRevenus ?? 0,
         mois: item.mois,
       }))
     : [];
-    
+
   const soldeArr = Array.isArray(soldeData)
     ? soldeData.map((item) => ({
         value: item.soldeMensuel ?? 0,

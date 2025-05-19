@@ -17,4 +17,4 @@ router.use("/categories", categorieRoutes);
 router.use("/categories-revenus", categorieRevenuRoutes);
 router.use("/statistiques", statistiquesRoutes);
 
-export default router; 
+export default router;

@@ -8,10 +8,12 @@ export const CATEGORIE_REVENU = {
   ERRORS: {
     NOT_FOUND: "Catégorie de revenu non trouvée",
     ALREADY_EXISTS: "Une catégorie de revenu avec ce nom existe déjà",
-    IN_USE: "Catégorie de revenu utilisée par des revenus, impossible de la supprimer",
+    IN_USE:
+      "Catégorie de revenu utilisée par des revenus, impossible de la supprimer",
     INVALID_ID: "ID de catégorie de revenu invalide",
     INVALID_NOM_LENGTH: "Le nom doit contenir entre 2 et 50 caractères",
-    INVALID_DESCRIPTION_LENGTH: "La description ne peut pas dépasser 200 caractères",
+    INVALID_DESCRIPTION_LENGTH:
+      "La description ne peut pas dépasser 200 caractères",
     CREATE_ERROR: "Erreur lors de l'ajout de la catégorie de revenu",
     FETCH_ERROR: "Erreur lors de la récupération des catégories de revenu",
     UPDATE_ERROR: "Erreur lors de la modification de la catégorie de revenu",

@@ -58,7 +58,9 @@ export class AuthService {
   static async getMe(userId: string): Promise<IUserPopulated> {
     const utilisateur = await User.findById(userId)
       .select("-motDePasse")
-      .populate<{ partenaireId: IUserPopulated['partenaireId'] }>("partenaireId", "nom email avatarUrl _id")
+      .populate<{
+        partenaireId: IUserPopulated["partenaireId"];
+      }>("partenaireId", "nom email avatarUrl _id")
       .lean<IUserPopulated>();
 
     if (!utilisateur) {
@@ -67,4 +69,4 @@ export class AuthService {
 
     return utilisateur;
   }
-} 
+}

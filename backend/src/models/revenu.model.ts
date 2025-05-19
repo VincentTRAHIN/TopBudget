@@ -5,12 +5,12 @@ export type TypeCompteRevenu = "Perso" | "Conjoint";
 
 export interface IRevenuDocument extends Document {
   montant: number;
-  description: string; // anciennement 'source'
+  description: string;
   date: Date;
   typeCompte: TypeCompteRevenu;
   utilisateur: Types.ObjectId | IUser;
   commentaire?: string;
-  categorieRevenu: Types.ObjectId; // référence à CategorieRevenu
+  categorieRevenu: Types.ObjectId;
   estRecurrent: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -19,7 +19,7 @@ export interface IRevenuDocument extends Document {
 const RevenuSchema: Schema<IRevenuDocument> = new Schema(
   {
     montant: { type: Number, required: true },
-    description: { type: String, required: true }, // renommé depuis 'source'
+    description: { type: String, required: true },
     date: { type: Date, required: true },
     typeCompte: {
       type: String,

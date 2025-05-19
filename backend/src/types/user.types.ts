@@ -17,7 +17,7 @@ export interface IUser extends Document {
 /**
  * Interface pour les documents utilisateur avec champ partenaire populé
  */
-export interface IUserPopulated extends Omit<IUser, 'partenaireId'> {
+export interface IUserPopulated extends Omit<IUser, "partenaireId"> {
   partenaireId?: Pick<IUser, "_id" | "nom" | "email" | "avatarUrl"> | null;
 }
 

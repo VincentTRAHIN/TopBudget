@@ -119,7 +119,6 @@ export const MonthlyFlowsChart: React.FC<{
     data.length > 0 &&
     data[0].depensesPersoUserA !== undefined
   ) {
-    // Mode barres empilées pour le couple
     const labels = data.map((item) => {
       const date = new Date(item.mois + '-01');
       return date.toLocaleDateString('fr-FR', {

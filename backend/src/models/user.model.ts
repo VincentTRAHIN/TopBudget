@@ -22,7 +22,6 @@ const UserSchema = new Schema<IUser>({
   },
 });
 
-// Hash du mot de passe avant save
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("motDePasse")) return next();
   const salt = await bcrypt.genSalt(10);
@@ -30,7 +29,6 @@ UserSchema.pre("save", async function (next) {
   next();
 });
 
-// Méthode pour comparer les mots de passe
 UserSchema.methods.comparerMotDePasse = async function (
   motDePasse: string,
 ): Promise<boolean> {

@@ -10,8 +10,8 @@ export const useCategoriesRevenu = () => {
     categoriesRevenuEndpoint,
     fetcher,
     {
-      fallbackData: [], // Valeur par défaut si aucune donnée n'est disponible
-    }
+      fallbackData: [],
+    },
   );
 
   return {

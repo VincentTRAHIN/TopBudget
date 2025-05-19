@@ -4,42 +4,60 @@ import UserModel from "../models/user.model";
 import CategorieModel from "../models/categorie.model";
 import { AppError } from "../middlewares/error.middleware";
 import { DEPENSE, AUTH } from "../constants";
-import { TypeCompte, TypeDepense, IDepensePopulated } from "../types/depense.types";
+import {
+  TypeCompte,
+  TypeDepense,
+  IDepensePopulated,
+} from "../types/depense.types";
 import { IUser } from "../types/user.types";
-import { DepenseCreateBody, DepenseUpdateBody, DepenseQueryParams } from "../types/typed-request";
+import {
+  DepenseCreateBody,
+  DepenseUpdateBody,
+  DepenseQueryParams,
+} from "../types/typed-request";
 
 export class DepenseService {
-  private static buildDepenseQuery(query: DepenseQueryParams): Record<string, unknown> {
+  private static buildDepenseQuery(
+    query: DepenseQueryParams,
+  ): Record<string, unknown> {
     const matchFilter: Record<string, unknown> = {};
 
-    const { 
-      categorie,
-      dateDebut,
-      dateFin,
-      typeCompte,
-      typeDepense,
-      search,
-    } = query;
+    const { categorie, dateDebut, dateFin, typeCompte, typeDepense, search } =
+      query;
 
-    if (typeof typeDepense === "string" && typeDepense && Object.values(DEPENSE.TYPES_DEPENSE).includes(typeDepense as TypeDepense)) {
+    if (
+      typeof typeDepense === "string" &&
+      typeDepense &&
+      Object.values(DEPENSE.TYPES_DEPENSE).includes(typeDepense as TypeDepense)
+    ) {
       matchFilter.typeDepense = typeDepense;
     }
 
-    if (typeof categorie === "string" && categorie && mongoose.Types.ObjectId.isValid(categorie)) {
+    if (
+      typeof categorie === "string" &&
+      categorie &&
+      mongoose.Types.ObjectId.isValid(categorie)
+    ) {
       matchFilter.categorie = new mongoose.Types.ObjectId(categorie);
     }
 
     if (dateDebut || dateFin) {
       matchFilter.date = {};
       if (dateDebut) {
-        (matchFilter.date as Record<string, Date>)["$gte"] = new Date(dateDebut);
+        (matchFilter.date as Record<string, Date>)["$gte"] = new Date(
+          dateDebut,
+        );
       }
       if (dateFin) {
         (matchFilter.date as Record<string, Date>)["$lte"] = new Date(dateFin);
       }
     }
 
-    if (typeof typeCompte === "string" && typeCompte && Object.values(DEPENSE.TYPES_COMPTE).includes(typeCompte as TypeCompte)) {
+    if (
+      typeof typeCompte === "string" &&
+      typeCompte &&
+      Object.values(DEPENSE.TYPES_COMPTE).includes(typeCompte as TypeCompte)
+    ) {
       matchFilter.typeCompte = typeCompte;
     }
 
@@ -85,8 +103,12 @@ export class DepenseService {
     await nouvelleDepense.save();
 
     return DepenseModel.findById(nouvelleDepense._id)
-      .populate<{ categorie: IDepensePopulated['categorie'] }>("categorie", "nom description image")
-      .populate<{ utilisateur: IDepensePopulated['utilisateur'] }>("utilisateur", "nom _id")
+      .populate<{
+        categorie: IDepensePopulated["categorie"];
+      }>("categorie", "nom description image")
+      .populate<{
+        utilisateur: IDepensePopulated["utilisateur"];
+      }>("utilisateur", "nom _id")
       .lean<IDepensePopulated>();
   }
 
@@ -102,11 +124,13 @@ export class DepenseService {
     if (vue === "moi") {
       userIdsToQuery.push(new mongoose.Types.ObjectId(userId));
     } else if (vue === "partenaire") {
-      const currentUser = await UserModel.findById(userId).select("partenaireId");
+      const currentUser =
+        await UserModel.findById(userId).select("partenaireId");
       if (currentUser?.partenaireId) {
-        const partenaireId = typeof currentUser.partenaireId === "string"
-          ? new mongoose.Types.ObjectId(currentUser.partenaireId)
-          : new mongoose.Types.ObjectId(currentUser.partenaireId.toString());
+        const partenaireId =
+          typeof currentUser.partenaireId === "string"
+            ? new mongoose.Types.ObjectId(currentUser.partenaireId)
+            : new mongoose.Types.ObjectId(currentUser.partenaireId.toString());
         userIdsToQuery.push(partenaireId);
       } else {
         return {
@@ -116,11 +140,13 @@ export class DepenseService {
       }
     } else if (vue === "couple_complet") {
       userIdsToQuery.push(new mongoose.Types.ObjectId(userId));
-      const currentUser = await UserModel.findById(userId).select("partenaireId");
+      const currentUser =
+        await UserModel.findById(userId).select("partenaireId");
       if (currentUser?.partenaireId) {
-        const partenaireId = typeof currentUser.partenaireId === "string"
-          ? new mongoose.Types.ObjectId(currentUser.partenaireId)
-          : new mongoose.Types.ObjectId(currentUser.partenaireId.toString());
+        const partenaireId =
+          typeof currentUser.partenaireId === "string"
+            ? new mongoose.Types.ObjectId(currentUser.partenaireId)
+            : new mongoose.Types.ObjectId(currentUser.partenaireId.toString());
         userIdsToQuery.push(partenaireId);
       }
     } else {
@@ -139,8 +165,10 @@ export class DepenseService {
       .sort(sortOptions)
       .skip(skip)
       .limit(limit)
-      .populate<{ categorie: IDepensePopulated['categorie'] }>("categorie", "nom description image")
-      .populate<{ utilisateur: Pick<IUser, 'nom'> }>("utilisateur", "nom")
+      .populate<{
+        categorie: IDepensePopulated["categorie"];
+      }>("categorie", "nom description image")
+      .populate<{ utilisateur: Pick<IUser, "nom"> }>("utilisateur", "nom")
       .lean<IDepensePopulated[]>();
 
     return {
@@ -160,8 +188,12 @@ export class DepenseService {
     }
 
     const depense = await DepenseModel.findById(id)
-      .populate<{ categorie: IDepensePopulated['categorie'] }>("categorie", "nom description image")
-      .populate<{ utilisateur: IDepensePopulated['utilisateur'] }>("utilisateur", "nom email")
+      .populate<{
+        categorie: IDepensePopulated["categorie"];
+      }>("categorie", "nom description image")
+      .populate<{
+        utilisateur: IDepensePopulated["utilisateur"];
+      }>("utilisateur", "nom email")
       .lean<IDepensePopulated>();
 
     if (!depense) {
@@ -169,12 +201,15 @@ export class DepenseService {
     }
 
     const utilisateurId = userId.toString();
-    const depenseUtilisateurId = (depense.utilisateur as { _id: mongoose.Types.ObjectId })._id.toString();
+    const depenseUtilisateurId = (
+      depense.utilisateur as { _id: mongoose.Types.ObjectId }
+    )._id.toString();
 
     let hasAccess = utilisateurId === depenseUtilisateurId;
 
     if (!hasAccess) {
-      const currentUser = await UserModel.findById(userId).select("partenaireId");
+      const currentUser =
+        await UserModel.findById(userId).select("partenaireId");
       if (currentUser?.partenaireId) {
         const partenaireId = currentUser.partenaireId.toString();
         hasAccess = partenaireId === depenseUtilisateurId;
@@ -193,7 +228,10 @@ export class DepenseService {
       throw new AppError(DEPENSE.ERRORS.INVALID_ID, 400);
     }
 
-    const depense = await DepenseModel.findOne({ _id: id, utilisateur: userId });
+    const depense = await DepenseModel.findOne({
+      _id: id,
+      utilisateur: userId,
+    });
     if (!depense) {
       throw new AppError(DEPENSE.ERRORS.NOT_FOUND, 404);
     }
@@ -213,8 +251,12 @@ export class DepenseService {
     await depense.save();
 
     return DepenseModel.findById(id)
-      .populate<{ categorie: IDepensePopulated['categorie'] }>("categorie", "nom description image")
-      .populate<{ utilisateur: IDepensePopulated['utilisateur'] }>("utilisateur", "nom email")
+      .populate<{
+        categorie: IDepensePopulated["categorie"];
+      }>("categorie", "nom description image")
+      .populate<{
+        utilisateur: IDepensePopulated["utilisateur"];
+      }>("utilisateur", "nom email")
       .lean<IDepensePopulated>();
   }
 
@@ -223,11 +265,14 @@ export class DepenseService {
       throw new AppError(DEPENSE.ERRORS.INVALID_ID, 400);
     }
 
-    const depense = await DepenseModel.findOne({ _id: id, utilisateur: userId });
+    const depense = await DepenseModel.findOne({
+      _id: id,
+      utilisateur: userId,
+    });
     if (!depense) {
       throw new AppError(DEPENSE.ERRORS.NOT_FOUND, 404);
     }
 
     await depense.deleteOne();
   }
-} 
+}

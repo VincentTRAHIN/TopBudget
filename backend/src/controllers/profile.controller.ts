@@ -8,10 +8,10 @@ import { IUserProfileUpdateInput } from "../types/user.types";
 import { AUTH, PROFILE } from "../constants";
 import { AppError } from "../middlewares/error.middleware";
 
-interface ChangePasswordBody { 
-  currentPassword: string; 
-  newPassword: string; 
-  confirmPassword: string; 
+interface ChangePasswordBody {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 /**
@@ -48,7 +48,11 @@ interface ChangePasswordBody {
  *         description: Non autorisé
  */
 export const updateUserProfile = createAsyncHandler(
-  async (req: TypedAuthRequest<IUserProfileUpdateInput>, res: Response, next: NextFunction) => {
+  async (
+    req: TypedAuthRequest<IUserProfileUpdateInput>,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       if (!req.user) {
         return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
@@ -59,12 +63,15 @@ export const updateUserProfile = createAsyncHandler(
         return sendErrorClient(res, "Erreur de validation", errors.array());
       }
 
-      const result = await ProfileService.updateUserProfileData(req.user.id, req.body);
+      const result = await ProfileService.updateUserProfileData(
+        req.user.id,
+        req.body,
+      );
       return sendSuccess(res, "Profil mis à jour avec succès", result);
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -110,7 +117,7 @@ export const uploadUserAvatar = createAsyncHandler(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -150,7 +157,11 @@ export const uploadUserAvatar = createAsyncHandler(
  *         description: Non autorisé
  */
 export const changeUserPassword = createAsyncHandler(
-  async (req: TypedAuthRequest<ChangePasswordBody>, res: Response, next: NextFunction) => {
+  async (
+    req: TypedAuthRequest<ChangePasswordBody>,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       if (!req.user) {
         return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
@@ -162,10 +173,15 @@ export const changeUserPassword = createAsyncHandler(
       }
 
       const { currentPassword, newPassword, confirmPassword } = req.body;
-      const result = await ProfileService.changePassword(req.user.id, currentPassword, newPassword, confirmPassword);
+      const result = await ProfileService.changePassword(
+        req.user.id,
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      );
       return sendSuccess(res, "Mot de passe changé avec succès", result);
     } catch (error) {
       next(error);
     }
-  }
+  },
 );

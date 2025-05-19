@@ -3,9 +3,11 @@ import DepenseModel from "../models/depense.model";
 import RevenuModel from "../models/revenu.model";
 import User from "../models/user.model";
 import { IDepensePopulated } from "../types/depense.types";
-import { IUserPopulated } from '../types/user.types';
+import { IUserPopulated } from "../types/user.types";
 
-export type UserIdsType = mongoose.Types.ObjectId | { $in: ReadonlyArray<mongoose.Types.ObjectId> };
+export type UserIdsType =
+  | mongoose.Types.ObjectId
+  | { $in: ReadonlyArray<mongoose.Types.ObjectId> };
 
 interface CategorieRepartition {
   readonly _id: mongoose.Types.ObjectId;
@@ -52,8 +54,8 @@ export class StatistiquesService {
     dateFin: Date,
     typeFlux: "depense" | "revenu",
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    model: any, 
-    additionalMatch: Record<string, unknown> = {}
+    model: any,
+    additionalMatch: Record<string, unknown> = {},
   ): Promise<number> {
     const match: Record<string, unknown> = {
       utilisateur: userIds,
@@ -70,11 +72,23 @@ export class StatistiquesService {
   static async getSoldePourPeriode(
     userIds: UserIdsType,
     dateDebut: Date,
-    dateFin: Date
+    dateFin: Date,
   ): Promise<{ totalRevenus: number; totalDepenses: number; solde: number }> {
     const [totalRevenus, totalDepenses] = await Promise.all([
-      this.getTotalFluxMensuel(userIds, dateDebut, dateFin, "revenu", RevenuModel),
-      this.getTotalFluxMensuel(userIds, dateDebut, dateFin, "depense", DepenseModel),
+      this.getTotalFluxMensuel(
+        userIds,
+        dateDebut,
+        dateFin,
+        "revenu",
+        RevenuModel,
+      ),
+      this.getTotalFluxMensuel(
+        userIds,
+        dateDebut,
+        dateFin,
+        "depense",
+        DepenseModel,
+      ),
     ]);
     return {
       totalRevenus,
@@ -87,12 +101,14 @@ export class StatistiquesService {
     userIds: UserIdsType,
     dateDebut: Date,
     dateFin: Date,
-    typeFlux: "depense" | "revenu"
+    typeFlux: "depense" | "revenu",
   ): Promise<CategorieRepartition[]> {
     const model = typeFlux === "depense" ? DepenseModel : RevenuModel;
-    const categorieField = typeFlux === "depense" ? "categorie" : "categorieRevenu";
-    const categorieCollection = typeFlux === "depense" ? "categories" : "categorierevenus";
-    
+    const categorieField =
+      typeFlux === "depense" ? "categorie" : "categorieRevenu";
+    const categorieCollection =
+      typeFlux === "depense" ? "categories" : "categorierevenus";
+
     return model.aggregate([
       {
         $match: {
@@ -139,12 +155,36 @@ export class StatistiquesService {
     userIds: UserIdsType,
     dateActuelle: Date,
     datePrecedente: Date,
-    type: "depenses" | "revenus" | "solde"
+    type: "depenses" | "revenus" | "solde",
   ): Promise<ComparaisonInfo> {
-    const startActuelle = new Date(dateActuelle.getFullYear(), dateActuelle.getMonth(), 1);
-    const endActuelle = new Date(dateActuelle.getFullYear(), dateActuelle.getMonth() + 1, 0, 23, 59, 59, 999);
-    const startPrecedente = new Date(datePrecedente.getFullYear(), datePrecedente.getMonth(), 1);
-    const endPrecedente = new Date(datePrecedente.getFullYear(), datePrecedente.getMonth() + 1, 0, 23, 59, 59, 999);
+    const startActuelle = new Date(
+      dateActuelle.getFullYear(),
+      dateActuelle.getMonth(),
+      1,
+    );
+    const endActuelle = new Date(
+      dateActuelle.getFullYear(),
+      dateActuelle.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
+    const startPrecedente = new Date(
+      datePrecedente.getFullYear(),
+      datePrecedente.getMonth(),
+      1,
+    );
+    const endPrecedente = new Date(
+      datePrecedente.getFullYear(),
+      datePrecedente.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
     if (type === "solde") {
       const [soldeActuel, soldePrecedent] = await Promise.all([
         this.getSoldePourPeriode(userIds, startActuelle, endActuelle),
@@ -158,8 +198,20 @@ export class StatistiquesService {
     } else {
       const model = type === "depenses" ? DepenseModel : RevenuModel;
       const [totalActuel, totalPrecedent] = await Promise.all([
-        this.getTotalFluxMensuel(userIds, startActuelle, endActuelle, type === "depenses" ? "depense" : "revenu", model),
-        this.getTotalFluxMensuel(userIds, startPrecedente, endPrecedente, type === "depenses" ? "depense" : "revenu", model),
+        this.getTotalFluxMensuel(
+          userIds,
+          startActuelle,
+          endActuelle,
+          type === "depenses" ? "depense" : "revenu",
+          model,
+        ),
+        this.getTotalFluxMensuel(
+          userIds,
+          startPrecedente,
+          endPrecedente,
+          type === "depenses" ? "depense" : "revenu",
+          model,
+        ),
       ]);
       return {
         actuel: totalActuel,
@@ -174,25 +226,48 @@ export class StatistiquesService {
     nbMois: number,
     dateReference: Date,
     typeFlux: "depenses" | "revenus" | "solde",
-    options?: { estRecurrent?: boolean }
+    options?: { estRecurrent?: boolean },
   ): Promise<EvolutionFluxResult[]> {
     const results: EvolutionFluxResult[] = [];
     for (let i = nbMois - 1; i >= 0; i--) {
       const date = new Date(dateReference);
       date.setMonth(date.getMonth() - i);
       const start = new Date(date.getFullYear(), date.getMonth(), 1);
-      const end = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+      const end = new Date(
+        date.getFullYear(),
+        date.getMonth() + 1,
+        0,
+        23,
+        59,
+        59,
+        999,
+      );
       if (typeFlux === "solde") {
         const solde = await this.getSoldePourPeriode(userIds, start, end);
-        results.push({ mois: start.getMonth() + 1, annee: start.getFullYear(), ...solde });
+        results.push({
+          mois: start.getMonth() + 1,
+          annee: start.getFullYear(),
+          ...solde,
+        });
       } else {
         const model = typeFlux === "depenses" ? DepenseModel : RevenuModel;
         const match: Record<string, unknown> = {};
         if (options?.estRecurrent !== undefined) {
           match.estRecurrent = options.estRecurrent;
         }
-        const total = await this.getTotalFluxMensuel(userIds, start, end, typeFlux === "depenses" ? "depense" : "revenu", model, match);
-        results.push({ mois: start.getMonth() + 1, annee: start.getFullYear(), total });
+        const total = await this.getTotalFluxMensuel(
+          userIds,
+          start,
+          end,
+          typeFlux === "depenses" ? "depense" : "revenu",
+          model,
+          match,
+        );
+        results.push({
+          mois: start.getMonth() + 1,
+          annee: start.getFullYear(),
+          total,
+        });
       }
     }
     return results;
@@ -201,130 +276,166 @@ export class StatistiquesService {
   static async getRepartitionRevenusParCategorie(
     userIds: UserIdsType,
     dateDebut: Date,
-    dateFin: Date
+    dateFin: Date,
   ): Promise<CategorieRepartition[]> {
-    return this.getRepartitionParCategorie(userIds, dateDebut, dateFin, "revenu");
+    return this.getRepartitionParCategorie(
+      userIds,
+      dateDebut,
+      dateFin,
+      "revenu",
+    );
   }
 
   static async getSyntheseMensuelleCouple(
-    userIdPrincipal: string, 
-    partenaireId: string, 
-    dateDebut: Date, 
-    dateFin: Date
+    userIdPrincipal: string,
+    partenaireId: string,
+    dateDebut: Date,
+    dateFin: Date,
   ): Promise<{
     soldeGlobal: SoldeInfo;
-    utilisateurPrincipal: { nom: string; depenses: number; revenus: number; solde: number };
-    partenaire: { nom: string; depenses: number; revenus: number; solde: number };
+    utilisateurPrincipal: {
+      nom: string;
+      depenses: number;
+      revenus: number;
+      solde: number;
+    };
+    partenaire: {
+      nom: string;
+      depenses: number;
+      revenus: number;
+      solde: number;
+    };
     ratioDependes: { utilisateurPrincipal: number; partenaire: number };
     ratioRevenus: { utilisateurPrincipal: number; partenaire: number };
   }> {
-    // Récupérer les utilisateurs
     const [utilisateurPrincipal, partenaire] = await Promise.all([
       User.findById(userIdPrincipal).lean<IUserPopulated>(),
-      User.findById(partenaireId).lean<IUserPopulated>()
+      User.findById(partenaireId).lean<IUserPopulated>(),
     ]);
 
     if (!utilisateurPrincipal || !partenaire) {
       throw new Error("Utilisateur principal ou partenaire non trouvé");
     }
 
-    // Récupérer les données financières pour chaque utilisateur
     const [statsPrincipal, statsPartenaire] = await Promise.all([
       this.getSoldePourPeriode(
         new mongoose.Types.ObjectId(userIdPrincipal),
         dateDebut,
-        dateFin
+        dateFin,
       ),
       this.getSoldePourPeriode(
         new mongoose.Types.ObjectId(partenaireId),
         dateDebut,
-        dateFin
-      )
+        dateFin,
+      ),
     ]);
 
-    // Calcul des totaux globaux
-    const totalDepensesCouple = statsPrincipal.totalDepenses + statsPartenaire.totalDepenses;
-    const totalRevenusCouple = statsPrincipal.totalRevenus + statsPartenaire.totalRevenus;
+    const totalDepensesCouple =
+      statsPrincipal.totalDepenses + statsPartenaire.totalDepenses;
+    const totalRevenusCouple =
+      statsPrincipal.totalRevenus + statsPartenaire.totalRevenus;
     const soldeGlobal = totalRevenusCouple - totalDepensesCouple;
 
-    // Calcul des ratios
     const ratioDependes = {
-      utilisateurPrincipal: totalDepensesCouple === 0 ? 0 : (statsPrincipal.totalDepenses / totalDepensesCouple) * 100,
-      partenaire: totalDepensesCouple === 0 ? 0 : (statsPartenaire.totalDepenses / totalDepensesCouple) * 100
+      utilisateurPrincipal:
+        totalDepensesCouple === 0
+          ? 0
+          : (statsPrincipal.totalDepenses / totalDepensesCouple) * 100,
+      partenaire:
+        totalDepensesCouple === 0
+          ? 0
+          : (statsPartenaire.totalDepenses / totalDepensesCouple) * 100,
     };
 
     const ratioRevenus = {
-      utilisateurPrincipal: totalRevenusCouple === 0 ? 0 : (statsPrincipal.totalRevenus / totalRevenusCouple) * 100,
-      partenaire: totalRevenusCouple === 0 ? 0 : (statsPartenaire.totalRevenus / totalRevenusCouple) * 100
+      utilisateurPrincipal:
+        totalRevenusCouple === 0
+          ? 0
+          : (statsPrincipal.totalRevenus / totalRevenusCouple) * 100,
+      partenaire:
+        totalRevenusCouple === 0
+          ? 0
+          : (statsPartenaire.totalRevenus / totalRevenusCouple) * 100,
     };
 
     return {
       soldeGlobal: {
         totalRevenus: totalRevenusCouple,
         totalDepenses: totalDepensesCouple,
-        solde: soldeGlobal
+        solde: soldeGlobal,
       },
       utilisateurPrincipal: {
         nom: utilisateurPrincipal.nom,
         depenses: statsPrincipal.totalDepenses,
         revenus: statsPrincipal.totalRevenus,
-        solde: statsPrincipal.solde
+        solde: statsPrincipal.solde,
       },
       partenaire: {
         nom: partenaire.nom,
         depenses: statsPartenaire.totalDepenses,
         revenus: statsPartenaire.totalRevenus,
-        solde: statsPartenaire.solde
+        solde: statsPartenaire.solde,
       },
       ratioDependes,
-      ratioRevenus
+      ratioRevenus,
     };
   }
 
   static async getContributionsCouple(
-    userIdPrincipal: string, 
-    partenaireId: string, 
-    dateDebut: Date, 
-    dateFin: Date
+    userIdPrincipal: string,
+    partenaireId: string,
+    dateDebut: Date,
+    dateFin: Date,
   ): Promise<{
     contributionsUtilisateurs: ContributionCouple[];
     totalDepensesCouple: number;
     totalRevenusCouple: number;
     soldeCouple: number;
   }> {
-    // Récupérer les utilisateurs
     const [utilisateurPrincipal, partenaire] = await Promise.all([
       User.findById(userIdPrincipal).lean<IUserPopulated>(),
-      User.findById(partenaireId).lean<IUserPopulated>()
+      User.findById(partenaireId).lean<IUserPopulated>(),
     ]);
 
     if (!utilisateurPrincipal || !partenaire) {
       throw new Error("Utilisateur principal ou partenaire non trouvé");
     }
 
-    // Récupérer les données financières pour chaque utilisateur
     const [statsPrincipal, statsPartenaire] = await Promise.all([
       this.getSoldePourPeriode(
         new mongoose.Types.ObjectId(userIdPrincipal),
         dateDebut,
-        dateFin
+        dateFin,
       ),
       this.getSoldePourPeriode(
         new mongoose.Types.ObjectId(partenaireId),
         dateDebut,
-        dateFin
-      )
+        dateFin,
+      ),
     ]);
 
-    // Calcul des totaux et pourcentages
-    const totalDepensesCouple = statsPrincipal.totalDepenses + statsPartenaire.totalDepenses;
-    const totalRevenusCouple = statsPrincipal.totalRevenus + statsPartenaire.totalRevenus;
-    
-    const pourcentageDepensesPrincipal = totalDepensesCouple === 0 ? 0 : (statsPrincipal.totalDepenses / totalDepensesCouple) * 100;
-    const pourcentageDepensesPartenaire = totalDepensesCouple === 0 ? 0 : (statsPartenaire.totalDepenses / totalDepensesCouple) * 100;
-    
-    const pourcentageRevenusPrincipal = totalRevenusCouple === 0 ? 0 : (statsPrincipal.totalRevenus / totalRevenusCouple) * 100;
-    const pourcentageRevenusPartenaire = totalRevenusCouple === 0 ? 0 : (statsPartenaire.totalRevenus / totalRevenusCouple) * 100;
+    const totalDepensesCouple =
+      statsPrincipal.totalDepenses + statsPartenaire.totalDepenses;
+    const totalRevenusCouple =
+      statsPrincipal.totalRevenus + statsPartenaire.totalRevenus;
+
+    const pourcentageDepensesPrincipal =
+      totalDepensesCouple === 0
+        ? 0
+        : (statsPrincipal.totalDepenses / totalDepensesCouple) * 100;
+    const pourcentageDepensesPartenaire =
+      totalDepensesCouple === 0
+        ? 0
+        : (statsPartenaire.totalDepenses / totalDepensesCouple) * 100;
+
+    const pourcentageRevenusPrincipal =
+      totalRevenusCouple === 0
+        ? 0
+        : (statsPrincipal.totalRevenus / totalRevenusCouple) * 100;
+    const pourcentageRevenusPartenaire =
+      totalRevenusCouple === 0
+        ? 0
+        : (statsPartenaire.totalRevenus / totalRevenusCouple) * 100;
 
     const contributionsUtilisateurs: ContributionCouple[] = [
       {
@@ -334,7 +445,7 @@ export class StatistiquesService {
         pourcentageDepenses: pourcentageDepensesPrincipal,
         totalRevenus: statsPrincipal.totalRevenus,
         pourcentageRevenus: pourcentageRevenusPrincipal,
-        solde: statsPrincipal.solde
+        solde: statsPrincipal.solde,
       },
       {
         utilisateurId: partenaireId,
@@ -343,23 +454,23 @@ export class StatistiquesService {
         pourcentageDepenses: pourcentageDepensesPartenaire,
         totalRevenus: statsPartenaire.totalRevenus,
         pourcentageRevenus: pourcentageRevenusPartenaire,
-        solde: statsPartenaire.solde
-      }
+        solde: statsPartenaire.solde,
+      },
     ];
 
     return {
       contributionsUtilisateurs,
       totalDepensesCouple,
       totalRevenusCouple,
-      soldeCouple: totalRevenusCouple - totalDepensesCouple
+      soldeCouple: totalRevenusCouple - totalDepensesCouple,
     };
   }
 
   static async getChargesFixesCouple(
-    userIdPrincipal: string, 
-    partenaireId: string, 
-    dateDebut: Date, 
-    dateFin: Date
+    userIdPrincipal: string,
+    partenaireId: string,
+    dateDebut: Date,
+    dateFin: Date,
   ): Promise<{
     chargesUtilisateurPrincipal: IDepensePopulated[];
     chargesPartenaire: IDepensePopulated[];
@@ -367,46 +478,45 @@ export class StatistiquesService {
     totalChargesPartenaire: number;
     totalChargesCouple: number;
   }> {
-    // Récupérer les charges fixes pour chaque utilisateur
     const [chargesUtilisateurPrincipal, chargesPartenaire] = await Promise.all([
       DepenseModel.find({
         utilisateur: new mongoose.Types.ObjectId(userIdPrincipal),
         date: { $gte: dateDebut, $lte: dateFin },
-        estChargeFixe: true
+        estChargeFixe: true,
       })
-      .populate("categorie", "nom")
-      .sort({ date: -1 })
-      .lean<IDepensePopulated[]>(),
-      
+        .populate("categorie", "nom")
+        .sort({ date: -1 })
+        .lean<IDepensePopulated[]>(),
+
       DepenseModel.find({
         utilisateur: new mongoose.Types.ObjectId(partenaireId),
         date: { $gte: dateDebut, $lte: dateFin },
-        estChargeFixe: true
+        estChargeFixe: true,
       })
-      .populate("categorie", "nom")
-      .sort({ date: -1 })
-      .lean<IDepensePopulated[]>()
+        .populate("categorie", "nom")
+        .sort({ date: -1 })
+        .lean<IDepensePopulated[]>(),
     ]);
 
-    // Calculer les totaux
     const totalChargesUtilisateurPrincipal = chargesUtilisateurPrincipal.reduce(
       (acc, charge) => acc + charge.montant,
-      0
-    );
-    
-    const totalChargesPartenaire = chargesPartenaire.reduce(
-      (acc, charge) => acc + charge.montant,
-      0
+      0,
     );
 
-    const totalChargesCouple = totalChargesUtilisateurPrincipal + totalChargesPartenaire;
+    const totalChargesPartenaire = chargesPartenaire.reduce(
+      (acc, charge) => acc + charge.montant,
+      0,
+    );
+
+    const totalChargesCouple =
+      totalChargesUtilisateurPrincipal + totalChargesPartenaire;
 
     return {
       chargesUtilisateurPrincipal,
       chargesPartenaire,
       totalChargesUtilisateurPrincipal,
       totalChargesPartenaire,
-      totalChargesCouple
+      totalChargesCouple,
     };
   }
-} 
+}

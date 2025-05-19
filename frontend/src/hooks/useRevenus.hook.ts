@@ -48,7 +48,6 @@ export const useRevenus = (
           queryParams.append('estRecurrent', value);
         }
       } else if (key === 'search') {
-        // Le backend recherche déjà sur description et commentaire
         queryParams.append('search', value);
       } else {
         queryParams.append(key, value);

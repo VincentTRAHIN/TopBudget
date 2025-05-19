@@ -19,7 +19,8 @@ export interface IDepense extends Document {
 /**
  * Interface pour les documents de dépense avec champs populés
  */
-export interface IDepensePopulated extends Omit<IDepense, 'categorie' | 'utilisateur'> {
+export interface IDepensePopulated
+  extends Omit<IDepense, "categorie" | "utilisateur"> {
   categorie: {
     _id: Types.ObjectId;
     nom: string;

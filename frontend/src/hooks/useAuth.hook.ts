@@ -15,7 +15,6 @@ export const useAuth = () => {
   const router = useRouter();
   const [authInitialized, setAuthInitialized] = useState(false);
 
-  // Vérifier le token au démarrage
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     console.log('[AUTH] Token initial:', token ? 'présent' : 'absent');
@@ -30,13 +29,13 @@ export const useAuth = () => {
   } = useSWR<IUser | null>(authInitialized ? meEndpoint : null, fetcher, {
     shouldRetryOnError: false,
     revalidateIfStale: true,
-    revalidateOnFocus: true, 
-    refreshInterval: 60000, // Rafraichir le token toutes les minutes
+    revalidateOnFocus: true,
+    refreshInterval: 60000,
     onSuccess: (data) => {
       console.log('[AUTH] Utilisateur authentifié:', !!data);
     },
     onError: (err) => {
-      console.error('[AUTH] Erreur d\'authentification:', err);
+      console.error("[AUTH] Erreur d'authentification:", err);
       if (err.status === 401) {
         console.warn('[AUTH] Token invalide ou expiré, suppression');
         localStorage.removeItem('authToken');
@@ -85,10 +84,9 @@ export const useAuth = () => {
 
       console.log('[AUTH] Connexion réussie, stockage du token');
       localStorage.setItem('authToken', data.data.token);
-      
-      // Rechargement des informations utilisateur
+
       await mutate();
-      
+
       return data;
     } catch (error) {
       console.error('[AUTH] Erreur de login:', error);
@@ -118,19 +116,18 @@ export const useAuth = () => {
       }
 
       if (!data.data?.token) {
-        console.error('[AUTH] Token manquant dans la réponse d\'inscription');
+        console.error("[AUTH] Token manquant dans la réponse d'inscription");
         throw new Error('Token manquant dans la réponse');
       }
 
       console.log('[AUTH] Inscription réussie, stockage du token');
       localStorage.setItem('authToken', data.data.token);
-      
-      // Rechargement des informations utilisateur
+
       await mutate();
-      
+
       return data;
     } catch (error) {
-      console.error('[AUTH] Erreur d\'inscription:', error);
+      console.error("[AUTH] Erreur d'inscription:", error);
       localStorage.removeItem('authToken');
       await mutate(null, false);
       throw error;
@@ -146,7 +143,6 @@ export const useAuth = () => {
     router.push('/auth/login');
   };
 
-  // Force la vérification du token et recharge l'utilisateur
   const refreshUser = async () => {
     console.log('[AUTH] Rafraîchissement forcé des données utilisateur');
     return mutate();

@@ -1,4 +1,3 @@
-// TableRevenus: Table component for listing revenus, inspired by TableDepenses
 'use client';
 
 import { useState } from 'react';
@@ -108,11 +107,12 @@ export default function TableRevenus({
             className="input"
           >
             <option value="">Toutes</option>
-            {Array.isArray(categoriesRevenu) && categoriesRevenu.map((cat: ICategorieRevenu) => (
-              <option key={cat._id} value={cat._id}>
-                {cat.nom}
-              </option>
-            ))}
+            {Array.isArray(categoriesRevenu) &&
+              categoriesRevenu.map((cat: ICategorieRevenu) => (
+                <option key={cat._id} value={cat._id}>
+                  {cat.nom}
+                </option>
+              ))}
           </select>
         </div>
         <div className="flex-grow min-w-[130px]">

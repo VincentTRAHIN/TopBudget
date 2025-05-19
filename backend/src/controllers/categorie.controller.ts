@@ -3,7 +3,12 @@ import { validationResult } from "express-validator";
 import { createAsyncHandler } from "../utils/async.utils";
 import { sendSuccess, sendErrorClient } from "../utils/response.utils";
 import { CategorieService } from "../services/categorie.service";
-import { TypedAuthRequest, CategorieCreateBody, CategorieUpdateBody, IdParams } from "../types/typed-request";
+import {
+  TypedAuthRequest,
+  CategorieCreateBody,
+  CategorieUpdateBody,
+  IdParams,
+} from "../types/typed-request";
 import { CATEGORIE, COMMON } from "../constants";
 
 /**
@@ -38,11 +43,19 @@ import { CATEGORIE, COMMON } from "../constants";
  *         description: La catégorie existe déjà
  */
 export const ajouterCategorie = createAsyncHandler(
-  async (req: TypedAuthRequest<CategorieCreateBody>, res: Response, next: NextFunction) => {
+  async (
+    req: TypedAuthRequest<CategorieCreateBody>,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return sendErrorClient(res, COMMON.ERRORS.VALIDATION_ERROR, errors.array());
+        return sendErrorClient(
+          res,
+          COMMON.ERRORS.VALIDATION_ERROR,
+          errors.array(),
+        );
       }
 
       const categorie = await CategorieService.create(req.body);
@@ -50,7 +63,7 @@ export const ajouterCategorie = createAsyncHandler(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -73,7 +86,7 @@ export const obtenirCategories = createAsyncHandler(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -98,14 +111,18 @@ export const obtenirCategories = createAsyncHandler(
  *         description: Catégorie non trouvée
  */
 export const obtenirCategorieParId = createAsyncHandler(
-  async (req: TypedAuthRequest<unknown, IdParams>, res: Response, next: NextFunction) => {
+  async (
+    req: TypedAuthRequest<unknown, IdParams>,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const categorie = await CategorieService.getById(req.params.id);
       return sendSuccess(res, CATEGORIE.SUCCESS.FETCHED, categorie);
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -147,11 +164,19 @@ export const obtenirCategorieParId = createAsyncHandler(
  *         description: La catégorie existe déjà
  */
 export const modifierCategorie = createAsyncHandler(
-  async (req: TypedAuthRequest<CategorieUpdateBody, IdParams>, res: Response, next: NextFunction) => {
+  async (
+    req: TypedAuthRequest<CategorieUpdateBody, IdParams>,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return sendErrorClient(res, COMMON.ERRORS.VALIDATION_ERROR, errors.array());
+        return sendErrorClient(
+          res,
+          COMMON.ERRORS.VALIDATION_ERROR,
+          errors.array(),
+        );
       }
 
       const categorie = await CategorieService.update(req.params.id, req.body);
@@ -159,7 +184,7 @@ export const modifierCategorie = createAsyncHandler(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -186,12 +211,16 @@ export const modifierCategorie = createAsyncHandler(
  *         description: Catégorie non trouvée
  */
 export const supprimerCategorie = createAsyncHandler(
-  async (req: TypedAuthRequest<unknown, IdParams>, res: Response, next: NextFunction) => {
+  async (
+    req: TypedAuthRequest<unknown, IdParams>,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       await CategorieService.delete(req.params.id);
       return sendSuccess(res, CATEGORIE.SUCCESS.DELETED, null);
     } catch (error) {
       next(error);
     }
-  }
+  },
 );

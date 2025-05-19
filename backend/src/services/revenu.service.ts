@@ -6,10 +6,16 @@ import { AppError } from "../middlewares/error.middleware";
 import { REVENU, AUTH } from "../constants";
 import { TypeCompteRevenu, IRevenuPopulated } from "../types/revenu.types";
 import { IUser } from "../types/user.types";
-import { RevenuCreateBody, RevenuUpdateBody, RevenuQueryParams } from "../types/typed-request";
+import {
+  RevenuCreateBody,
+  RevenuUpdateBody,
+  RevenuQueryParams,
+} from "../types/typed-request";
 
 export class RevenuService {
-  private static buildRevenuQuery(params: RevenuQueryParams): Record<string, unknown> {
+  private static buildRevenuQuery(
+    params: RevenuQueryParams,
+  ): Record<string, unknown> {
     const query: Record<string, unknown> = {};
     const {
       dateDebut,
@@ -22,11 +28,15 @@ export class RevenuService {
 
     if (dateDebut) {
       if (!query.date) query.date = {} as { $gte?: Date; $lte?: Date };
-      (query.date as { $gte?: Date; $lte?: Date }).$gte = new Date(dateDebut as string);
+      (query.date as { $gte?: Date; $lte?: Date }).$gte = new Date(
+        dateDebut as string,
+      );
     }
     if (dateFin) {
       if (!query.date) query.date = {} as { $gte?: Date; $lte?: Date };
-      (query.date as { $gte?: Date; $lte?: Date }).$lte = new Date(dateFin as string);
+      (query.date as { $gte?: Date; $lte?: Date }).$lte = new Date(
+        dateFin as string,
+      );
     }
     if (typeCompte) query.typeCompte = typeCompte as TypeCompteRevenu;
     if (categorieRevenu) query.categorieRevenu = categorieRevenu;
@@ -56,7 +66,8 @@ export class RevenuService {
       estRecurrent,
     } = data;
 
-    const categorieExiste = await CategorieRevenuModel.findById(categorieRevenu);
+    const categorieExiste =
+      await CategorieRevenuModel.findById(categorieRevenu);
     if (!categorieExiste) {
       throw new AppError(REVENU.ERRORS.CATEGORIE_REVENU_NOT_FOUND, 404);
     }
@@ -75,8 +86,12 @@ export class RevenuService {
     await nouveauRevenu.save();
 
     return RevenuModel.findById(nouveauRevenu._id)
-      .populate<{ categorieRevenu: IRevenuPopulated['categorieRevenu'] }>("categorieRevenu", "nom description image")
-      .populate<{ utilisateur: IRevenuPopulated['utilisateur'] }>("utilisateur", "nom _id")
+      .populate<{
+        categorieRevenu: IRevenuPopulated["categorieRevenu"];
+      }>("categorieRevenu", "nom description image")
+      .populate<{
+        utilisateur: IRevenuPopulated["utilisateur"];
+      }>("utilisateur", "nom _id")
       .lean<IRevenuPopulated>();
   }
 
@@ -92,11 +107,13 @@ export class RevenuService {
     if (vue === "moi") {
       userIdsToQuery.push(new mongoose.Types.ObjectId(userId));
     } else if (vue === "partenaire") {
-      const currentUser = await UserModel.findById(userId).select("partenaireId");
+      const currentUser =
+        await UserModel.findById(userId).select("partenaireId");
       if (currentUser?.partenaireId) {
-        const partenaireId = typeof currentUser.partenaireId === "string"
-          ? new mongoose.Types.ObjectId(currentUser.partenaireId)
-          : new mongoose.Types.ObjectId(currentUser.partenaireId.toString());
+        const partenaireId =
+          typeof currentUser.partenaireId === "string"
+            ? new mongoose.Types.ObjectId(currentUser.partenaireId)
+            : new mongoose.Types.ObjectId(currentUser.partenaireId.toString());
         userIdsToQuery.push(partenaireId);
       } else {
         return {
@@ -106,11 +123,13 @@ export class RevenuService {
       }
     } else if (vue === "couple_complet") {
       userIdsToQuery.push(new mongoose.Types.ObjectId(userId));
-      const currentUser = await UserModel.findById(userId).select("partenaireId");
+      const currentUser =
+        await UserModel.findById(userId).select("partenaireId");
       if (currentUser?.partenaireId) {
-        const partenaireId = typeof currentUser.partenaireId === "string"
-          ? new mongoose.Types.ObjectId(currentUser.partenaireId)
-          : new mongoose.Types.ObjectId(currentUser.partenaireId.toString());
+        const partenaireId =
+          typeof currentUser.partenaireId === "string"
+            ? new mongoose.Types.ObjectId(currentUser.partenaireId)
+            : new mongoose.Types.ObjectId(currentUser.partenaireId.toString());
         userIdsToQuery.push(partenaireId);
       }
     } else {
@@ -129,8 +148,10 @@ export class RevenuService {
       .sort(sortOptions)
       .skip(skip)
       .limit(limit)
-      .populate<{ categorieRevenu: IRevenuPopulated['categorieRevenu'] }>("categorieRevenu", "nom description image")
-      .populate<{ utilisateur: Pick<IUser, 'nom'> }>("utilisateur", "nom")
+      .populate<{
+        categorieRevenu: IRevenuPopulated["categorieRevenu"];
+      }>("categorieRevenu", "nom description image")
+      .populate<{ utilisateur: Pick<IUser, "nom"> }>("utilisateur", "nom")
       .lean<IRevenuPopulated[]>();
 
     return {
@@ -150,8 +171,12 @@ export class RevenuService {
     }
 
     const revenu = await RevenuModel.findById(id)
-      .populate<{ categorieRevenu: IRevenuPopulated['categorieRevenu'] }>("categorieRevenu", "nom description image")
-      .populate<{ utilisateur: IRevenuPopulated['utilisateur'] }>("utilisateur", "nom email")
+      .populate<{
+        categorieRevenu: IRevenuPopulated["categorieRevenu"];
+      }>("categorieRevenu", "nom description image")
+      .populate<{
+        utilisateur: IRevenuPopulated["utilisateur"];
+      }>("utilisateur", "nom email")
       .lean<IRevenuPopulated>();
 
     if (!revenu) {
@@ -159,12 +184,15 @@ export class RevenuService {
     }
 
     const utilisateurId = userId.toString();
-    const revenuUtilisateurId = (revenu.utilisateur as { _id: mongoose.Types.ObjectId })._id.toString();
+    const revenuUtilisateurId = (
+      revenu.utilisateur as { _id: mongoose.Types.ObjectId }
+    )._id.toString();
 
     let hasAccess = utilisateurId === revenuUtilisateurId;
 
     if (!hasAccess) {
-      const currentUser = await UserModel.findById(userId).select("partenaireId");
+      const currentUser =
+        await UserModel.findById(userId).select("partenaireId");
       if (currentUser?.partenaireId) {
         const partenaireId = currentUser.partenaireId.toString();
         hasAccess = partenaireId === revenuUtilisateurId;
@@ -189,7 +217,9 @@ export class RevenuService {
     }
 
     if (data.categorieRevenu) {
-      const categorieExiste = await CategorieRevenuModel.findById(data.categorieRevenu);
+      const categorieExiste = await CategorieRevenuModel.findById(
+        data.categorieRevenu,
+      );
       if (!categorieExiste) {
         throw new AppError(REVENU.ERRORS.CATEGORIE_REVENU_NOT_FOUND, 404);
       }
@@ -203,8 +233,12 @@ export class RevenuService {
     await revenu.save();
 
     return RevenuModel.findById(id)
-      .populate<{ categorieRevenu: IRevenuPopulated['categorieRevenu'] }>("categorieRevenu", "nom description image")
-      .populate<{ utilisateur: IRevenuPopulated['utilisateur'] }>("utilisateur", "nom email")
+      .populate<{
+        categorieRevenu: IRevenuPopulated["categorieRevenu"];
+      }>("categorieRevenu", "nom description image")
+      .populate<{
+        utilisateur: IRevenuPopulated["utilisateur"];
+      }>("utilisateur", "nom email")
       .lean<IRevenuPopulated>();
   }
 
@@ -220,4 +254,4 @@ export class RevenuService {
 
     await revenu.deleteOne();
   }
-} 
+}

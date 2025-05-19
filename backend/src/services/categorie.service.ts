@@ -7,7 +7,10 @@ import { ICategorieInput } from "../types/categorie.types";
 
 export class CategorieService {
   private static validateNameLength(name: string): void {
-    if (name.length < CATEGORIE.VALIDATION.MIN_NOM_LENGTH || name.length > CATEGORIE.VALIDATION.MAX_NOM_LENGTH) {
+    if (
+      name.length < CATEGORIE.VALIDATION.MIN_NOM_LENGTH ||
+      name.length > CATEGORIE.VALIDATION.MAX_NOM_LENGTH
+    ) {
       throw new AppError(CATEGORIE.ERRORS.INVALID_NOM_LENGTH, 400);
     }
   }
@@ -18,10 +21,15 @@ export class CategorieService {
     }
   }
 
-  private static async checkNameExists(name: string, excludeId?: string): Promise<void> {
+  private static async checkNameExists(
+    name: string,
+    excludeId?: string,
+  ): Promise<void> {
     const query = { nom: name };
     if (excludeId) {
-      Object.assign(query, { _id: { $ne: new mongoose.Types.ObjectId(excludeId) } });
+      Object.assign(query, {
+        _id: { $ne: new mongoose.Types.ObjectId(excludeId) },
+      });
     }
 
     const existingCategorie = await CategorieModel.findOne(query);
@@ -95,7 +103,6 @@ export class CategorieService {
       throw new AppError(CATEGORIE.ERRORS.NOT_FOUND, 404);
     }
 
-    // Vérifier si la catégorie est utilisée dans des dépenses
     const depensesCount = await DepenseModel.countDocuments({ categorie: id });
     if (depensesCount > 0) {
       throw new AppError(CATEGORIE.ERRORS.IN_USE, 400);
@@ -103,4 +110,4 @@ export class CategorieService {
 
     await categorie.deleteOne();
   }
-} 
+}

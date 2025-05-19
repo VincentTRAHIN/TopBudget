@@ -4,15 +4,15 @@ import logger from "../utils/logger.utils";
 import { AppError } from "../middlewares/error.middleware";
 import { AUTH, REVENU, COMMON } from "../constants";
 import { ImportService } from "../services/import.service";
-import { sendSuccess, sendErrorClient } from '../utils/response.utils';
-import { 
-  RevenuCreateBody, 
-  RevenuUpdateBody, 
-  RevenuQueryParams
-} from '../types/typed-request';
-import { createAsyncHandler } from '../utils/async.utils';
-import { AuthRequest } from '../middlewares/auth.middleware';
-import { RevenuService } from '../services/revenu.service';
+import { sendSuccess, sendErrorClient } from "../utils/response.utils";
+import {
+  RevenuCreateBody,
+  RevenuUpdateBody,
+  RevenuQueryParams,
+} from "../types/typed-request";
+import { createAsyncHandler } from "../utils/async.utils";
+import { AuthRequest } from "../middlewares/auth.middleware";
+import { RevenuService } from "../services/revenu.service";
 
 /**
  * @swagger
@@ -72,13 +72,16 @@ export const ajouterRevenu = createAsyncHandler(
     }
 
     try {
-      const revenu = await RevenuService.create(req.body as RevenuCreateBody, req.user.id);
+      const revenu = await RevenuService.create(
+        req.body as RevenuCreateBody,
+        req.user.id,
+      );
       return sendSuccess(res, "Revenu créé avec succès", revenu, 201);
     } catch (error) {
       logger.error("Erreur lors de la création du revenu:", error);
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -161,13 +164,20 @@ export const obtenirRevenus = createAsyncHandler(
     }
 
     try {
-      const result = await RevenuService.getAll(req.query as RevenuQueryParams, req.user.id);
-      return sendSuccess(res, "Liste des revenus récupérée avec succès", result);
+      const result = await RevenuService.getAll(
+        req.query as RevenuQueryParams,
+        req.user.id,
+      );
+      return sendSuccess(
+        res,
+        "Liste des revenus récupérée avec succès",
+        result,
+      );
     } catch (error) {
       logger.error("Erreur lors de la récupération des revenus:", error);
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -206,7 +216,7 @@ export const obtenirRevenuParId = createAsyncHandler(
       logger.error("Erreur lors de la récupération du revenu:", error);
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -269,13 +279,17 @@ export const modifierRevenu = createAsyncHandler(
     }
 
     try {
-      const revenu = await RevenuService.update(req.params.id, req.body as RevenuUpdateBody, req.user.id);
+      const revenu = await RevenuService.update(
+        req.params.id,
+        req.body as RevenuUpdateBody,
+        req.user.id,
+      );
       return sendSuccess(res, "Revenu modifié avec succès", revenu);
     } catch (error) {
       logger.error("Erreur lors de la modification du revenu:", error);
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -312,24 +326,30 @@ export const supprimerRevenu = createAsyncHandler(
       logger.error("Erreur lors de la suppression du revenu:", error);
       next(error);
     }
-  }
+  },
 );
 
-// Import avec Multer qui ajoute req.file
 interface MulterRequest extends AuthRequest {
   file?: Express.Multer.File;
 }
 
 export const importerRevenus = createAsyncHandler(
-  async (req: MulterRequest, res: Response, next: NextFunction): Promise<void> => {
+  async (
+    req: MulterRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     if (!req.file) return next(new AppError(COMMON.ERRORS.NO_CSV_FILE, 400));
     if (!req.user) return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
-    
+
     try {
-      const result = await ImportService.importRevenusCsv(req.file.buffer, req.user.id);
+      const result = await ImportService.importRevenusCsv(
+        req.file.buffer,
+        req.user.id,
+      );
       sendSuccess(res, REVENU.SUCCESS.IMPORTED, result);
     } catch (error) {
       next(error);
     }
-  }
+  },
 );

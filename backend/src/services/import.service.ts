@@ -20,7 +20,7 @@ export type ImportResultType = {
     data: Record<string, string>;
     erreur: string;
   }>;
-   
+
   [key: string]: unknown;
 };
 
@@ -45,7 +45,7 @@ export class ImportService {
     processRowFn: (
       row: Record<string, string>,
       userId: string,
-      context?: Record<string, unknown>
+      context?: Record<string, unknown>,
     ) => Promise<Record<string, unknown> | null>;
     parsingOptions?: csvParser.Options;
     additionalContext?: Record<string, unknown>;
@@ -62,9 +62,7 @@ export class ImportService {
     const headers = csvHeaders;
     const mapHeaders = mapHeadersConfig
       ? ({ header }: { header: string }) => {
-          const found = mapHeadersConfig.find(
-            (conf) => conf.header === header
-          );
+          const found = mapHeadersConfig.find((conf) => conf.header === header);
           return found?.newHeader || header.trim().toLowerCase();
         }
       : ({ header }: { header: string }) => header.trim().toLowerCase();
@@ -75,7 +73,7 @@ export class ImportService {
             ...parsingOptions,
             mapHeaders,
             headers,
-          })
+          }),
         )
         .on("data", (row) => {
           ligneCourante++;
@@ -88,7 +86,10 @@ export class ImportService {
               erreursImport.push({
                 ligne: currentLine,
                 data: row,
-                erreur: err instanceof Error ? err.message : "Erreur inconnue de traitement de ligne",
+                erreur:
+                  err instanceof Error
+                    ? err.message
+                    : "Erreur inconnue de traitement de ligne",
               });
             }
           };
@@ -102,7 +103,7 @@ export class ImportService {
                 ordered: false,
               });
             } catch {
-              // Optionally handle dbError
+              throw new Error("Erreur lors de l'import");
             }
           }
           resolveStream();
@@ -122,49 +123,85 @@ export class ImportService {
 
   static async importDepensesCsv(
     csvBuffer: Buffer,
-    userId: string
+    userId: string,
   ): Promise<ImportResultType> {
     const categorieDocs = await Categorie.find().lean();
     const categorieMap = new Map(
-      categorieDocs.map((cat) => [String(cat.nom).toLowerCase(), String(cat._id)])
+      categorieDocs.map((cat) => [
+        String(cat.nom).toLowerCase(),
+        String(cat._id),
+      ]),
     );
+
     const getOrCreateCategorieId = async (nom: string) => {
       const nomLower = nom.toLowerCase();
-      if (categorieMap.has(nomLower)) return new mongoose.Types.ObjectId(categorieMap.get(nomLower));
-      const cat = await Categorie.findOneAndUpdate(
-        { nom: { $regex: new RegExp(`^${nom}$`, "i") } },
-        {
-          $setOnInsert: {
-            nom,
-            description: CATEGORIE.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE,
-          },
-        },
-        { new: true, upsert: true, lean: true }
-      );
-      if (cat && cat._id) {
-        const idStr = String(cat._id);
+      if (categorieMap.has(nomLower)) {
+        return new mongoose.Types.ObjectId(categorieMap.get(nomLower));
+      }
+
+      const existingCat = await Categorie.findOne({
+        nom: { $regex: new RegExp(`^${nom}$`, "i") },
+      }).lean();
+
+      if (existingCat && existingCat._id) {
+        const idStr = String(existingCat._id);
         categorieMap.set(nomLower, idStr);
         return new mongoose.Types.ObjectId(idStr);
       }
+
+      try {
+        const newCat = await Categorie.create({
+          nom,
+          description: CATEGORIE.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE,
+        });
+
+        if (newCat && newCat._id) {
+          const idStr = String(newCat._id);
+          categorieMap.set(nomLower, idStr);
+          return new mongoose.Types.ObjectId(idStr);
+        }
+      } catch (error: any) {
+        if (error.code === 11000) {
+          const duplicateCat = await Categorie.findOne({
+            nom: { $regex: new RegExp(`^${nom}$`, "i") },
+          }).lean();
+
+          if (duplicateCat && duplicateCat._id) {
+            const idStr = String(duplicateCat._id);
+            categorieMap.set(nomLower, idStr);
+            return new mongoose.Types.ObjectId(idStr);
+          }
+        }
+      }
+
       return null;
     };
     const processDepenseRow = async (
       row: Record<string, string>,
-      userId: string
+      userId: string,
     ): Promise<Record<string, unknown> | null> => {
-      const { date: dateStr, montant: montantStr, categorie: categorieStr, description } = row;
+      const {
+        date: dateStr,
+        montant: montantStr,
+        categorie: categorieStr,
+        description,
+      } = row;
       if (!dateStr || !montantStr || !categorieStr)
         throw new Error("Données manquantes (date, montant, catégorie)");
       const expectedDateFormat = "dd/MM/yyyy";
       const date = parse(dateStr, expectedDateFormat, new Date());
       if (!isValid(date))
-        throw new Error(`Date invalide: ${dateStr}. Format attendu: ${expectedDateFormat}`);
+        throw new Error(
+          `Date invalide: ${dateStr}. Format attendu: ${expectedDateFormat}`,
+        );
       const montantNumerique = parseFloat(montantStr.replace(",", "."));
       if (isNaN(montantNumerique) || montantNumerique <= 0)
         throw new Error(`${DEPENSE.ERRORS.INVALID_MONTANT}: ${montantStr}`);
       const categorieId = await getOrCreateCategorieId(categorieStr.trim());
       if (!categorieId)
-        throw new Error(`Impossible d'obtenir l'ID pour la catégorie '${categorieStr}'`);
+        throw new Error(
+          `Impossible d'obtenir l'ID pour la catégorie '${categorieStr}'`,
+        );
       return {
         date,
         montant: montantNumerique,
@@ -188,55 +225,93 @@ export class ImportService {
 
   static async importRevenusCsv(
     csvBuffer: Buffer,
-    userId: string
+    userId: string,
   ): Promise<ImportResultType> {
     const categorieDocs = await CategorieRevenuModel.find().lean();
     const categorieMap = new Map(
-      categorieDocs.map((cat) => [String(cat.nom).toLowerCase(), String(cat._id)])
+      categorieDocs.map((cat) => [
+        String(cat.nom).toLowerCase(),
+        String(cat._id),
+      ]),
     );
+
     const getOrCreateCategorieRevenuId = async (nom: string) => {
       const nomLower = nom.toLowerCase();
-      if (categorieMap.has(nomLower)) return new mongoose.Types.ObjectId(categorieMap.get(nomLower));
-      const cat = await CategorieRevenuModel.findOneAndUpdate(
-        { nom: { $regex: new RegExp(`^${nom}$`, "i") } },
-        {
-          $setOnInsert: {
-            nom,
-            description: CATEGORIE.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE,
-          },
-        },
-        { new: true, upsert: true, lean: true }
-      );
-      if (cat && cat._id) {
-        const idStr = String(cat._id);
+      if (categorieMap.has(nomLower)) {
+        return new mongoose.Types.ObjectId(categorieMap.get(nomLower));
+      }
+
+      const existingCat = await CategorieRevenuModel.findOne({
+        nom: { $regex: new RegExp(`^${nom}$`, "i") },
+      }).lean();
+
+      if (existingCat && existingCat._id) {
+        const idStr = String(existingCat._id);
         categorieMap.set(nomLower, idStr);
         return new mongoose.Types.ObjectId(idStr);
       }
+
+      try {
+        const newCat = await CategorieRevenuModel.create({
+          nom,
+          description: CATEGORIE.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE,
+        });
+
+        if (newCat && newCat._id) {
+          const idStr = String(newCat._id);
+          categorieMap.set(nomLower, idStr);
+          return new mongoose.Types.ObjectId(idStr);
+        }
+      } catch (error: any) {
+        if (error.code === 11000) {
+          const duplicateCat = await CategorieRevenuModel.findOne({
+            nom: { $regex: new RegExp(`^${nom}$`, "i") },
+          }).lean();
+
+          if (duplicateCat && duplicateCat._id) {
+            const idStr = String(duplicateCat._id);
+            categorieMap.set(nomLower, idStr);
+            return new mongoose.Types.ObjectId(idStr);
+          }
+        }
+      }
+
       return null;
     };
     const processRevenuRow = async (
       row: Record<string, string>,
-      userId: string
+      userId: string,
     ): Promise<Record<string, unknown> | null> => {
-      const { date: dateStr, montant: montantStr, categorie: categorieStr, description, type_compte: typeCompteStr } = row;
+      const {
+        date: dateStr,
+        montant: montantStr,
+        categorie: categorieStr,
+        description,
+        type_compte: typeCompteStr,
+      } = row;
       if (!dateStr || !montantStr || !categorieStr)
         throw new Error("Données manquantes (date, montant, catégorie)");
-      
+
       const expectedDateFormat = "dd/MM/yyyy";
       const date = parse(dateStr, expectedDateFormat, new Date());
       if (!isValid(date))
-        throw new Error(`Date invalide: ${dateStr}. Format attendu: ${expectedDateFormat}`);
-      
+        throw new Error(
+          `Date invalide: ${dateStr}. Format attendu: ${expectedDateFormat}`,
+        );
+
       const montantNumerique = parseFloat(montantStr.replace(",", "."));
       if (isNaN(montantNumerique) || montantNumerique <= 0)
         throw new Error(`Montant invalide: ${montantStr}`);
-      
-      const categorieId = await getOrCreateCategorieRevenuId(categorieStr.trim());
+
+      const categorieId = await getOrCreateCategorieRevenuId(
+        categorieStr.trim(),
+      );
       if (!categorieId)
-        throw new Error(`Impossible d'obtenir l'ID pour la catégorie '${categorieStr}'`);
-      
-      // Validation du type de compte
-      let typeCompte: TypeCompteRevenu = "Perso"; // Par défaut
+        throw new Error(
+          `Impossible d'obtenir l'ID pour la catégorie '${categorieStr}'`,
+        );
+
+      let typeCompte: TypeCompteRevenu = "Perso";
       if (typeCompteStr) {
         const typeCompteValue = typeCompteStr.trim();
         if (typeCompteValue.toLowerCase() === "perso") {
@@ -244,10 +319,12 @@ export class ImportService {
         } else if (typeCompteValue.toLowerCase() === "conjoint") {
           typeCompte = "Conjoint";
         } else {
-          throw new Error(`Type de compte invalide: ${typeCompteStr}. Valeurs acceptées: Perso, Conjoint`);
+          throw new Error(
+            `Type de compte invalide: ${typeCompteStr}. Valeurs acceptées: Perso, Conjoint`,
+          );
         }
       }
-      
+
       return {
         date,
         montant: montantNumerique,
@@ -257,14 +334,20 @@ export class ImportService {
         typeCompte,
       };
     };
-    
+
     return this.processCsvImport({
       csvBuffer,
       userId,
       model: RevenuModel as unknown as mongoose.Model<Record<string, unknown>>,
       entityName: "revenu",
-      csvHeaders: ["date", "montant", "categorie", "description", "type_compte"],
+      csvHeaders: [
+        "date",
+        "montant",
+        "categorie",
+        "description",
+        "type_compte",
+      ],
       processRowFn: processRevenuRow,
     });
   }
-} 
+}

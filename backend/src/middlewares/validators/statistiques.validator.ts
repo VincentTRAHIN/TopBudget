@@ -6,13 +6,15 @@ export const validateDateRange = [
     .withMessage("La date de début doit être au format ISO 8601"),
   query("dateFin")
     .isISO8601()
-    .withMessage("La date de fin doit être au format ISO 8601")
+    .withMessage("La date de fin doit être au format ISO 8601"),
 ];
 
 export const validateType = [
   query("type")
     .isIn(["depense", "revenu", "depenses", "revenus", "solde"])
-    .withMessage("Le type doit être 'depense', 'revenu', 'depenses', 'revenus' ou 'solde'")
+    .withMessage(
+      "Le type doit être 'depense', 'revenu', 'depenses', 'revenus' ou 'solde'",
+    ),
 ];
 
 export const validateEvolutionFlux = [
@@ -26,7 +28,7 @@ export const validateEvolutionFlux = [
   query("estRecurrent")
     .optional()
     .isBoolean()
-    .withMessage("estRecurrent doit être un booléen")
+    .withMessage("estRecurrent doit être un booléen"),
 ];
 
 export const validateComparaisonMois = [
@@ -36,5 +38,5 @@ export const validateComparaisonMois = [
     .withMessage("La date actuelle doit être au format ISO 8601"),
   query("datePrecedente")
     .isISO8601()
-    .withMessage("La date précédente doit être au format ISO 8601")
-]; 
+    .withMessage("La date précédente doit être au format ISO 8601"),
+];

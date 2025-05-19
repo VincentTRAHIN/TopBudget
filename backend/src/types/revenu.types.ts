@@ -27,7 +27,8 @@ export interface IRevenu extends Document {
 /**
  * Interface pour les documents de revenu avec champs populés
  */
-export interface IRevenuPopulated extends Omit<IRevenu, 'utilisateur' | 'categorieRevenu'> {
+export interface IRevenuPopulated
+  extends Omit<IRevenu, "utilisateur" | "categorieRevenu"> {
   utilisateur: Pick<IUser, "_id" | "nom" | "email">;
   categorieRevenu: ICategorieRevenu;
 }

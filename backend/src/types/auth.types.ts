@@ -29,4 +29,4 @@ export interface UserProfileResponse {
     email: string;
     avatarUrl?: string;
   };
-} 
+}

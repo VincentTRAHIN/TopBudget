@@ -13,7 +13,11 @@ import { asyncHandler } from "../utils/async.utils";
 
 const router = Router();
 
-router.post("/register", registerValidator, asyncHandler(inscriptionController));
+router.post(
+  "/register",
+  registerValidator,
+  asyncHandler(inscriptionController),
+);
 
 router.post("/login", loginValidator, asyncHandler(connexionController));
 

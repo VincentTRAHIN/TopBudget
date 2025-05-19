@@ -1,7 +1,7 @@
 import UserModel from "../models/user.model";
 import { USER } from "../constants";
 import { AppError } from "../middlewares/error.middleware";
-import logger from '../utils/logger.utils';
+import logger from "../utils/logger.utils";
 
 export class UserService {
   /**
@@ -26,4 +26,4 @@ export class UserService {
       throw new AppError(USER.ERRORS.SEARCH_ERROR, 500);
     }
   }
-} 
+}

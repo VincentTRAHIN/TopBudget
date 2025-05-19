@@ -18,7 +18,6 @@ export default function LoginPage() {
   const { login, loadingAction } = useAuth();
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  // Vérifier si le token existe déjà au chargement
   useState(() => {
     const existingToken = localStorage.getItem('authToken');
     if (existingToken) {
@@ -41,16 +40,18 @@ export default function LoginPage() {
             try {
               const response = await login(values.email, values.motDePasse);
               const token = localStorage.getItem('authToken');
-              
+
               console.log('Connexion réussie, token stocké:', !!token);
               toast.success('Connexion réussie');
-              
-              // Attendre un peu pour s'assurer que le token est bien stocké
+
               setTimeout(() => {
                 router.push('/dashboard');
               }, 300);
             } catch (error) {
-              const errorMessage = error instanceof Error ? error.message : 'Identifiants incorrects';
+              const errorMessage =
+                error instanceof Error
+                  ? error.message
+                  : 'Identifiants incorrects';
               setLoginError(errorMessage);
               toast.error(errorMessage);
             } finally {
@@ -109,7 +110,9 @@ export default function LoginPage() {
                 disabled={isSubmitting || loadingAction}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                {isSubmitting || loadingAction ? 'Connexion...' : 'Se connecter'}
+                {isSubmitting || loadingAction
+                  ? 'Connexion...'
+                  : 'Se connecter'}
               </button>
             </Form>
           )}

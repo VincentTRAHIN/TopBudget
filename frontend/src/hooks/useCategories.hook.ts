@@ -10,8 +10,8 @@ export const useCategories = () => {
     categoriesEndpoint,
     fetcher,
     {
-      fallbackData: [], 
-    }
+      fallbackData: [],
+    },
   );
 
   return {

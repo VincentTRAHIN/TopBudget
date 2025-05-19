@@ -3,22 +3,19 @@ import DailyRotateFile from "winston-daily-rotate-file";
 import { Request } from "express";
 import { AuthRequest } from "../middlewares/auth.middleware";
 
-// Configuration selon l'environnement
 const env = process.env.NODE_ENV || "development";
 const isDevelopment = env === "development";
 
-// Configuration de base pour les fichiers rotatifs
 const rotateFileConfig = {
   dirname: "logs",
   datePattern: "YYYY-MM-DD",
-  maxFiles: "14d", // Garde les logs pendant 14 jours
-  maxSize: "20m", // Rotation quand le fichier atteint 20MB
+  maxFiles: "14d",
+  maxSize: "20m",
 };
 
-// Format personnalisé pour les logs
 const customFormat = format.combine(
   format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-  format.errors({ stack: true }), // Inclut les stack traces pour les erreurs
+  format.errors({ stack: true }),
   isDevelopment ? format.colorize() : format.uncolorize(),
   format.printf(({ timestamp, level, message, stack }) => {
     if (stack) {
@@ -28,15 +25,12 @@ const customFormat = format.combine(
   }),
 );
 
-// Configuration des transports
 const logTransports: transport[] = [
-  // Logs de tous les niveaux
   new DailyRotateFile({
     ...rotateFileConfig,
     filename: "combined-%DATE%.log",
     level: isDevelopment ? "debug" : "info",
   }),
-  // Logs d'erreurs uniquement
   new DailyRotateFile({
     ...rotateFileConfig,
     filename: "error-%DATE%.log",
@@ -44,7 +38,6 @@ const logTransports: transport[] = [
   }),
 ];
 
-// Ajoute les logs console en développement
 if (isDevelopment) {
   logTransports.push(
     new transports.Console({
@@ -53,7 +46,6 @@ if (isDevelopment) {
   );
 }
 
-// Création du logger
 const logger = createLogger({
   level: isDevelopment ? "debug" : "info",
   format: customFormat,
@@ -61,12 +53,10 @@ const logger = createLogger({
   exitOnError: false,
 });
 
-// Gestion des rejets de promesses non gérés
 process.on("unhandledRejection", (reason: Error) => {
   logger.error("Unhandled Promise Rejection:", reason);
 });
 
-// Gestion des exceptions non gérées
 process.on("uncaughtException", (error: Error) => {
   logger.error("Uncaught Exception:", error);
   setTimeout(() => {
@@ -80,7 +70,11 @@ process.on("uncaughtException", (error: Error) => {
  * @param error Objet d'erreur
  * @param req Requête Express optionnelle
  */
-export const logError = (message: string, error: Error | unknown, req?: Request | AuthRequest): void => {
+export const logError = (
+  message: string,
+  error: Error | unknown,
+  req?: Request | AuthRequest,
+): void => {
   const errorObj = error instanceof Error ? error : new Error(String(error));
   logger.error(`${message}`, {
     stack: errorObj.stack,
@@ -88,8 +82,8 @@ export const logError = (message: string, error: Error | unknown, req?: Request 
       url: req.originalUrl,
       method: req.method,
       ip: req.ip,
-      userId: (req as AuthRequest).user?.id
-    })
+      userId: (req as AuthRequest).user?.id,
+    }),
   });
 };
 
@@ -99,7 +93,11 @@ export const logError = (message: string, error: Error | unknown, req?: Request 
  * @param action Action effectuée
  * @param details Détails supplémentaires
  */
-export const logService = (service: string, action: string, details?: Record<string, any>): void => {
+export const logService = (
+  service: string,
+  action: string,
+  details?: Record<string, any>,
+): void => {
   logger.info(`${service} - ${action}`, details);
 };
 
@@ -108,11 +106,14 @@ export const logService = (service: string, action: string, details?: Record<str
  * @param req Requête Express
  * @param duration Durée de traitement en ms
  */
-export const logRequest = (req: Request | AuthRequest, duration?: number): void => {
+export const logRequest = (
+  req: Request | AuthRequest,
+  duration?: number,
+): void => {
   logger.debug(`${req.method} ${req.originalUrl}`, {
     ip: req.ip,
     userId: (req as AuthRequest).user?.id,
-    ...(duration && { duration: `${duration}ms` })
+    ...(duration && { duration: `${duration}ms` }),
   });
 };
 

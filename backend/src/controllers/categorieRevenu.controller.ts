@@ -1,10 +1,14 @@
 import { validationResult } from "express-validator";
 import logger from "../utils/logger.utils";
 import { CATEGORIE_REVENU, COMMON } from "../constants";
-import { CategorieRevenuCreateBody, CategorieRevenuUpdateBody, IdParams } from '../types/typed-request';
-import { createAsyncHandler } from '../utils/async.utils';
-import { sendSuccess, sendErrorClient } from '../utils/response.utils';
-import { CategorieRevenuService } from '../services/categorieRevenu.service';
+import {
+  CategorieRevenuCreateBody,
+  CategorieRevenuUpdateBody,
+  IdParams,
+} from "../types/typed-request";
+import { createAsyncHandler } from "../utils/async.utils";
+import { sendSuccess, sendErrorClient } from "../utils/response.utils";
+import { CategorieRevenuService } from "../services/categorieRevenu.service";
 
 /**
  * @swagger
@@ -39,23 +43,32 @@ import { CategorieRevenuService } from '../services/categorieRevenu.service';
  *       409:
  *         description: Nom de catégorie déjà utilisé
  */
-export const ajouterCategorieRevenu = createAsyncHandler<CategorieRevenuCreateBody>(
-  async (req, res, next): Promise<void> => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      sendErrorClient(res, COMMON.ERRORS.VALIDATION_ERROR, errors.array());
-      return;
-    }
+export const ajouterCategorieRevenu =
+  createAsyncHandler<CategorieRevenuCreateBody>(
+    async (req, res, next): Promise<void> => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        sendErrorClient(res, COMMON.ERRORS.VALIDATION_ERROR, errors.array());
+        return;
+      }
 
-    try {
-      const categorieRevenu = await CategorieRevenuService.create(req.body, req.user!.id);
-      sendSuccess(res, CATEGORIE_REVENU.SUCCESS.CREATED, categorieRevenu, 201);
-    } catch (error) {
-      logger.error(CATEGORIE_REVENU.ERRORS.CREATE_ERROR, error);
-      next(error);
-    }
-  }
-);
+      try {
+        const categorieRevenu = await CategorieRevenuService.create(
+          req.body,
+          req.user!.id,
+        );
+        sendSuccess(
+          res,
+          CATEGORIE_REVENU.SUCCESS.CREATED,
+          categorieRevenu,
+          201,
+        );
+      } catch (error) {
+        logger.error(CATEGORIE_REVENU.ERRORS.CREATE_ERROR, error);
+        next(error);
+      }
+    },
+  );
 
 /**
  * @swagger
@@ -85,13 +98,15 @@ export const ajouterCategorieRevenu = createAsyncHandler<CategorieRevenuCreateBo
 export const obtenirCategoriesRevenu = createAsyncHandler(
   async (req, res, next): Promise<void> => {
     try {
-      const categoriesRevenu = await CategorieRevenuService.getAll(req.user!.id);
+      const categoriesRevenu = await CategorieRevenuService.getAll(
+        req.user!.id,
+      );
       sendSuccess(res, CATEGORIE_REVENU.SUCCESS.FETCHED, categoriesRevenu);
     } catch (error) {
       logger.error(CATEGORIE_REVENU.ERRORS.FETCH_ERROR, error);
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -135,23 +150,28 @@ export const obtenirCategoriesRevenu = createAsyncHandler(
  *       409:
  *         description: Nom de catégorie déjà utilisé
  */
-export const modifierCategorieRevenu = createAsyncHandler<CategorieRevenuUpdateBody, IdParams>(
-  async (req, res, next): Promise<void> => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      sendErrorClient(res, COMMON.ERRORS.VALIDATION_ERROR, errors.array());
-      return;
-    }
-
-    try {
-      const categorieRevenu = await CategorieRevenuService.update(req.params.id, req.body, req.user!.id);
-      sendSuccess(res, CATEGORIE_REVENU.SUCCESS.UPDATED, categorieRevenu);
-    } catch (error) {
-      logger.error(CATEGORIE_REVENU.ERRORS.UPDATE_ERROR, error);
-      next(error);
-    }
+export const modifierCategorieRevenu = createAsyncHandler<
+  CategorieRevenuUpdateBody,
+  IdParams
+>(async (req, res, next): Promise<void> => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    sendErrorClient(res, COMMON.ERRORS.VALIDATION_ERROR, errors.array());
+    return;
   }
-);
+
+  try {
+    const categorieRevenu = await CategorieRevenuService.update(
+      req.params.id,
+      req.body,
+      req.user!.id,
+    );
+    sendSuccess(res, CATEGORIE_REVENU.SUCCESS.UPDATED, categorieRevenu);
+  } catch (error) {
+    logger.error(CATEGORIE_REVENU.ERRORS.UPDATE_ERROR, error);
+    next(error);
+  }
+});
 
 /**
  * @swagger
@@ -173,14 +193,15 @@ export const modifierCategorieRevenu = createAsyncHandler<CategorieRevenuUpdateB
  *       404:
  *         description: Catégorie non trouvée
  */
-export const supprimerCategorieRevenu = createAsyncHandler<Record<string, never>, IdParams>(
-  async (req, res, next): Promise<void> => {
-    try {
-      await CategorieRevenuService.delete(req.params.id, req.user!.id);
-      sendSuccess(res, CATEGORIE_REVENU.SUCCESS.DELETED);
-    } catch (error) {
-      logger.error(CATEGORIE_REVENU.ERRORS.DELETE_ERROR, error);
-      next(error);
-    }
+export const supprimerCategorieRevenu = createAsyncHandler<
+  Record<string, never>,
+  IdParams
+>(async (req, res, next): Promise<void> => {
+  try {
+    await CategorieRevenuService.delete(req.params.id, req.user!.id);
+    sendSuccess(res, CATEGORIE_REVENU.SUCCESS.DELETED);
+  } catch (error) {
+    logger.error(CATEGORIE_REVENU.ERRORS.DELETE_ERROR, error);
+    next(error);
   }
-);
+});

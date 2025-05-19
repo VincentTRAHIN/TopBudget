@@ -17,21 +17,20 @@ import {
   getSoldeMensuel,
   getEvolutionRevenusMensuels,
   getEvolutionSoldesMensuels,
-  repartitionParCategorie
+  repartitionParCategorie,
 } from "../controllers/statistiques.controller";
 import { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
-import { 
-  validateDateRange, 
-  validateType, 
-  validateEvolutionFlux, 
-  validateComparaisonMois 
+import {
+  validateDateRange,
+  validateType,
+  validateEvolutionFlux,
+  validateComparaisonMois,
 } from "../middlewares/validators/statistiques.validator";
 import { asyncHandler } from "../utils/async.utils";
 
 const router = Router();
 
-// Middleware pour valider les requêtes
 const validateReq = (req: Request, res: Response, next: NextFunction): void => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -41,13 +40,12 @@ const validateReq = (req: Request, res: Response, next: NextFunction): void => {
   next();
 };
 
-// Routes avec validation
 router.get(
   "/flux-mensuel",
   proteger,
   [...validateDateRange, ...validateType],
   validateReq,
-  getTotalFluxMensuel
+  getTotalFluxMensuel,
 );
 
 router.get(
@@ -55,7 +53,7 @@ router.get(
   proteger,
   [...validateDateRange, ...validateType],
   validateReq,
-  getRepartitionParCategorie
+  getRepartitionParCategorie,
 );
 
 router.get(
@@ -63,7 +61,7 @@ router.get(
   proteger,
   validateEvolutionFlux,
   validateReq,
-  getEvolutionFluxMensuels
+  getEvolutionFluxMensuels,
 );
 
 router.get(
@@ -71,7 +69,7 @@ router.get(
   proteger,
   validateDateRange,
   validateReq,
-  getSoldePourPeriode
+  getSoldePourPeriode,
 );
 
 router.get(
@@ -79,7 +77,7 @@ router.get(
   proteger,
   validateComparaisonMois,
   validateReq,
-  getComparaisonMois
+  getComparaisonMois,
 );
 
 router.get(
@@ -87,7 +85,7 @@ router.get(
   proteger,
   validateDateRange,
   validateReq,
-  getContributionsCouple
+  getContributionsCouple,
 );
 
 router.get(
@@ -95,7 +93,7 @@ router.get(
   proteger,
   validateDateRange,
   validateReq,
-  getChargesFixesCouple
+  getChargesFixesCouple,
 );
 
 router.get(
@@ -103,18 +101,37 @@ router.get(
   proteger,
   validateDateRange,
   validateReq,
-  getSyntheseMensuelleCouple
+  getSyntheseMensuelleCouple,
 );
 
-// Routes supplémentaires de l'ancien fichier (compatibilité)
 router.get("/total-mensuel", proteger, asyncHandler(totalDepensesMensuelles));
 router.get("/par-categorie", proteger, asyncHandler(repartitionParCategorie));
 router.get("/solde-mensuel", proteger, asyncHandler(getSoldeMensuel));
-router.get("/evolution-mensuelle", proteger, asyncHandler(getEvolutionDepensesMensuelles));
-router.get("/evolution-revenus-mensuels", proteger, asyncHandler(getEvolutionRevenusMensuels));
-router.get("/evolution-soldes-mensuels", proteger, asyncHandler(getEvolutionSoldesMensuels));
-router.get("/couple/resume-contributions", proteger, asyncHandler(getCoupleContributionsSummary));
-router.get("/couple/charges-fixes", proteger, asyncHandler(getCoupleFixedCharges));
+router.get(
+  "/evolution-mensuelle",
+  proteger,
+  asyncHandler(getEvolutionDepensesMensuelles),
+);
+router.get(
+  "/evolution-revenus-mensuels",
+  proteger,
+  asyncHandler(getEvolutionRevenusMensuels),
+);
+router.get(
+  "/evolution-soldes-mensuels",
+  proteger,
+  asyncHandler(getEvolutionSoldesMensuels),
+);
+router.get(
+  "/couple/resume-contributions",
+  proteger,
+  asyncHandler(getCoupleContributionsSummary),
+);
+router.get(
+  "/couple/charges-fixes",
+  proteger,
+  asyncHandler(getCoupleFixedCharges),
+);
 router.get("/synthese-mensuelle", proteger, asyncHandler(getSyntheseMensuelle));
 
 export default router;

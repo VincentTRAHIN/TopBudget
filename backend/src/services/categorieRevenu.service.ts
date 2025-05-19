@@ -1,7 +1,10 @@
 import CategorieRevenu from "../models/categorieRevenu.model";
 import { CATEGORIE_REVENU } from "../constants";
 import { AppError } from "../middlewares/error.middleware";
-import { CategorieRevenuCreateBody, CategorieRevenuUpdateBody } from "../types/typed-request";
+import {
+  CategorieRevenuCreateBody,
+  CategorieRevenuUpdateBody,
+} from "../types/typed-request";
 import mongoose from "mongoose";
 
 export class CategorieRevenuService {
@@ -19,11 +22,18 @@ export class CategorieRevenuService {
       description &&
       description.length > CATEGORIE_REVENU.VALIDATION.MAX_DESCRIPTION_LENGTH
     ) {
-      throw new AppError(CATEGORIE_REVENU.ERRORS.INVALID_DESCRIPTION_LENGTH, 400);
+      throw new AppError(
+        CATEGORIE_REVENU.ERRORS.INVALID_DESCRIPTION_LENGTH,
+        400,
+      );
     }
   }
 
-  private static async checkNomExists(nom: string, userId: string, excludeId?: string): Promise<void> {
+  private static async checkNomExists(
+    nom: string,
+    userId: string,
+    excludeId?: string,
+  ): Promise<void> {
     const query = {
       nom: { $regex: new RegExp(`^${nom.trim()}$`, "i") },
       utilisateur: userId,
@@ -59,12 +69,19 @@ export class CategorieRevenuService {
     return CategorieRevenu.find({ utilisateur: userId }).sort({ nom: 1 });
   }
 
-  static async update(id: string, data: CategorieRevenuUpdateBody, userId: string) {
+  static async update(
+    id: string,
+    data: CategorieRevenuUpdateBody,
+    userId: string,
+  ) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError(CATEGORIE_REVENU.ERRORS.INVALID_ID, 400);
     }
-    
-    const categorieRevenu = await CategorieRevenu.findOne({ _id: id, utilisateur: userId });
+
+    const categorieRevenu = await CategorieRevenu.findOne({
+      _id: id,
+      utilisateur: userId,
+    });
     if (!categorieRevenu) {
       throw new AppError(CATEGORIE_REVENU.ERRORS.NOT_FOUND, 404);
     }
@@ -93,12 +110,15 @@ export class CategorieRevenuService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new AppError(CATEGORIE_REVENU.ERRORS.INVALID_ID, 400);
     }
-    
-    const categorieRevenu = await CategorieRevenu.findOne({ _id: id, utilisateur: userId });
+
+    const categorieRevenu = await CategorieRevenu.findOne({
+      _id: id,
+      utilisateur: userId,
+    });
     if (!categorieRevenu) {
       throw new AppError(CATEGORIE_REVENU.ERRORS.NOT_FOUND, 404);
     }
 
     await categorieRevenu.deleteOne();
   }
-} 
+}
