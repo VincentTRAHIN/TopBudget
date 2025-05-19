@@ -1,12 +1,14 @@
+/* eslint-disable @typescript-eslint/no-namespace */
+ 
+
 /**
  * @deprecated Ce fichier est obsolète. Utilisez plutôt les types définis dans typed-request.ts
  * Il est conservé temporairement pour maintenir la compatibilité avec le code existant.
  * Les types dans ce fichier seront progressivement migrés vers typed-request.ts.
  */
 
-import { AuthRequest } from "../middlewares/auth.middleware";
 import { Request } from "express";
-import { Query, ParamsDictionary } from "express-serve-static-core";
+import { ParamsDictionary } from "express-serve-static-core";
 import { TypeCompte, TypeDepense } from "../types/depense.types";
 import { TypeCompteRevenu } from "../types/revenu.types";
 import { ParsedQs } from "qs";
@@ -27,6 +29,9 @@ export type ViewType = "moi" | "partenaire" | "couple_complet";
 
 /**
  * Namespace pour les requêtes de dépenses pour éviter les conflits de noms
+ * Note: Les namespaces sont utilisés ici pour maintenir la compatibilité avec le code existant
+ * et seront remplacés par des modules ES2015 dans le nouveau fichier typed-request.ts
+ * @deprecated
  */
 export namespace DepenseRequest {
   /**
@@ -82,6 +87,8 @@ export namespace DepenseRequest {
 
 /**
  * Namespace pour les requêtes de revenus pour éviter les conflits de noms
+ * Note: Les namespaces sont utilisés ici pour maintenir la compatibilité avec le code existant
+ * @deprecated
  */
 export namespace RevenuRequest {
   /**
@@ -133,6 +140,8 @@ export namespace RevenuRequest {
 
 /**
  * Namespace pour les requêtes de statistiques
+ * Note: Les namespaces sont utilisés ici pour maintenir la compatibilité avec le code existant
+ * @deprecated
  */
 export namespace StatistiqueRequest {
   /**
@@ -158,6 +167,8 @@ export namespace StatistiqueRequest {
 
 /**
  * Namespace pour les requêtes de catégories
+ * Note: Les namespaces sont utilisés ici pour maintenir la compatibilité avec le code existant
+ * @deprecated
  */
 export namespace CategorieRequest {
   /**
@@ -183,6 +194,8 @@ export namespace CategorieRequest {
 
 /**
  * Namespace pour les requêtes de catégories de revenus
+ * Note: Les namespaces sont utilisés ici pour maintenir la compatibilité avec le code existant
+ * @deprecated
  */
 export namespace CategorieRevenuRequest {
   /**
@@ -208,110 +221,69 @@ export namespace CategorieRevenuRequest {
 
 /**
  * @deprecated Utiliser DepenseQueryParams de typed-request.ts
+ * Maintenue pour compatibilité avec le code existant
  */
-export interface IDepenseQueryParams extends DepenseRequest.Query {}
+export type IDepenseQueryParams = DepenseRequest.Query;
+
 /**
  * @deprecated Utiliser DepenseCreateBody de typed-request.ts
+ * Maintenue pour compatibilité avec le code existant
  */
-export interface IDepenseAddBody extends DepenseRequest.AddBody {}
+export type IDepenseAddBody = DepenseRequest.AddBody;
+
 /**
  * @deprecated Utiliser DepenseUpdateBody de typed-request.ts
+ * Maintenue pour compatibilité avec le code existant
  */
-export interface IDepenseUpdateBody extends DepenseRequest.UpdateBody {}
+export type IDepenseUpdateBody = DepenseRequest.UpdateBody;
+
 /**
  * @deprecated Utiliser RevenuQueryParams de typed-request.ts
+ * Maintenue pour compatibilité avec le code existant
  */
-export interface IRevenuQueryParams extends RevenuRequest.Query {}
+export type IRevenuQueryParams = RevenuRequest.Query;
+
 /**
  * @deprecated Utiliser RevenuCreateBody de typed-request.ts
+ * Maintenue pour compatibilité avec le code existant
  */
-export interface IRevenuAddBody extends RevenuRequest.AddBody {}
+export type IRevenuAddBody = RevenuRequest.AddBody;
+
 /**
  * @deprecated Utiliser RevenuUpdateBody de typed-request.ts
+ * Maintenue pour compatibilité avec le code existant
  */
-export interface IRevenuUpdateBody extends RevenuRequest.UpdateBody {}
+export type IRevenuUpdateBody = RevenuRequest.UpdateBody;
+
 /**
  * @deprecated Utiliser StatistiqueQueryParams de typed-request.ts
+ * Maintenue pour compatibilité avec le code existant
  */
-export interface IStatistiquesQueryParams extends StatistiqueRequest.Query {}
+export type IStatistiquesQueryParams = StatistiqueRequest.Query;
+
 /**
  * @deprecated Utiliser CategorieCreateBody de typed-request.ts
+ * Maintenue pour compatibilité avec le code existant
  */
-export interface ICategorieAddBody extends CategorieRequest.AddBody {}
+export type ICategorieAddBody = CategorieRequest.AddBody;
+
 /**
  * @deprecated Utiliser CategorieUpdateBody de typed-request.ts
+ * Maintenue pour compatibilité avec le code existant
  */
-export interface ICategorieUpdateBody extends CategorieRequest.UpdateBody {}
+export type ICategorieUpdateBody = CategorieRequest.UpdateBody;
+
 /**
  * @deprecated Utiliser CategorieRevenuCreateBody de typed-request.ts
+ * Maintenue pour compatibilité avec le code existant
  */
-export interface ICategorieRevenuAddBody
-  extends CategorieRevenuRequest.AddBody {}
+export type ICategorieRevenuAddBody = CategorieRevenuRequest.AddBody;
+
 /**
  * @deprecated Utiliser CategorieRevenuUpdateBody de typed-request.ts
+ * Maintenue pour compatibilité avec le code existant
  */
-export interface ICategorieRevenuUpdateBody
-  extends CategorieRevenuRequest.UpdateBody {}
-
-/**
- * Interface pour les query params des requêtes de statistiques
- * @deprecated Utilisez StatistiqueQueryParams de typed-request.ts
- */
-export interface IStatistiquesQueryParams {
-  mois?: string;
-  annee?: string;
-  contexte?: string;
-  dateDebut?: string;
-  dateFin?: string;
-  categorie?: string;
-  type?: "depenses" | "revenus" | "solde";
-  nbMois?: string;
-  estRecurrent?: string | boolean;
-  moisActuel?: string;
-  anneeActuelle?: string;
-  moisPrecedent?: string;
-  anneePrecedente?: string;
-}
-
-/**
- * Interface pour le corps de requête d'ajout de catégorie
- * @deprecated Utilisez CategorieCreateBody de typed-request.ts
- */
-export interface ICategorieAddBody {
-  nom: string;
-  description?: string;
-  image?: string;
-}
-
-/**
- * Interface pour le corps de requête de modification de catégorie
- * @deprecated Utilisez CategorieUpdateBody de typed-request.ts
- */
-export interface ICategorieUpdateBody {
-  nom?: string;
-  description?: string;
-  image?: string;
-}
-
-/**
- * Interface pour le corps de requête d'ajout de catégorie de revenu
- * @deprecated Utilisez CategorieRevenuCreateBody de typed-request.ts
- */
-export interface ICategorieRevenuAddBody {
-  nom: string;
-  description?: string;
-  image?: string;
-}
-
-/**
- * Interface pour le corps de requête de modification de catégorie de revenu
- * @deprecated Utilisez CategorieRevenuUpdateBody de typed-request.ts
- */
-export interface ICategorieRevenuUpdateBody {
-  nom?: string;
-  description?: string;
-  image?: string;
-}
+export type ICategorieRevenuUpdateBody = CategorieRevenuRequest.UpdateBody;
 
 /**
  * Interface pour les requêtes authentifiées avec typage fort
@@ -327,6 +299,6 @@ export interface TypedRequest<
   B = Record<string, unknown>,
   P extends ParamsDictionary = ParamsDictionary,
   Q = ParsedQs,
-> extends Request<P, any, B, Q> {
+> extends Request<P, unknown, B, Q> {
   user?: { id: string; name: string; email: string };
 }

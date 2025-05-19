@@ -7,8 +7,7 @@ import Categorie from "../models/categorie.model";
 import CategorieRevenuModel from "../models/categorieRevenu.model";
 import { DEPENSE, CATEGORIE } from "../constants";
 import { parse, isValid } from "date-fns";
-import { IDepenseInput } from "../types/depense.types";
-import { IRevenuInput, TypeCompteRevenu } from "../types/revenu.types";
+import {  TypeCompteRevenu } from "../types/revenu.types";
 
 export type ImportResultType = {
   message: string;
@@ -23,6 +22,11 @@ export type ImportResultType = {
 
   [key: string]: unknown;
 };
+
+// Interface pour les erreurs MongoDB avec un code
+interface MongoError extends Error {
+  code: number;
+}
 
 export class ImportService {
   static async processCsvImport({
@@ -135,12 +139,16 @@ export class ImportService {
 
     const getOrCreateCategorieId = async (nom: string) => {
       const nomLower = nom.toLowerCase();
+      
+      // 1. Vérifier d'abord dans le cache en mémoire si la catégorie existe déjà
       if (categorieMap.has(nomLower)) {
         return new mongoose.Types.ObjectId(categorieMap.get(nomLower));
       }
 
+      // 2. Rechercher la catégorie dans la base de données de manière insensible à la casse
+      const escapedNom = nom.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
       const existingCat = await Categorie.findOne({
-        nom: { $regex: new RegExp(`^${nom}$`, "i") },
+        nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
       }).lean();
 
       if (existingCat && existingCat._id) {
@@ -149,6 +157,15 @@ export class ImportService {
         return new mongoose.Types.ObjectId(idStr);
       }
 
+      // 3. Rechercher une deuxième fois avec une requête exacte pour éviter les conflits
+      const exactMatch = await Categorie.findOne({ nom: nom }).lean();
+      if (exactMatch && exactMatch._id) {
+        const idStr = String(exactMatch._id);
+        categorieMap.set(nomLower, idStr);
+        return new mongoose.Types.ObjectId(idStr);
+      }
+
+      // 4. Si la catégorie n'existe pas, la créer avec gestion de conflit
       try {
         const newCat = await Categorie.create({
           nom,
@@ -160,10 +177,14 @@ export class ImportService {
           categorieMap.set(nomLower, idStr);
           return new mongoose.Types.ObjectId(idStr);
         }
-      } catch (error: any) {
-        if (error.code === 11000) {
+      } catch (error: unknown) {
+        // En cas d'erreur de duplication, rechercher à nouveau la catégorie
+        if (error instanceof Error && 'code' in error && (error as MongoError).code === 11000) {
+          // Attendre un petit délai pour laisser la base de données se mettre à jour
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
           const duplicateCat = await Categorie.findOne({
-            nom: { $regex: new RegExp(`^${nom}$`, "i") },
+            nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
           }).lean();
 
           if (duplicateCat && duplicateCat._id) {
@@ -237,12 +258,16 @@ export class ImportService {
 
     const getOrCreateCategorieRevenuId = async (nom: string) => {
       const nomLower = nom.toLowerCase();
+      
+      // 1. Vérifier d'abord dans le cache en mémoire si la catégorie existe déjà
       if (categorieMap.has(nomLower)) {
         return new mongoose.Types.ObjectId(categorieMap.get(nomLower));
       }
 
+      // 2. Rechercher la catégorie dans la base de données de manière insensible à la casse
+      const escapedNom = nom.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
       const existingCat = await CategorieRevenuModel.findOne({
-        nom: { $regex: new RegExp(`^${nom}$`, "i") },
+        nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
       }).lean();
 
       if (existingCat && existingCat._id) {
@@ -251,6 +276,15 @@ export class ImportService {
         return new mongoose.Types.ObjectId(idStr);
       }
 
+      // 3. Rechercher une deuxième fois avec une requête exacte pour éviter les conflits
+      const exactMatch = await CategorieRevenuModel.findOne({ nom: nom }).lean();
+      if (exactMatch && exactMatch._id) {
+        const idStr = String(exactMatch._id);
+        categorieMap.set(nomLower, idStr);
+        return new mongoose.Types.ObjectId(idStr);
+      }
+
+      // 4. Si la catégorie n'existe pas, la créer avec gestion de conflit
       try {
         const newCat = await CategorieRevenuModel.create({
           nom,
@@ -262,10 +296,14 @@ export class ImportService {
           categorieMap.set(nomLower, idStr);
           return new mongoose.Types.ObjectId(idStr);
         }
-      } catch (error: any) {
-        if (error.code === 11000) {
+      } catch (error: unknown) {
+        // En cas d'erreur de duplication, rechercher à nouveau la catégorie
+        if (error instanceof Error && 'code' in error && (error as MongoError).code === 11000) {
+          // Attendre un petit délai pour laisser la base de données se mettre à jour
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
           const duplicateCat = await CategorieRevenuModel.findOne({
-            nom: { $regex: new RegExp(`^${nom}$`, "i") },
+            nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
           }).lean();
 
           if (duplicateCat && duplicateCat._id) {

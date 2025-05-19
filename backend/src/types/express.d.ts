@@ -28,10 +28,10 @@ declare module "express-serve-static-core" {
    */
   export interface RequestHandler<
     P = ParamsDictionary,
-    ResBody = any,
-    ReqBody = any,
+    ResBody = unknown,
+    ReqBody = unknown,
     ReqQuery = ParsedQs,
-    Locals extends Record<string, any> = Record<string, any>,
+    Locals extends Record<string, unknown> = Record<string, unknown>,
   > {
     (
       req: Request<P, ResBody, ReqBody, ReqQuery, Locals>,

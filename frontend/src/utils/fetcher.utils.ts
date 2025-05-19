@@ -135,28 +135,36 @@ const fetcher = async <T>(
   }
 };
 
+interface APIError extends Error {
+  status?: number;
+  info?: unknown;
+  message: string;
+}
+
 /**
  * Wrapper autour de useSWR qui gère les erreurs 404 et les données manquantes de manière cohérente
  */
 export const createSafeDataFetcher = <T>(
   defaultValue: T,
-  errorHandler?: (error: any) => void,
+  errorHandler?: (error: APIError) => void,
 ) => {
   return async (url: string) => {
     try {
-      const result = await fetcher(url);
+      const result = await fetcher<T>(url);
       return result || defaultValue;
-    } catch (error: any) {
+    } catch (error) {
       console.error(
         `Erreur lors du chargement des données depuis ${url}:`,
         error,
       );
 
+      const apiError = error as APIError;
+
       if (errorHandler) {
-        errorHandler(error);
+        errorHandler(apiError);
       }
 
-      if (error.status === 404) {
+      if (apiError.status === 404) {
         console.warn(
           `Route non trouvée (404) pour ${url} - utilisation de la valeur par défaut`,
           defaultValue,
@@ -164,7 +172,7 @@ export const createSafeDataFetcher = <T>(
         return defaultValue;
       }
 
-      throw error;
+      throw apiError;
     }
   };
 };

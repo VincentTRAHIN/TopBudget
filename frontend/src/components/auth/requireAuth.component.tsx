@@ -44,7 +44,7 @@ export default function RequireAuth({
   if (isLoading || isCheckingAuth) {
     return (
       <div className="flex h-screen justify-center items-center">
-        <p className="text-lg">Vérification de l'authentification...</p>
+        <p className="text-lg">Vérification de l&apos;authentification...</p>
       </div>
     );
   }

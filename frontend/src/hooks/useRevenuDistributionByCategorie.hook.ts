@@ -32,17 +32,15 @@ export const useRevenuDistributionByCategorie = (
     },
   );
 
-  const { data, error, isLoading, mutate } = useSWR<
-    RevenuDistributionDataPoint[]
-  >(url, safeFetcher, {
+  const { data, error, isLoading, mutate } = useSWR(url, safeFetcher, {
     shouldRetryOnError: false,
-    fallbackData: [],
+    fallbackData: [] as RevenuDistributionDataPoint[],
     revalidateIfStale: false,
     revalidateOnFocus: false,
   });
 
   return {
-    revenuDistribution: Array.isArray(data) ? data : [],
+    revenuDistribution: Array.isArray(data) ? data : [] as RevenuDistributionDataPoint[],
     isLoading,
     isError: error && error.status !== 404,
     mutate,

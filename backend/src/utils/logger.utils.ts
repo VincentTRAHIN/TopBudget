@@ -96,7 +96,7 @@ export const logError = (
 export const logService = (
   service: string,
   action: string,
-  details?: Record<string, any>,
+  details?: Record<string, unknown>,
 ): void => {
   logger.info(`${service} - ${action}`, details);
 };

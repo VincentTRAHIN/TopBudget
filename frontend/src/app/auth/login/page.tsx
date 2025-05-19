@@ -38,7 +38,7 @@ export default function LoginPage() {
           onSubmit={async (values, { setSubmitting }) => {
             setLoginError(null);
             try {
-              const response = await login(values.email, values.motDePasse);
+              await login(values.email, values.motDePasse);
               const token = localStorage.getItem('authToken');
 
               console.log('Connexion réussie, token stocké:', !!token);

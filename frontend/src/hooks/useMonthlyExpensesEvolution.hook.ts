@@ -26,17 +26,15 @@ export const useMonthlyFlowsEvolution = (
     },
   );
 
-  const { data, error, isLoading, mutate } = useSWR<
-    MonthlyEvolutionDataPoint[]
-  >(url, safeFetcher, {
-    fallbackData: [],
+  const { data, error, isLoading, mutate } = useSWR(url, safeFetcher, {
+    fallbackData: [] as MonthlyEvolutionDataPoint[],
     shouldRetryOnError: false,
     revalidateIfStale: false,
     revalidateOnFocus: false,
   });
 
   return {
-    data: Array.isArray(data) ? data : [],
+    data: Array.isArray(data) ? data : [] as MonthlyEvolutionDataPoint[],
     isLoading,
     isError: !!error && error.status !== 404,
     mutate,
