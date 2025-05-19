@@ -34,7 +34,7 @@ export default function CategoriesPage() {
       <Layout>
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h1 className="text-2xl font-bold">Catégories</h1>
+            <h1 className="text-2xl font-bold">Catégories de dépenses</h1>
           </div>
 
           {showAddForm && (

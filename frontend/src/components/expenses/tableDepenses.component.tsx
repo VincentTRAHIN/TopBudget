@@ -115,7 +115,7 @@ export default function TableDepenses({
             className="input"
           >
             <option value="">Toutes</option>
-            {categories.map((categorie) => (
+            {Array.isArray(categories) && categories.map((categorie) => (
               <option key={categorie._id} value={categorie._id}>
                 {categorie.nom}
               </option>

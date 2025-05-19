@@ -13,16 +13,32 @@ import { IUser } from '@/types/user.type';
 
 export const useAuth = () => {
   const router = useRouter();
+  const [authInitialized, setAuthInitialized] = useState(false);
+
+  // Vérifier le token au démarrage
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    console.log('[AUTH] Token initial:', token ? 'présent' : 'absent');
+    setAuthInitialized(true);
+  }, []);
 
   const {
     data: user,
     error,
     mutate,
     isLoading: isUserLoading,
-  } = useSWR<IUser | null>(meEndpoint, fetcher, {
+  } = useSWR<IUser | null>(authInitialized ? meEndpoint : null, fetcher, {
     shouldRetryOnError: false,
+    revalidateIfStale: true,
+    revalidateOnFocus: true, 
+    refreshInterval: 60000, // Rafraichir le token toutes les minutes
+    onSuccess: (data) => {
+      console.log('[AUTH] Utilisateur authentifié:', !!data);
+    },
     onError: (err) => {
+      console.error('[AUTH] Erreur d\'authentification:', err);
       if (err.status === 401) {
+        console.warn('[AUTH] Token invalide ou expiré, suppression');
         localStorage.removeItem('authToken');
         mutate(null, false);
       }
@@ -37,6 +53,7 @@ export const useAuth = () => {
     if (error?.status === 401) {
       const hadToken = localStorage.getItem('authToken');
       if (hadToken) {
+        console.warn('[AUTH] Token invalide détecté, suppression');
         localStorage.removeItem('authToken');
         mutate(null, false);
       }
@@ -46,6 +63,7 @@ export const useAuth = () => {
   const login = async (email: string, password: string) => {
     setLoadingAction(true);
     try {
+      console.log(`[AUTH] Tentative de connexion pour ${email}`);
       const res = await fetch(loginEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -54,18 +72,26 @@ export const useAuth = () => {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || 'Erreur de connexion');
+        const errorMessage = errorData.message || 'Erreur de connexion';
+        console.error(`[AUTH] Échec de connexion: ${errorMessage}`);
+        throw new Error(errorMessage);
       }
 
       const data = await res.json();
-      if (!data.token) {
+      if (!data.data?.token) {
+        console.error('[AUTH] Token manquant dans la réponse');
         throw new Error('Token manquant dans la réponse');
       }
 
-      localStorage.setItem('authToken', data.token);
+      console.log('[AUTH] Connexion réussie, stockage du token');
+      localStorage.setItem('authToken', data.data.token);
+      
+      // Rechargement des informations utilisateur
       await mutate();
+      
       return data;
     } catch (error) {
+      console.error('[AUTH] Erreur de login:', error);
       localStorage.removeItem('authToken');
       await mutate(null, false);
       throw error;
@@ -77,6 +103,7 @@ export const useAuth = () => {
   const register = async (nom: string, email: string, password: string) => {
     setLoadingAction(true);
     try {
+      console.log(`[AUTH] Tentative d'inscription pour ${email}`);
       const res = await fetch(registerEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -85,17 +112,25 @@ export const useAuth = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || "Erreur lors de l'inscription");
+        const errorMessage = data.message || "Erreur lors de l'inscription";
+        console.error(`[AUTH] Échec d'inscription: ${errorMessage}`);
+        throw new Error(errorMessage);
       }
 
-      if (!data.token) {
+      if (!data.data?.token) {
+        console.error('[AUTH] Token manquant dans la réponse d\'inscription');
         throw new Error('Token manquant dans la réponse');
       }
 
-      localStorage.setItem('authToken', data.token);
+      console.log('[AUTH] Inscription réussie, stockage du token');
+      localStorage.setItem('authToken', data.data.token);
+      
+      // Rechargement des informations utilisateur
       await mutate();
+      
       return data;
     } catch (error) {
+      console.error('[AUTH] Erreur d\'inscription:', error);
       localStorage.removeItem('authToken');
       await mutate(null, false);
       throw error;
@@ -105,9 +140,16 @@ export const useAuth = () => {
   };
 
   const logout = async () => {
+    console.log('[AUTH] Déconnexion, suppression du token');
     localStorage.removeItem('authToken');
     await mutate(null, false);
     router.push('/auth/login');
+  };
+
+  // Force la vérification du token et recharge l'utilisateur
+  const refreshUser = async () => {
+    console.log('[AUTH] Rafraîchissement forcé des données utilisateur');
+    return mutate();
   };
 
   const isAuthenticated = !isLoading && user !== null;
@@ -120,6 +162,7 @@ export const useAuth = () => {
     login,
     register,
     logout,
+    refreshUser,
     error,
     mutate,
   };

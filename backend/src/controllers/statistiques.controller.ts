@@ -723,7 +723,7 @@ export const comparaisonMoisPrecedent = async (
     const datePrecedente = new Date();
     datePrecedente.setMonth(datePrecedente.getMonth() - 1);
 
-    const result = StatistiquesService.getComparaisonMois(userIds as UserIdsType, dateActuelle, datePrecedente, "solde");
+    const result = await StatistiquesService.getComparaisonMois(userIds as UserIdsType, dateActuelle, datePrecedente, "solde");
     sendSuccess(res, STATISTIQUES.SUCCESS.COMPARAISON_MOIS, result);
   } catch (error: unknown) {
     logger.error("Erreur lors de la récupération de la comparaison avec le mois précédent:", error);
@@ -747,7 +747,7 @@ export const repartitionDepensesCouple = async (
     dateFin.setMonth(dateFin.getMonth() + 1);
     dateFin.setDate(0);
 
-    const result = StatistiquesService.getContributionsCouple(userIds.toString(), utilisateurFilter.toString(), dateDebut, dateFin);
+    const result = await StatistiquesService.getContributionsCouple(userIds.toString(), utilisateurFilter.toString(), dateDebut, dateFin);
     sendSuccess(res, STATISTIQUES.SUCCESS.CONTRIBUTIONS_COUPLE, result);
   } catch (error: unknown) {
     logger.error("Erreur lors de la récupération de la répartition des dépenses du couple:", error);
@@ -771,7 +771,7 @@ export const repartitionChargesCouple = async (
     dateFin.setMonth(dateFin.getMonth() + 1);
     dateFin.setDate(0);
 
-    const result = StatistiquesService.getChargesFixesCouple(userIds.toString(), utilisateurFilter.toString(), dateDebut, dateFin);
+    const result = await StatistiquesService.getChargesFixesCouple(userIds.toString(), utilisateurFilter.toString(), dateDebut, dateFin);
     sendSuccess(res, STATISTIQUES.SUCCESS.CHARGES_FIXES, result);
   } catch (error: unknown) {
     logger.error("Erreur lors de la récupération de la répartition des charges du couple:", error);
@@ -795,7 +795,7 @@ export const repartitionDepensesRevenusCouple = async (
     dateFin.setMonth(dateFin.getMonth() + 1);
     dateFin.setDate(0);
 
-    const result = StatistiquesService.getSyntheseMensuelleCouple(userIds.toString(), utilisateurFilter.toString(), dateDebut, dateFin);
+    const result = await StatistiquesService.getSyntheseMensuelleCouple(userIds.toString(), utilisateurFilter.toString(), dateDebut, dateFin);
     sendSuccess(res, STATISTIQUES.SUCCESS.SYNTHESE_MENSUELLE, result);
   } catch (error: unknown) {
     logger.error("Erreur lors de la récupération de la répartition des dépenses et revenus du couple:", error);
@@ -803,12 +803,8 @@ export const repartitionDepensesRevenusCouple = async (
   }
 };
 
-export const repartitionParCategorie = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction,
-): Promise<void> => {
-  try {
+export const repartitionParCategorie = createAsyncHandler(
+  async (req: AuthRequest, res: Response): Promise<void> => {
     if (!req.user) {
       sendErrorClient(res, AUTH.ERRORS.UNAUTHORIZED);
       return;
@@ -837,11 +833,39 @@ export const repartitionParCategorie = async (
     );
     
     sendSuccess(res, STATISTIQUES.SUCCESS.REPARTITION_CATEGORIE, repartition);
-  } catch (error) {
-    logger.error("Erreur lors du calcul de la répartition par catégorie:", error);
-    next(new AppError(STATISTIQUES.ERRORS.REPARTITION_CATEGORIE, 500));
   }
-};
+);
+
+export const repartitionRevenusParCategorie = createAsyncHandler(
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    if (!req.user) {
+      sendErrorClient(res, AUTH.ERRORS.UNAUTHORIZED);
+      return;
+    }
+    
+    const { mois, annee, contexte } = req.query;
+    if (!mois || !annee) {
+      sendErrorClient(res, "Les paramètres mois et année sont requis");
+      return;
+    }
+    
+    const dateDebut = new Date(`${annee}-${mois}-01`);
+    const dateFin = new Date(`${annee}-${mois}-31`);
+    
+    const userContext = await getUserIdsFromContext(req, res, contexte as string | undefined);
+    if (!userContext) {
+      return;
+    }
+    
+    const repartition = await StatistiquesService.getRepartitionRevenusParCategorie(
+      userContext.userIds,
+      dateDebut,
+      dateFin
+    );
+    
+    sendSuccess(res, STATISTIQUES.SUCCESS.REPARTITION_CATEGORIE, repartition);
+  }
+);
 
 export const getSoldeMensuel = async (
   req: AuthRequest,
@@ -963,7 +987,7 @@ export const getEvolutionDepensesMensuelles = async (
     }
     
     const dateActuelle = new Date();
-    const evolution = StatistiquesService.getEvolutionFluxMensuels(
+    const evolution = await StatistiquesService.getEvolutionFluxMensuels(
       userContext.userIds,
       nbMois,
       dateActuelle,
@@ -1013,7 +1037,7 @@ export const getEvolutionRevenusMensuels = async (
       options.estRecurrent = estRecurrent === "true";
     }
     
-    const evolution = StatistiquesService.getEvolutionFluxMensuels(
+    const evolution = await StatistiquesService.getEvolutionFluxMensuels(
       userContext.userIds,
       nbMois,
       dateActuelle,
@@ -1058,7 +1082,7 @@ export const getEvolutionSoldesMensuels = async (
     }
     
     const dateActuelle = new Date();
-    const evolution = StatistiquesService.getEvolutionFluxMensuels(
+    const evolution = await StatistiquesService.getEvolutionFluxMensuels(
       userContext.userIds,
       nbMois,
       dateActuelle,
@@ -1100,7 +1124,7 @@ export const getCoupleContributionsSummary = async (
     const userId = String(req.user.id);
     const partenaireId = String(fullCurrentUser.partenaireId._id);
     
-    const result = StatistiquesService.getContributionsCouple(
+    const result = await StatistiquesService.getContributionsCouple(
       userId, 
       partenaireId, 
       dateDebutMois, 
@@ -1142,7 +1166,7 @@ export const getCoupleFixedCharges = async (
     const userId = String(req.user.id);
     const partenaireId = String(fullCurrentUser.partenaireId);
     
-    const result = StatistiquesService.getChargesFixesCouple(
+    const result = await StatistiquesService.getChargesFixesCouple(
       userId, 
       partenaireId, 
       dateDebutMois, 
@@ -1184,7 +1208,7 @@ export const getSyntheseMensuelle = async (
       }
     }
     
-    const result = StatistiquesService.getSyntheseMensuelleCouple(
+    const result = await StatistiquesService.getSyntheseMensuelleCouple(
       String(req.user.id),
       partenaireId,
       dateDebutMois,
@@ -1195,51 +1219,5 @@ export const getSyntheseMensuelle = async (
   } catch (error) {
     logger.error("Erreur lors de la génération de la synthèse mensuelle:", error);
     next(new AppError(STATISTIQUES.ERRORS.SYNTHESE_MENSUELLE, 500));
-  }
-};
-
-export const repartitionRevenusParCategorie = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction,
-): Promise<void> => {
-  try {
-    if (!req.user) {
-      sendErrorClient(res, AUTH.ERRORS.UNAUTHORIZED);
-      return;
-    }
-    
-    const { mois, annee, contexte } = req.query;
-    if (!mois || !annee) {
-      sendErrorClient(res, "Les paramètres mois et année sont requis");
-      return;
-    }
-    
-    const dateDebut = new Date(`${annee}-${mois}-01`);
-    const dateFin = new Date(`${annee}-${mois}-31`);
-    
-    const userContext = await getUserIdsFromContext(req, res, contexte as string | undefined);
-    if (!userContext) {
-      return;
-    }
-    
-    const repartition = StatistiquesService.getRepartitionRevenusParCategorie(
-      userContext.userIds,
-      dateDebut,
-      dateFin
-    );
-    
-    sendSuccess(res, STATISTIQUES.SUCCESS.REPARTITION_CATEGORIE, repartition);
-  } catch (error) {
-    logger.error(
-      "Erreur lors du calcul de la répartition des revenus par catégorie:",
-      error,
-    );
-    next(
-      new AppError(
-        "Erreur lors du calcul de la répartition des revenus par catégorie",
-        500,
-      ),
-    );
   }
 };

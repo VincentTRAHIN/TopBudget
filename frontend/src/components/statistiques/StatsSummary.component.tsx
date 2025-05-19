@@ -78,18 +78,27 @@ export default function StatsSummary({
     };
   }
 
-  const depensesArr = depensesData.map((item) => ({
-    value: item.totalDepenses ?? 0,
-    mois: item.mois,
-  }));
-  const revenusArr = revenusData.map((item) => ({
-    value: item.totalRevenus ?? 0,
-    mois: item.mois,
-  }));
-  const soldeArr = soldeData.map((item) => ({
-    value: item.soldeMensuel ?? 0,
-    mois: item.mois,
-  }));
+  // S'assurer que les données sont des tableaux
+  const depensesArr = Array.isArray(depensesData) 
+    ? depensesData.map((item) => ({
+        value: item.totalDepenses ?? 0,
+        mois: item.mois,
+      }))
+    : [];
+    
+  const revenusArr = Array.isArray(revenusData)
+    ? revenusData.map((item) => ({
+        value: item.totalRevenus ?? 0,
+        mois: item.mois,
+      }))
+    : [];
+    
+  const soldeArr = Array.isArray(soldeData)
+    ? soldeData.map((item) => ({
+        value: item.soldeMensuel ?? 0,
+        mois: item.mois,
+      }))
+    : [];
 
   const depensesStats = computeStats(depensesArr);
   const revenusStats = computeStats(revenusArr);

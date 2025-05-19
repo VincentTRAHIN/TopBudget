@@ -49,6 +49,7 @@
 │   │   │   ├── categorieRevenu.validator.ts
 │   │   │   ├── depense.validator.ts
 │   │   │   ├── revenu.validator.ts
+│   │   │   ├── statistiques.validator.ts
 │   │   │   ├── user.validator.ts
 │   ├── models
 │   │   ├── categorie.model.ts
@@ -61,18 +62,27 @@
 │   │   ├── categorie.route.ts
 │   │   ├── categorieRevenu.route.ts
 │   │   ├── depense.route.ts
+│   │   ├── index.ts
 │   │   ├── profile.route.ts
 │   │   ├── revenu.route.ts
 │   │   ├── statistiques.route.ts
 │   │   ├── user.route.ts
 │   ├── services
-│   │   ├── ImportService.ts
-│   │   ├── ProfileService.ts
-│   │   ├── StatistiquesService.ts
+│   │   ├── auth.service.ts
+│   │   ├── categorie.service.ts
+│   │   ├── categorieRevenu.service.ts
+│   │   ├── depense.service.ts
+│   │   ├── import.service.ts
+│   │   ├── profile.service.ts
+│   │   ├── revenu.service.ts
+│   │   ├── statistiques.service.ts
+│   │   ├── user.service.ts
 │   ├── types
+│   │   ├── auth.types.ts
 │   │   ├── categorie.types.ts
 │   │   ├── categorieRevenu.types.ts
 │   │   ├── depense.types.ts
+│   │   ├── express.d.ts
 │   │   ├── request.types.ts
 │   │   ├── revenu.types.ts
 │   │   ├── statistiques.types.ts

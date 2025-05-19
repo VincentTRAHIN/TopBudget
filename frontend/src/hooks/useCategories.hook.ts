@@ -9,10 +9,13 @@ export const useCategories = () => {
   const { data, error, isLoading, mutate } = useSWR<ICategorie[]>(
     categoriesEndpoint,
     fetcher,
+    {
+      fallbackData: [], 
+    }
   );
 
   return {
-    categories: data || [],
+    categories: Array.isArray(data) ? data : [],
     isLoading,
     isError: error,
     refreshCategories: mutate,

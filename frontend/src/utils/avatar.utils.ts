@@ -16,8 +16,8 @@ const AVATAR_COLORS = [
   'bg-fuchsia-600',
 ];
 
-export const getAvatarColor = (name: string = ''): string => {
-  if (!name) return AVATAR_COLORS[0];
+export const getAvatarColor = (name?: string): string => {
+  if (!name || name.trim() === '') return AVATAR_COLORS[0];
 
   const sum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const index = sum % AVATAR_COLORS.length;
@@ -25,8 +25,8 @@ export const getAvatarColor = (name: string = ''): string => {
   return AVATAR_COLORS[index];
 };
 
-export const getInitials = (name: string = ''): string => {
-  if (!name) return '?';
+export const getInitials = (name?: string): string => {
+  if (!name || name.trim() === '') return '?';
 
   const parts = name.trim().split(/\s+/);
 

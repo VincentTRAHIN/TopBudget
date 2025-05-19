@@ -6,6 +6,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import AuthNav from '@/components/auth/authNav.component';
 import { toast } from 'react-hot-toast';
+import { useState } from 'react';
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string().email('Email invalide').required('Requis'),
@@ -15,6 +16,16 @@ const LoginSchema = Yup.object().shape({
 export default function LoginPage() {
   const router = useRouter();
   const { login, loadingAction } = useAuth();
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  // Vérifier si le token existe déjà au chargement
+  useState(() => {
+    const existingToken = localStorage.getItem('authToken');
+    if (existingToken) {
+      console.log('Token existant trouvé, redirection vers le dashboard...');
+      router.push('/dashboard');
+    }
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -26,12 +37,22 @@ export default function LoginPage() {
           initialValues={{ email: '', motDePasse: '' }}
           validationSchema={LoginSchema}
           onSubmit={async (values, { setSubmitting }) => {
+            setLoginError(null);
             try {
-              await login(values.email, values.motDePasse);
+              const response = await login(values.email, values.motDePasse);
+              const token = localStorage.getItem('authToken');
+              
+              console.log('Connexion réussie, token stocké:', !!token);
               toast.success('Connexion réussie');
-              router.push('/');
-            } catch {
-              toast.error('Identifiants incorrects');
+              
+              // Attendre un peu pour s'assurer que le token est bien stocké
+              setTimeout(() => {
+                router.push('/dashboard');
+              }, 300);
+            } catch (error) {
+              const errorMessage = error instanceof Error ? error.message : 'Identifiants incorrects';
+              setLoginError(errorMessage);
+              toast.error(errorMessage);
             } finally {
               setSubmitting(false);
             }
@@ -77,12 +98,18 @@ export default function LoginPage() {
                 />
               </div>
 
+              {loginError && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                  {loginError}
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={isSubmitting || loadingAction}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                {isSubmitting ? 'Connexion...' : 'Se connecter'}
+                {isSubmitting || loadingAction ? 'Connexion...' : 'Se connecter'}
               </button>
             </Form>
           )}
