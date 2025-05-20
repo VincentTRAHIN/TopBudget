@@ -86,7 +86,6 @@ export default function ExpensesPage() {
     changedFilters?: Partial<DepenseFilters>,
     changedSort?: DepenseSort,
   ) => {
-    console.log('Changement détecté:', { changedFilters, changedSort });
     if (changedFilters) {
       setFilters((prevFilters) => ({ ...prevFilters, ...changedFilters }));
     }

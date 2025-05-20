@@ -18,6 +18,7 @@ import {
   getEvolutionRevenusMensuels,
   getEvolutionSoldesMensuels,
   repartitionParCategorie,
+  repartitionRevenusParCategorie as ctrlRepartitionRevenusParCategorie,
 } from "../controllers/statistiques.controller";
 import { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
@@ -28,6 +29,7 @@ import {
   validateComparaisonMois,
 } from "../middlewares/validators/statistiques.validator";
 import { asyncHandler } from "../utils/async.utils";
+import { AuthRequest } from "../middlewares/auth.middleware";
 
 const router = Router();
 
@@ -106,6 +108,16 @@ router.get(
 
 router.get("/total-mensuel", proteger, asyncHandler(totalDepensesMensuelles));
 router.get("/par-categorie", proteger, asyncHandler(repartitionParCategorie));
+router.get(
+  "/revenus-par-categorie",
+  proteger,
+  (req: Request, res: Response, next: NextFunction) => {
+    const authReq = req as AuthRequest;
+    console.log(`[ROUTE LOG] Requête reçue pour /revenus-par-categorie. Utilisateur authentifié: ${!!authReq.user}, ID: ${authReq.user?.id}`);
+    next();
+  },
+  asyncHandler(ctrlRepartitionRevenusParCategorie),
+);
 router.get("/solde-mensuel", proteger, asyncHandler(getSoldeMensuel));
 router.get(
   "/evolution-mensuelle",

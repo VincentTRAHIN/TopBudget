@@ -5,7 +5,7 @@ import DepenseModel from "../models/depense.model";
 import RevenuModel from "../models/revenu.model";
 import Categorie from "../models/categorie.model";
 import CategorieRevenuModel from "../models/categorieRevenu.model";
-import { DEPENSE, CATEGORIE, CATEGORIE_REVENU } from "../constants";
+import { DEPENSE, CATEGORIE, CATEGORIE_REVENU, REVENU } from "../constants";
 import { parse, isValid } from "date-fns";
 import { TypeCompteRevenu } from "../types/revenu.types";
 
@@ -48,7 +48,7 @@ export class ImportService {
     processRowFn: (
       row: Record<string, string>,
       userId: string,
-      context?: Record<string, unknown>,
+      context?: Record<string, unknown>
     ) => Promise<Record<string, unknown> | null>;
     parsingOptions?: csvParser.Options;
     additionalContext?: Record<string, unknown>;
@@ -63,136 +63,97 @@ export class ImportService {
     const readableStream = Readable.from(csvBuffer);
     const lineProcessingPromises: Promise<void>[] = [];
 
-    try {
-      await new Promise<void>((resolveStream, rejectStream) => {
-        readableStream
-          .pipe(
-            csvParser({
-              ...parsingOptions,
+    await new Promise<void>((resolveStream, rejectStream) => {
+      readableStream
+        .pipe(
+          csvParser({
+            ...parsingOptions,
 
-              ...(!parsingOptions.headers && {
-                mapHeaders: mapHeadersConfig
-                  ? ({ header }: { header: string }) => {
-                      const found = mapHeadersConfig.find(
-                        (conf) => conf.header === header,
-                      );
-                      return found?.newHeader || header.trim().toLowerCase();
-                    }
-                  : ({ header }: { header: string }) =>
-                      header.trim().toLowerCase(),
-                headers: csvHeaders.length > 0 ? csvHeaders : undefined,
-              }),
-            }),
-          )
-          .on("data", (row) => {
-            ligneCourante++;
-            const currentLine = ligneCourante;
-            const processLine = async () => {
-              try {
-                console.log(
-                  `[DEBUG] Traitement ligne ${currentLine}:`,
-                  JSON.stringify(row),
-                );
-                const item = await processRowFn(row, userId, additionalContext);
-                if (item) {
-                  console.log(
-                    `[DEBUG] Ligne ${currentLine} validée:`,
-                    JSON.stringify(item),
-                  );
-                  itemsAImporter.push(item);
-                }
-              } catch (err) {
-                console.error(
-                  `[ERROR] Erreur lors du traitement de la ligne ${currentLine}:`,
-                  err,
-                );
-                erreursImport.push({
-                  ligne: currentLine,
-                  data: row,
-                  erreur:
-                    err instanceof Error
-                      ? err.message
-                      : "Erreur inconnue de traitement de ligne",
-                });
-              }
-            };
-            lineProcessingPromises.push(processLine());
-          })
-          .on("end", async () => {
-            try {
-              await Promise.allSettled(lineProcessingPromises);
-
-              if (itemsAImporter.length > 0) {
-                console.log(
-                  `[DEBUG] Tentative d'insertion de ${itemsAImporter.length} ${entityName}s en base de données...`,
-                );
-                console.log(
-                  "[DEBUG] Premier document à insérer:",
-                  JSON.stringify(itemsAImporter[0]),
-                );
-
-                try {
-                  const insertResult = await model.create(itemsAImporter);
-                  const insertedCount = Array.isArray(insertResult)
-                    ? insertResult.length
-                    : 1;
-                  console.log(
-                    `[DEBUG] Insertion réussie de ${insertedCount} documents en base de données`,
-                  );
-
-                  return resolveStream();
-                } catch (dbError) {
-                  console.error(
-                    "[ERROR] Erreur lors de l'insertion en base de données:",
-                    dbError,
-                  );
-                  if (dbError instanceof Error) {
-                    erreursImport.push({
-                      ligne: 0,
-                      data: {},
-                      erreur: `Erreur d'insertion en base de données: ${dbError.message}`,
-                    });
+            ...(!parsingOptions.headers && {
+              mapHeaders: mapHeadersConfig
+                ? ({ header }: { header: string }) => {
+                    const found = mapHeadersConfig.find(
+                      (conf) => conf.header === header
+                    );
+                    return found?.newHeader || header.trim().toLowerCase();
                   }
-                  return rejectStream(dbError);
-                }
-              } else {
-                console.log("[DEBUG] Aucun document à insérer");
-                return resolveStream();
-              }
-            } catch (error) {
-              console.error(`[ERROR] Erreur lors du traitement final:`, error);
-              return rejectStream(error);
-            }
+                : ({ header }: { header: string }) =>
+                    header.trim().toLowerCase(),
+              headers: csvHeaders.length > 0 ? csvHeaders : undefined,
+            }),
           })
-          .on("error", (err) => {
-            console.error(`[ERROR] Erreur lors du parsing du CSV:`, err);
-            rejectStream(err);
-          });
-      });
+        )
+        .on("data", (row) => {
+          ligneCourante++;
+          const currentLine = ligneCourante;
+          const processLine = async () => {
+            try {
+              const item = await processRowFn(row, userId, additionalContext);
+              if (item) {
+                itemsAImporter.push(item);
+              }
+            } catch (err) {
+              erreursImport.push({
+                ligne: currentLine,
+                data: row,
+                erreur:
+                  err instanceof Error
+                    ? err.message
+                    : "Erreur inconnue de traitement de ligne",
+              });
+            }
+          };
+          lineProcessingPromises.push(processLine());
+        })
+        .on("end", async () => {
+          try {
+            await Promise.allSettled(lineProcessingPromises);
 
-      return {
-        message: `Import terminé. ${itemsAImporter.length} ${entityName}s importés. ${erreursImport.length} erreurs.`,
-        totalLignesLues: ligneCourante,
-        importedCount: itemsAImporter.length,
-        errorCount: erreursImport.length,
-        erreurs: erreursImport,
-      };
-    } catch (error) {
-      console.error(`[ERROR] Erreur globale lors de l'import:`, error);
-      throw error;
-    }
+            if (itemsAImporter.length > 0) {
+              try {
+                await model.create(itemsAImporter);
+                return resolveStream();
+              } catch (dbError) {
+                if (dbError instanceof Error) {
+                  erreursImport.push({
+                    ligne: 0,
+                    data: {},
+                    erreur: `Erreur d'insertion en base de données: ${dbError.message}`,
+                  });
+                }
+                return rejectStream(dbError);
+              }
+            } else {
+              return resolveStream();
+            }
+          } catch (error) {
+            return rejectStream(error);
+          }
+        })
+        .on("error", (err) => {
+          rejectStream(err);
+        });
+    });
+
+    return {
+      message: `Import terminé. ${itemsAImporter.length} ${entityName}s importés. ${erreursImport.length} erreurs.`,
+      totalLignesLues: ligneCourante,
+      importedCount: itemsAImporter.length,
+      errorCount: erreursImport.length,
+      erreurs: erreursImport,
+    };
   }
 
   static async importDepensesCsv(
     csvBuffer: Buffer,
-    userId: string,
+    userId: string
   ): Promise<ImportResultType> {
     const categorieDocs = await Categorie.find().lean();
     const categorieMap = new Map(
       categorieDocs.map((cat) => [
         String(cat.nom).toLowerCase(),
         String(cat._id),
-      ]),
+      ])
     );
 
     const getOrCreateCategorieId = async (nom: string) => {
@@ -255,7 +216,7 @@ export class ImportService {
     };
     const processDepenseRow = async (
       row: Record<string, string>,
-      userId: string,
+      userId: string
     ): Promise<Record<string, unknown> | null> => {
       const {
         date: dateStr,
@@ -269,7 +230,7 @@ export class ImportService {
       const date = parse(dateStr, expectedDateFormat, new Date());
       if (!isValid(date))
         throw new Error(
-          `Date invalide: ${dateStr}. Format attendu: ${expectedDateFormat}`,
+          `Date invalide: ${dateStr}. Format attendu: ${expectedDateFormat}`
         );
       const montantNumerique = parseFloat(montantStr.replace(",", "."));
       if (isNaN(montantNumerique) || montantNumerique <= 0)
@@ -277,7 +238,7 @@ export class ImportService {
       const categorieId = await getOrCreateCategorieId(categorieStr.trim());
       if (!categorieId)
         throw new Error(
-          `Impossible d'obtenir l'ID pour la catégorie '${categorieStr}'`,
+          `Impossible d'obtenir l'ID pour la catégorie '${categorieStr}'`
         );
       return {
         date,
@@ -302,423 +263,184 @@ export class ImportService {
 
   static async importRevenusCsv(
     csvBuffer: Buffer,
-    userId: string,
+    userId: string
   ): Promise<ImportResultType> {
-    console.log("[DEBUG] Début de l'import des revenus");
-
-    const bufferString = csvBuffer.toString("utf-8");
-    const lines = bufferString.split("\n").slice(0, 5);
-    console.log("[DEBUG] Aperçu du fichier CSV:");
-    lines.forEach((line, index) => {
-      console.log(`[DEBUG] Ligne ${index}: ${line}`);
-    });
-
-    const categorieDocs = await CategorieRevenuModel.find({
+    const categorieRevenuDocs = await CategorieRevenuModel.find({
       utilisateur: userId,
     }).lean();
-    console.log(
-      `[DEBUG] ${categorieDocs.length} catégories de revenus trouvées`,
-    );
 
-    const categorieMap = new Map(
-      categorieDocs.map((cat) => [
+    const categorieRevenuMap = new Map(
+      categorieRevenuDocs.map((cat) => [
         String(cat.nom).toLowerCase(),
         String(cat._id),
-      ]),
+      ])
     );
 
     const getOrCreateCategorieRevenuId = async (nom: string) => {
-      console.log(
-        `[DEBUG] Recherche/création de la catégorie de revenu: ${nom}`,
-      );
       const nomLower = nom.toLowerCase();
 
-      if (categorieMap.has(nomLower)) {
-        console.log(
-          `[DEBUG] Catégorie trouvée dans le cache: ${nom} => ${categorieMap.get(
-            nomLower,
-          )}`,
-        );
-        return new mongoose.Types.ObjectId(categorieMap.get(nomLower));
+      if (categorieRevenuMap.has(nomLower)) {
+        return new mongoose.Types.ObjectId(categorieRevenuMap.get(nomLower));
       }
 
       const escapedNom = nom.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-      console.log(`[DEBUG] Recherche par regex: ${escapedNom}`);
 
-      const existingCat = await CategorieRevenuModel.findOne({
+      const existingCatRegex = await CategorieRevenuModel.findOne({
+        $or: [{ utilisateur: userId }, { utilisateur: { $exists: false } }],
         nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
-        utilisateur: userId,
       }).lean();
 
-      if (!existingCat) {
-        console.log(`[DEBUG] Recherche étendue pour: ${nom}`);
-        const similarCats = await CategorieRevenuModel.find({
-          nom: { $regex: new RegExp(escapedNom, "i") },
-          utilisateur: userId,
-        }).lean();
-
-        if (similarCats && similarCats.length > 0) {
-          console.log(
-            `[DEBUG] ${similarCats.length} catégories similaires trouvées`,
-          );
-          const closestMatch = similarCats[0];
-          const idStr = String(closestMatch._id);
-          console.log(
-            `[DEBUG] Correspondance la plus proche: ${closestMatch.nom} => ${idStr}`,
-          );
-          categorieMap.set(nomLower, idStr);
-          return new mongoose.Types.ObjectId(idStr);
-        }
-      }
-
-      if (existingCat && existingCat._id) {
-        const idStr = String(existingCat._id);
-        console.log(`[DEBUG] Catégorie trouvée par regex: ${nom} => ${idStr}`);
-        categorieMap.set(nomLower, idStr);
+      if (existingCatRegex && existingCatRegex._id) {
+        const idStr = String(existingCatRegex._id);
+        categorieRevenuMap.set(nomLower, idStr);
         return new mongoose.Types.ObjectId(idStr);
       }
-
-      console.log(`[DEBUG] Recherche exacte: ${nom}`);
       const exactMatch = await CategorieRevenuModel.findOne({
         nom: nom,
-        utilisateur: userId,
+        $or: [{ utilisateur: userId }, { utilisateur: { $exists: false } }],
       }).lean();
+
       if (exactMatch && exactMatch._id) {
         const idStr = String(exactMatch._id);
-        console.log(
-          `[DEBUG] Catégorie trouvée par recherche exacte: ${nom} => ${idStr}`,
-        );
-        categorieMap.set(nomLower, idStr);
+        categorieRevenuMap.set(nomLower, idStr);
         return new mongoose.Types.ObjectId(idStr);
       }
 
-      console.log(
-        `[DEBUG] Création d'une nouvelle catégorie de revenu: ${nom}`,
-      );
       try {
-        if (
-          !nom ||
-          nom.length < CATEGORIE_REVENU.VALIDATION.MIN_NOM_LENGTH ||
-          nom.length > CATEGORIE_REVENU.VALIDATION.MAX_NOM_LENGTH
-        ) {
-          console.log(
-            `[DEBUG] Nom de catégorie invalide: ${nom}, longueur: ${nom?.length}`,
-          );
-          return null;
-        }
-
         const newCatData = {
           nom,
           description: CATEGORIE_REVENU.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE,
           utilisateur: userId,
         };
-        console.log(`[DEBUG] Données pour nouvelle catégorie:`, newCatData);
 
         const newCat = await CategorieRevenuModel.create(newCatData);
-        console.log(`[DEBUG] Nouvelle catégorie créée:`, newCat);
 
         if (newCat && newCat._id) {
           const idStr = String(newCat._id);
-          console.log(`[DEBUG] ID de la nouvelle catégorie: ${idStr}`);
-          categorieMap.set(nomLower, idStr);
+          categorieRevenuMap.set(nomLower, idStr);
           return new mongoose.Types.ObjectId(idStr);
         } else {
-          console.log(`[DEBUG] Échec de la création: pas d'ID retourné`);
+          throw new Error(
+            `Échec de la création de la catégorie de revenu "${nom}" : pas d'ID retourné.`
+          );
         }
       } catch (error: unknown) {
-        console.error(
-          `[ERROR] Erreur lors de la création de la catégorie:`,
-          error,
-        );
-
         if (error instanceof Error && "code" in error) {
           const mongoError = error as MongoError;
-          console.log(`[DEBUG] Code d'erreur MongoDB: ${mongoError.code}`);
 
           if (mongoError.code === 11000) {
-            console.log(
-              `[DEBUG] Erreur de duplication détectée, nouvelle tentative de recherche après délai`,
-            );
             await new Promise((resolve) => setTimeout(resolve, 100));
-
-            console.log(
-              `[DEBUG] Recherche après erreur de duplication: ${nom}`,
-            );
             const duplicateCat = await CategorieRevenuModel.findOne({
               nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
-              utilisateur: userId,
+              $or: [
+                { utilisateur: userId },
+                { utilisateur: { $exists: false } },
+              ],
             }).lean();
 
             if (duplicateCat && duplicateCat._id) {
               const idStr = String(duplicateCat._id);
-              console.log(
-                `[DEBUG] Catégorie trouvée après erreur de duplication: ${nom} => ${idStr}`,
-              );
-              categorieMap.set(nomLower, idStr);
+              categorieRevenuMap.set(nomLower, idStr);
               return new mongoose.Types.ObjectId(idStr);
-            } else {
-              console.log(
-                `[DEBUG] Catégorie non trouvée après erreur de duplication, recherche de correspondance proche`,
-              );
-              const similarCat = await CategorieRevenuModel.findOne({
-                nom: {
-                  $regex: new RegExp(
-                    escapedNom.substring(0, Math.max(3, escapedNom.length - 3)),
-                    "i",
-                  ),
-                },
-                utilisateur: userId,
-              }).lean();
-
-              if (similarCat && similarCat._id) {
-                const idStr = String(similarCat._id);
-                console.log(
-                  `[DEBUG] Catégorie similaire trouvée: ${similarCat.nom} => ${idStr}`,
-                );
-                categorieMap.set(nomLower, idStr);
-                return new mongoose.Types.ObjectId(idStr);
-              }
             }
+          } else {
+            throw new Error(
+              `Erreur lors de la création de la catégorie de revenu "${nom}". Détails: ${
+                error instanceof Error ? error.message : String(error)
+              }`
+            );
           }
         } else {
-          console.log(
-            `[DEBUG] L'erreur n'est pas une erreur MongoDB avec code`,
+          throw new Error(
+            `Erreur inconnue lors de la création de la catégorie de revenu "${nom}". Détails: ${
+              error instanceof Error ? error.message : String(error)
+            }`
           );
         }
-      }
-
-      try {
-        console.log(
-          `[DEBUG] Tentative de création avec un suffixe de sécurité`,
-        );
-        const timestamp = Date.now().toString().slice(-4);
-        const suffixedNom = `${nom} (${timestamp})`;
-
-        if (suffixedNom.length <= CATEGORIE_REVENU.VALIDATION.MAX_NOM_LENGTH) {
-          const newSuffixedCat = await CategorieRevenuModel.create({
-            nom: suffixedNom,
-            description: `${CATEGORIE_REVENU.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE}`,
-            utilisateur: userId,
-          });
-
-          if (newSuffixedCat && newSuffixedCat._id) {
-            const idStr = String(newSuffixedCat._id);
-            console.log(
-              `[DEBUG] Catégorie créée avec suffixe: ${suffixedNom} => ${idStr}`,
-            );
-            categorieMap.set(nomLower, idStr);
-            return new mongoose.Types.ObjectId(idStr);
-          }
-        } else {
-          const maxLength = CATEGORIE_REVENU.VALIDATION.MAX_NOM_LENGTH - 7;
-          const truncatedName = nom.substring(0, maxLength);
-          const truncatedSuffixedNom = `${truncatedName} (${timestamp})`;
-
-          console.log(
-            `[DEBUG] Tentative avec nom tronqué: ${truncatedSuffixedNom}`,
-          );
-          const newTruncatedCat = await CategorieRevenuModel.create({
-            nom: truncatedSuffixedNom,
-            description: `${CATEGORIE_REVENU.IMPORT.DEFAULT_DESCRIPTION_AUTOCREATE} (Nom original: ${nom})`,
-            utilisateur: userId,
-          });
-
-          if (newTruncatedCat && newTruncatedCat._id) {
-            const idStr = String(newTruncatedCat._id);
-            console.log(
-              `[DEBUG] Catégorie créée avec nom tronqué: ${truncatedSuffixedNom} => ${idStr}`,
-            );
-            categorieMap.set(nomLower, idStr);
-            return new mongoose.Types.ObjectId(idStr);
-          }
-        }
-      } catch (finalError) {
-        console.error(
-          `[ERROR] Échec final de la création de catégorie:`,
-          finalError,
+        throw new Error(
+          `Échec de la création/récupération de la catégorie de revenu "${nom}". Détails: ${
+            error instanceof Error ? error.message : String(error)
+          }`
         );
       }
 
-      console.log(`[DEBUG] Échec complet, retourne null`);
       return null;
     };
     const processRevenuRow = async (
       row: Record<string, string>,
-      userId: string,
+      userId: string
     ): Promise<Record<string, unknown> | null> => {
-      console.log("[DEBUG] Contenu complet de la ligne:", JSON.stringify(row));
-      console.log("[DEBUG] Clés disponibles dans row:", Object.keys(row));
-
-      if (Object.keys(row).length === 0) {
-        console.log("[DEBUG] Ligne ignorée: objet vide");
+      if (
+        Object.keys(row).length === 0 ||
+        Object.values(row).every(
+          (val) => val === "" || val === null || val === undefined
+        )
+      ) {
         return null;
       }
 
-      const rowValues = Object.values(row);
-      console.log("[DEBUG] Valeurs disponibles par index:", rowValues);
+      const dateRaw = row['date'];
+      const montantRaw = row['montant'];
+      const descriptionRaw = row['description'];
+      const categorieNomRaw = row['categorie'] || row['catégorie'];
+      const typeCompteRaw = row['type de compte'] || row['typecompte'] || 'Perso';
+      const estRecurrentRaw = row['récurrent'] || row['recurrent'] || 'non';
 
-      let dateStr, montantStr, categorieStr, descriptionStr, typeCompteStr;
-
-      if (rowValues.length >= 3) {
-        dateStr = rowValues[0];
-        montantStr = rowValues[1];
-        categorieStr = rowValues[2];
-
-        if (rowValues.length >= 4) {
-          descriptionStr = rowValues[3];
-        }
-
-        if (rowValues.length >= 5) {
-          typeCompteStr = rowValues[4];
-        }
-      } else {
-        const detectColumn = (possibleNames: string[]): string | undefined => {
-          for (const name of possibleNames) {
-            if (row[name] !== undefined) {
-              return row[name];
-            }
-          }
-          return undefined;
-        };
-
-        dateStr = detectColumn(["date", "Date", "DATE"]);
-        montantStr = detectColumn([
-          "montant",
-          "Montant",
-          "MONTANT",
-          "amount",
-          "Amount",
-          "AMOUNT",
-        ]);
-        categorieStr = detectColumn([
-          "categorie",
-          "Categorie",
-          "CATEGORIE",
-          "categorieRevenu",
-          "CategorieRevenu",
-        ]);
-        descriptionStr = detectColumn([
-          "description",
-          "Description",
-          "DESCRIPTION",
-          "desc",
-          "Desc",
-          "libelle",
-          "Libelle",
-          "LIBELLE",
-        ]);
-        typeCompteStr = detectColumn([
-          "type_compte",
-          "TypeCompte",
-          "typeCompte",
-          "Type compte",
-          "type compte",
-          "TYPE COMPTE",
-        ]);
+      if (!montantRaw || !descriptionRaw || !dateRaw || !categorieNomRaw) {
+        throw new Error(`Champs requis manquants: date, montant, description, catégorie sont requis.`);
       }
 
-      console.log("[DEBUG] Champs détectés:", {
-        dateStr,
-        montantStr,
-        categorieStr,
-        descriptionStr,
-        typeCompteStr,
-      });
-
-      if (!dateStr || !montantStr || !categorieStr)
-        throw new Error("Données manquantes (date, montant, catégorie)");
-
-      let date: Date | null = null;
-      const dateFormats = [
-        "dd/MM/yyyy",
-        "yyyy-MM-dd",
-        "MM/dd/yyyy",
-        "dd-MM-yyyy",
-      ];
-
-      for (const format of dateFormats) {
-        const parsedDate = parse(dateStr, format, new Date());
-        if (isValid(parsedDate)) {
-          date = parsedDate;
-          break;
-        }
-      }
-
-      if (!date || !isValid(date)) {
-        throw new Error(
-          `Date invalide: ${dateStr}. Formats acceptés: ${dateFormats.join(
-            ", ",
-          )}`,
-        );
-      }
-
-      const montantClean = montantStr.replace(/[^\d.,]/g, "").replace(",", ".");
-      const montantNumerique = parseFloat(montantClean);
-
-      if (isNaN(montantNumerique) || montantNumerique <= 0)
-        throw new Error(`Montant invalide: ${montantStr}`);
-
-      console.log(
-        `[DEBUG] Récupération/création de la catégorie: ${categorieStr.trim()}`,
-      );
-      const categorieId = await getOrCreateCategorieRevenuId(
-        categorieStr.trim(),
-      );
+      const categorieId = await getOrCreateCategorieRevenuId(categorieNomRaw.trim());
 
       if (!categorieId) {
-        console.log(
-          `[ERROR] Impossible d'obtenir l'ID pour la catégorie '${categorieStr}'`,
-        );
-        throw new Error(
-          `Impossible d'obtenir l'ID pour la catégorie '${categorieStr}'`,
-        );
+        throw new Error(`Catégorie de revenu non trouvée ou impossible à créer: '${categorieNomRaw}'`);
       }
-
-      console.log(`[DEBUG] ID de catégorie obtenu: ${categorieId}`);
-
-      let typeCompte: TypeCompteRevenu = "Perso";
-      if (typeCompteStr) {
-        const typeCompteValue = typeCompteStr.trim();
-        if (typeCompteValue.toLowerCase() === "perso") {
-          typeCompte = "Perso";
-        } else if (typeCompteValue.toLowerCase() === "conjoint") {
-          typeCompte = "Conjoint";
-        } else {
-          typeCompte = "Perso";
+      
+      const parseDateLocal = (dateStr: string): Date | null => {
+        const expectedFormats = ["dd/MM/yyyy", "yyyy-MM-dd"];
+        for (const format of expectedFormats) {
+          const parsed = parse(dateStr, format, new Date());
+          if (isValid(parsed)) {
+            return parsed;
+          }
         }
-      }
-
-      const description = descriptionStr
-        ? descriptionStr.trim()
-        : `Revenu de ${categorieStr.trim()}`;
-
-      console.log(
-        `[DEBUG] Données validées: date=${dateStr} (${date.toISOString()}), montant=${montantNumerique}, categorie=${categorieStr}, description=${description}`,
-      );
-
-      const revenuObj = {
-        date,
-        montant: montantNumerique,
-        categorieRevenu: categorieId,
-        description,
-        utilisateur: new mongoose.Types.ObjectId(userId),
-        typeCompte,
+        return null;
       };
 
-      console.log(
-        `[DEBUG] Objet revenu final:`,
-        JSON.stringify(revenuObj, null, 2),
-      );
-
-      if (
-        !revenuObj.date ||
-        !revenuObj.montant ||
-        !revenuObj.categorieRevenu ||
-        !revenuObj.description
-      ) {
-        console.log(`[ERROR] Validation de l'objet revenu échouée:`, revenuObj);
-        throw new Error(`Données de revenu incomplètes ou invalides`);
+      const parsedDate = parseDateLocal(dateRaw.trim());
+      if (!parsedDate) {
+        throw new Error(
+          `Format de date invalide pour la date: ${dateRaw}. Formats attendus: dd/MM/yyyy ou yyyy-MM-dd`
+        );
       }
+
+      const montantNumerique = parseFloat(montantRaw.replace(",", ".").replace(/\s/g, ''));
+      if (isNaN(montantNumerique) || montantNumerique <= 0) {
+        throw new Error(`${REVENU.ERRORS.INVALID_MONTANT}: ${montantRaw}`);
+      }
+      
+      const parseBooleanLocal = (value: string): boolean => {
+        if (!value) return false;
+        const lowerValue = value.trim().toLowerCase();
+        return ['vrai', 'true', 'oui', '1', 'yes'].includes(lowerValue);
+      };
+
+      const estRecurrentBool = parseBooleanLocal(estRecurrentRaw);
+      
+      const trimmedTypeCompte = typeCompteRaw.trim() as TypeCompteRevenu;
+      const typeCompteValide = Object.values(REVENU.TYPES_COMPTE).includes(trimmedTypeCompte)
+        ? trimmedTypeCompte
+        : REVENU.TYPES_COMPTE.PERSO;
+
+      const revenuObj = {
+        date: parsedDate,
+        montant: montantNumerique,
+        categorieRevenu: categorieId,
+        description: descriptionRaw.trim(),
+        utilisateur: new mongoose.Types.ObjectId(userId),
+        typeCompte: typeCompteValide,
+        estRecurrent: estRecurrentBool,
+      };
 
       return revenuObj;
     };
@@ -727,16 +449,12 @@ export class ImportService {
       csvBuffer,
       userId,
       model: RevenuModel as unknown as mongoose.Model<Record<string, unknown>>,
-      entityName: "revenu",
-      csvHeaders: [] as string[],
+      entityName: "Revenu",
+      csvHeaders: [],
       processRowFn: processRevenuRow,
-      parsingOptions: {
-        headers: true,
-        skipLines: 0,
-      },
+      additionalContext: { getOrCreateCategorieRevenuId },
     });
 
-    console.log("[DEBUG] Résultat de l'import:", result);
     return result;
   }
 }

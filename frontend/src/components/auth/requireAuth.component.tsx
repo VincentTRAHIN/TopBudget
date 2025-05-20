@@ -15,17 +15,12 @@ export default function RequireAuth({
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (!token) {
-      console.log(
-        '[RequireAuth] Aucun token trouvé, redirection vers la page de connexion',
-      );
+      
       router.push('/auth/login');
       return;
     }
 
     if (token && !isAuthenticated && !isLoading) {
-      console.log(
-        '[RequireAuth] Token présent mais utilisateur non authentifié, tentative de rafraîchissement',
-      );
       refreshUser().finally(() => {
         setIsCheckingAuth(false);
       });
@@ -34,9 +29,6 @@ export default function RequireAuth({
     }
 
     if (!isLoading && !isAuthenticated && !isCheckingAuth) {
-      console.log(
-        '[RequireAuth] Utilisateur non authentifié après vérification, redirection',
-      );
       router.push('/auth/login');
     }
   }, [isLoading, isAuthenticated, router, refreshUser, isCheckingAuth]);

@@ -113,13 +113,13 @@ export default function TopCategoriesYearToDate({
     plugins: {
       legend: {
         position: 'right' as const,
+        align: 'center' as const,
         labels: {
           boxWidth: 12,
         },
       },
       title: {
-        display: true,
-        text: `Principales Catégories de Dépenses (${currentYear})`,
+        display: false,
       },
       tooltip: {
         callbacks: {
@@ -140,25 +140,25 @@ export default function TopCategoriesYearToDate({
       </h3>
 
       {isLoading && (
-        <div className="h-80 flex items-center justify-center">
+        <div className="h-80 md:h-96 flex items-center justify-center">
           <p>Chargement des données...</p>
         </div>
       )}
 
       {isError && (
-        <div className="h-80 flex items-center justify-center">
+        <div className="h-80 md:h-96 flex items-center justify-center">
           <p className="text-red-500">Erreur lors du chargement des données</p>
         </div>
       )}
 
       {!isLoading && !isError && categoryData.labels.length === 0 && (
-        <div className="h-80 flex items-center justify-center">
+        <div className="h-80 md:h-96 flex items-center justify-center">
           <p>Aucune dépense enregistrée pour cette année</p>
         </div>
       )}
 
       {!isLoading && !isError && categoryData.labels.length > 0 && (
-        <div className="h-80">
+        <div className="h-80 md:h-96 flex justify-center">
           <Doughnut data={chartData} options={chartOptions} />
         </div>
       )}

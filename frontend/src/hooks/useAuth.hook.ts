@@ -10,14 +10,16 @@ import {
   meEndpoint,
 } from '@/services/api.service';
 import { IUser } from '@/types/user.type';
+import debug from 'debug';
+
+const log = debug('app:frontend:useAuth');
 
 export const useAuth = () => {
+  log('Initialisation du hook useAuth');
   const router = useRouter();
   const [authInitialized, setAuthInitialized] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    console.log('[AUTH] Token initial:', token ? 'présent' : 'absent');
     setAuthInitialized(true);
   }, []);
 
@@ -31,13 +33,13 @@ export const useAuth = () => {
     revalidateIfStale: true,
     revalidateOnFocus: true,
     refreshInterval: 60000,
-    onSuccess: (data) => {
-      console.log('[AUTH] Utilisateur authentifié:', !!data);
+    onSuccess: () => {
+      log('Authentification SWR réussie, données utilisateur mises à jour.');
     },
     onError: (err) => {
-      console.error("[AUTH] Erreur d'authentification:", err);
+      log("ERREUR: Erreur d'authentification SWR: %O", err);
       if (err.status === 401) {
-        console.warn('[AUTH] Token invalide ou expiré, suppression');
+        log('AVERTISSEMENT: Token invalide ou expiré suite à une erreur SWR, suppression du token.');
         localStorage.removeItem('authToken');
         mutate(null, false);
       }
@@ -52,7 +54,6 @@ export const useAuth = () => {
     if (error?.status === 401) {
       const hadToken = localStorage.getItem('authToken');
       if (hadToken) {
-        console.warn('[AUTH] Token invalide détecté, suppression');
         localStorage.removeItem('authToken');
         mutate(null, false);
       }
@@ -61,8 +62,8 @@ export const useAuth = () => {
 
   const login = async (email: string, password: string) => {
     setLoadingAction(true);
+    log(`Tentative de connexion pour %s`, email);
     try {
-      console.log(`[AUTH] Tentative de connexion pour ${email}`);
       const res = await fetch(loginEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -72,36 +73,34 @@ export const useAuth = () => {
       if (!res.ok) {
         const errorData = await res.json();
         const errorMessage = errorData.message || 'Erreur de connexion';
-        console.error(`[AUTH] Échec de connexion: ${errorMessage}`);
         throw new Error(errorMessage);
       }
 
       const data = await res.json();
       if (!data.data?.token) {
-        console.error('[AUTH] Token manquant dans la réponse');
         throw new Error('Token manquant dans la réponse');
       }
 
-      console.log('[AUTH] Connexion réussie, stockage du token');
       localStorage.setItem('authToken', data.data.token);
+      log('Connexion réussie, token stocké. Mutation des données utilisateur.');
 
       await mutate();
 
       return data;
     } catch (error) {
-      console.error('[AUTH] Erreur de login:', error);
       localStorage.removeItem('authToken');
       await mutate(null, false);
       throw error;
     } finally {
+      log(`Fin de l'action de connexion pour %s`, email);
       setLoadingAction(false);
     }
   };
 
   const register = async (nom: string, email: string, password: string) => {
     setLoadingAction(true);
+    log(`Tentative d'inscription pour %s`, email);
     try {
-      console.log(`[AUTH] Tentative d'inscription pour ${email}`);
       const res = await fetch(registerEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -111,40 +110,38 @@ export const useAuth = () => {
       const data = await res.json();
       if (!res.ok) {
         const errorMessage = data.message || "Erreur lors de l'inscription";
-        console.error(`[AUTH] Échec d'inscription: ${errorMessage}`);
         throw new Error(errorMessage);
       }
 
       if (!data.data?.token) {
-        console.error("[AUTH] Token manquant dans la réponse d'inscription");
         throw new Error('Token manquant dans la réponse');
       }
 
-      console.log('[AUTH] Inscription réussie, stockage du token');
       localStorage.setItem('authToken', data.data.token);
+      log('Inscription réussie, token stocké. Mutation des données utilisateur.');
 
       await mutate();
 
       return data;
     } catch (error) {
-      console.error("[AUTH] Erreur d'inscription:", error);
       localStorage.removeItem('authToken');
       await mutate(null, false);
       throw error;
     } finally {
+      log(`Fin de l'action d'inscription pour %s`, email);
       setLoadingAction(false);
     }
   };
 
   const logout = async () => {
-    console.log('[AUTH] Déconnexion, suppression du token');
+    log('Déconnexion de l\'utilisateur, suppression du token et redirection.');
     localStorage.removeItem('authToken');
     await mutate(null, false);
     router.push('/auth/login');
   };
 
   const refreshUser = async () => {
-    console.log('[AUTH] Rafraîchissement forcé des données utilisateur');
+    log('Rafraîchissement manuel des données utilisateur demandé.');
     return mutate();
   };
 

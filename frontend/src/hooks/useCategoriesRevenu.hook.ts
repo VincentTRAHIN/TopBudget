@@ -11,16 +11,10 @@ export const useCategoriesRevenu = () => {
     fetcher,
     {
       fallbackData: [],
-      onSuccess: (data) => {
-        console.log('[DEBUG] useCategoriesRevenu - données reçues:', data);
-        console.log(
-          '[DEBUG] useCategoriesRevenu - type de données:',
-          typeof data,
-          Array.isArray(data),
-        );
+      onSuccess: () => {
+       
       },
-      onError: (err) => {
-        console.error('[ERROR] useCategoriesRevenu - erreur:', err);
+      onError: () => {
       },
     },
   );

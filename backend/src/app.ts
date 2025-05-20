@@ -26,10 +26,18 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
+const morganFormat = process.env.NODE_ENV === "development" ? "dev" : "combined";
+
+const morganStream = {
+  write: (message: string) => {
+    logger.http(message.trim());
+  },
+};
+
 app.use(
-  morgan("combined", {
+  morgan(morganFormat, {
     skip: (req) => req.url === "/api/health",
-    stream: { write: (message) => logger.info(message.trim()) },
+    stream: morganStream,
   }),
 );
 

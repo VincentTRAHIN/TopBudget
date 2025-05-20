@@ -12,6 +12,9 @@ import {
   DepenseSort,
 } from '@/hooks/useDepenses.hook';
 import { ICategorie } from '@/types/categorie.type';
+import debug from 'debug';
+
+const log = debug('app:frontend:TableDepenses');
 
 interface TableDepensesProps {
   categories: ICategorie[];
@@ -39,6 +42,13 @@ export default function TableDepenses({
   onSortChange,
   currentUserId,
 }: TableDepensesProps) {
+  log('Composant TableDepenses rendu avec props: %O', {
+    depenses,
+    categories,
+    currentSort,
+    currentUserId,
+  });
+
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [dateDebut, setDateDebut] = useState<string>('');
@@ -54,12 +64,15 @@ export default function TableDepenses({
   const handleDelete = async (id: string) => {
     if (!confirm('Confirmer la suppression ?')) return;
     try {
+      log(`Tentative de suppression de la dépense ID: %s`, id);
       await fetcher(`${depensesEndpoint}/${id}`, {
         method: 'DELETE',
       });
       toast.success('Dépense supprimée avec succès !');
+      log(`Dépense ID: %s supprimée avec succès. Rafraîchissement des dépenses.`, id);
       refreshDepenses();
-    } catch {
+    } catch (error) {
+      log.error(`Erreur lors de la suppression de la dépense ID: %s, Erreur: %O`, id, error);
       toast.error('Erreur lors de la suppression de la dépense');
     }
   };
@@ -69,6 +82,7 @@ export default function TableDepenses({
       currentSort.sortBy === field && currentSort.order === 'asc'
         ? 'desc'
         : 'asc';
+    log('Tri demandé sur le champ: %s, nouvel ordre: %s', field, newOrder);
     onSortChange({ sortBy: field, order: newOrder });
   };
 

@@ -25,9 +25,6 @@ export const useRevenuDistributionByCategorie = (
     [],
     (error) => {
       if (error.status === 404) {
-        console.warn(
-          `L'endpoint de statistiques par catégorie de revenus n'est pas disponible: ${url}`,
-        );
       }
     },
   );
@@ -37,6 +34,10 @@ export const useRevenuDistributionByCategorie = (
     fallbackData: [] as RevenuDistributionDataPoint[],
     revalidateIfStale: false,
     revalidateOnFocus: false,
+    revalidateOnMount: true,
+    onError: (error) => {
+      console.error('[useRevenuDistributionByCategorie] Error fetching data:', error);
+    }
   });
 
   return {
@@ -45,6 +46,7 @@ export const useRevenuDistributionByCategorie = (
       : ([] as RevenuDistributionDataPoint[]),
     isLoading,
     isError: error && error.status !== 404,
+    error: error,
     mutate,
   };
 };

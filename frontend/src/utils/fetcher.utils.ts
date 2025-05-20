@@ -7,9 +7,7 @@ const fetcher = async <T>(
   const isAuthMeEndpoint = url.includes('/auth/me');
 
   if (!isAuthMeEndpoint) {
-    console.log(
-      `[DEBUG] Fetcher appelé pour ${url} avec token: ${token ? 'présent' : 'absent'}`,
-    );
+   
   }
 
   const headers = new Headers();
@@ -67,16 +65,11 @@ const fetcher = async <T>(
 
       if (response.status === 401) {
         if (isAuthMeEndpoint && !token) {
-          console.log(
-            `fetcher: Tentative d'accès à ${url} sans token (normal si non connecté). Statut: ${response.status}`,
-          );
+          
         } else {
-          console.error(
-            `fetcher: Accès non autorisé (401) sur ${url}. Token présent: ${!!token}`,
-          );
+          
 
           if (!isAuthMeEndpoint && token) {
-            console.warn('Problème de token, tentative de nettoyage...');
             if (typeof window !== 'undefined') {
               localStorage.removeItem('authToken');
               setTimeout(() => {
@@ -86,9 +79,7 @@ const fetcher = async <T>(
           }
         }
       } else {
-        console.error(
-          `fetcher: Erreur HTTP ${response.status} sur ${url}: ${errorMessage}`,
-        );
+        
       }
 
       const error: Error & { status?: number; info?: unknown } = new Error(
@@ -108,14 +99,13 @@ const fetcher = async <T>(
 
     const responseData = await response.json();
 
+
     if (
       responseData &&
       responseData.success === true &&
       'data' in responseData
     ) {
-      console.log(
-        `[DEBUG] Extraction des données de la réponse encapsulée pour ${url}`,
-      );
+      
       return responseData.data as T;
     }
 
@@ -129,7 +119,6 @@ const fetcher = async <T>(
         !token
       )
     ) {
-      console.error(`Erreur lors du fetch vers ${url}:`, error);
     }
     throw error;
   }
@@ -153,11 +142,6 @@ export const createSafeDataFetcher = <T>(
       const result = await fetcher<T>(url);
       return result || defaultValue;
     } catch (error) {
-      console.error(
-        `Erreur lors du chargement des données depuis ${url}:`,
-        error,
-      );
-
       const apiError = error as APIError;
 
       if (errorHandler) {
@@ -165,10 +149,6 @@ export const createSafeDataFetcher = <T>(
       }
 
       if (apiError.status === 404) {
-        console.warn(
-          `Route non trouvée (404) pour ${url} - utilisation de la valeur par défaut`,
-          defaultValue,
-        );
         return defaultValue;
       }
 

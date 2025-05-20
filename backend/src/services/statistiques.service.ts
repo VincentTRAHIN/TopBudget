@@ -58,22 +58,30 @@ export class StatistiquesService {
     model: any,
     additionalMatch: Record<string, unknown> = {},
   ): Promise<number> {
+    // logService("StatistiquesService", "getTotalFluxMensuel", { // Commenté pour réduire le bruit
+    //   userIds: JSON.stringify(userIds),
+    //   dateDebut: dateDebut.toISOString(),
+    //   dateFin: dateFin.toISOString(),
+    //   typeFlux,
+    //   modelName: model.modelName,
+    //   additionalMatch,
+    // });
+
     const match: Record<string, unknown> = {
       utilisateur: userIds,
       date: { $gte: dateDebut, $lte: dateFin },
       ...additionalMatch,
     };
-    logger.info(
-      `getTotalFluxMensuel - type: ${typeFlux}, userIds: ${JSON.stringify(userIds)}, dateDebut: ${dateDebut.toISOString()}, dateFin: ${dateFin.toISOString()}`,
-    );
-    logger.debug("getTotalFluxMensuel - Match query:", match);
 
     const result = await model.aggregate([
       { $match: match },
       { $group: { _id: null, total: { $sum: "$montant" } } },
     ]);
     const total = result[0]?.total || 0;
-    logger.info(`getTotalFluxMensuel - Résultat pour ${typeFlux}: ${total}`);
+    // logService("StatistiquesService", "getTotalFluxMensuel", { // Commenté pour réduire le bruit
+    //   message: `Résultat calculé pour ${typeFlux}`,
+    //   total
+    // });
     return total;
   }
 
@@ -82,9 +90,11 @@ export class StatistiquesService {
     dateDebut: Date,
     dateFin: Date,
   ): Promise<{ totalRevenus: number; totalDepenses: number; solde: number }> {
-    logger.info(
-      `getSoldePourPeriode - userIds: ${JSON.stringify(userIds)}, dateDebut: ${dateDebut.toISOString()}, dateFin: ${dateFin.toISOString()}`,
-    );
+    // logService("StatistiquesService", "getSoldePourPeriode", { // Commenté pour réduire le bruit
+    //   userIds: JSON.stringify(userIds),
+    //   dateDebut: dateDebut.toISOString(),
+    //   dateFin: dateFin.toISOString(),
+    // });
 
     const [totalRevenus, totalDepenses] = await Promise.all([
       this.getTotalFluxMensuel(
@@ -103,12 +113,6 @@ export class StatistiquesService {
       ),
     ]);
 
-    const solde = totalRevenus - totalDepenses;
-    logger.info("getSoldePourPeriode - Calculé:", {
-      totalRevenus,
-      totalDepenses,
-      solde,
-    });
 
     return {
       totalRevenus,
@@ -123,13 +127,31 @@ export class StatistiquesService {
     dateFin: Date,
     typeFlux: "depense" | "revenu",
   ): Promise<CategorieRepartition[]> {
+    // logService("StatistiquesService", "getRepartitionParCategorie", { // Commenté temporairement pour le test spécifique
+    //   userIds: JSON.stringify(userIds),
+    //   dateDebut,
+    //   dateFin,
+    //   typeFlux,
+    // });
+    logger.debug("[svc.getRepartitionParCategorie] Appel avec:", { userIds, dateDebut: dateDebut.toISOString(), dateFin: dateFin.toISOString(), typeFlux });
+
     const model = typeFlux === "depense" ? DepenseModel : RevenuModel;
     const categorieField =
       typeFlux === "depense" ? "categorie" : "categorieRevenu";
     const categorieCollection =
       typeFlux === "depense" ? "categories" : "categorierevenus";
 
-    return model.aggregate([
+    // logService("StatistiquesService", "getRepartitionParCategorie", {
+    //   modelName: model.modelName,
+    // });
+    // logService("StatistiquesService", "getRepartitionParCategorie", {
+    //   categorieCollection,
+    // });
+    // logService("StatistiquesService", "getRepartitionParCategorie", {
+    //   categorieField,
+    // });
+
+    const aggregationPipeline: mongoose.PipelineStage[] = [
       {
         $match: {
           utilisateur: userIds,
@@ -168,7 +190,21 @@ export class StatistiquesService {
       {
         $sort: { total: -1 },
       },
-    ]);
+    ];
+
+    // logService("StatistiquesService", "getRepartitionParCategorie", {
+    //   firstStage: JSON.stringify(aggregationPipeline[0]),
+    //   secondStage: JSON.stringify(aggregationPipeline[1]),
+    // });
+
+    const resultatAggregation = await model.aggregate(aggregationPipeline);
+    logger.debug("[svc.getRepartitionParCategorie] resultatAggregation brut:", resultatAggregation);
+
+    // logService("StatistiquesService", "getRepartitionParCategorie", { // Commenté temporairement pour le test spécifique
+    //   resultatAggregation,
+    // });
+
+    return resultatAggregation;
   }
 
   static async getComparaisonMois(

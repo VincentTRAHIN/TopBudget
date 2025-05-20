@@ -6,6 +6,8 @@ import { AuthRequest } from "../middlewares/auth.middleware";
 const env = process.env.NODE_ENV || "development";
 const isDevelopment = env === "development";
 
+const { combine, timestamp, json, printf, colorize, align, errors } = format;
+
 const rotateFileConfig = {
   dirname: "logs",
   datePattern: "YYYY-MM-DD",
@@ -13,16 +15,43 @@ const rotateFileConfig = {
   maxSize: "20m",
 };
 
-const customFormat = format.combine(
-  format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-  format.errors({ stack: true }),
-  isDevelopment ? format.colorize() : format.uncolorize(),
-  format.printf(({ timestamp, level, message, stack }) => {
-    if (stack) {
-      return `${timestamp} [${level}]: ${message}\n${stack}`;
-    }
-    return `${timestamp} [${level}]: ${message}`;
+const devFormat = combine(
+  colorize({ 
+    colors: { 
+      info: 'blue', 
+      http: 'magenta', 
+      debug: 'green' // Optionnel, pour différencier de info/http si besoin
+      // les autres niveaux (error, warn) prendront leurs couleurs par défaut (rouge, jaune)
+    } 
   }),
+  timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" }),
+  align(),
+  errors({ stack: true }),
+  printf(({ timestamp: ts, level, message, stack, service, method, ...meta }) => {
+    let log = `[${ts}] ${level}`;
+    if (service) log += ` [${service}]`;
+    if (method) log += ` [${method}]`;
+    log += `: ${message}`;
+    if (stack) {
+      log += `\n${stack}`;
+    }
+    const filteredMeta = { ...meta };
+    // Supprime les clés déjà affichées pour éviter la redondance dans meta
+    ['level', 'message', 'timestamp', 'stack', 'service', 'method'].forEach(key => {
+      const metaKey = key as keyof typeof filteredMeta;
+      delete filteredMeta[metaKey];
+    });
+    if (Object.keys(filteredMeta).length > 0) {
+      log += `\n  meta: ${JSON.stringify(filteredMeta, null, 2)}`;
+    }
+    return log;
+  }),
+);
+
+const prodFormat = combine(
+  timestamp(),
+  errors({ stack: true }),
+  json(),
 );
 
 const logTransports: transport[] = [
@@ -48,20 +77,21 @@ if (isDevelopment) {
 
 const logger = createLogger({
   level: isDevelopment ? "debug" : "info",
-  format: customFormat,
+  format: isDevelopment ? devFormat : prodFormat,
   transports: logTransports,
+  exceptionHandlers: [
+    new DailyRotateFile({
+      ...rotateFileConfig,
+      filename: "exceptions-%DATE%.log",
+    }),
+  ],
+  rejectionHandlers: [
+    new DailyRotateFile({
+      ...rotateFileConfig,
+      filename: "rejections-%DATE%.log",
+    }),
+  ],
   exitOnError: false,
-});
-
-process.on("unhandledRejection", (reason: Error) => {
-  logger.error("Unhandled Promise Rejection:", reason);
-});
-
-process.on("uncaughtException", (error: Error) => {
-  logger.error("Uncaught Exception:", error);
-  setTimeout(() => {
-    process.exit(1);
-  }, 1000);
 });
 
 /**
@@ -90,15 +120,19 @@ export const logError = (
 /**
  * Fonction d'aide pour logger des informations de service avec un format standardisé
  * @param service Nom du service
- * @param action Action effectuée
- * @param details Détails supplémentaires
+ * @param method Nom de la méthode appelée
+ * @param details Détails supplémentaires en tant qu'objet de métadonnées
  */
 export const logService = (
   service: string,
-  action: string,
+  method: string,
   details?: Record<string, unknown>,
 ): void => {
-  logger.info(`${service} - ${action}`, details);
+  logger.debug(`Appel de la méthode ${method} dans le service ${service}`, { 
+    service,
+    method,
+    ...details 
+  });
 };
 
 /**

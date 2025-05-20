@@ -972,35 +972,68 @@ export const repartitionParCategorie = createAsyncHandler(
 
 export const repartitionRevenusParCategorie = createAsyncHandler(
   async (req: AuthRequest, res: Response): Promise<void> => {
+    logger.info("[TEST LOG] Entrée dans repartitionRevenusParCategorie");
+    logger.debug("[ctrl.repartitionRevenusParCategorie] req.query reçu:", req.query);
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      logger.warn("[ctrl.repartitionRevenusParCategorie] Erreurs de validation", { errors: errors.array(), query: req.query });
+      sendErrorClient(res, STATISTIQUES.ERRORS.VALIDATION_ERROR, errors.array());
+      return;
+    }
+
     if (!req.user) {
+      logger.warn("[ctrl.repartitionRevenusParCategorie] Utilisateur non authentifié tenté d'accéder");
       sendErrorClient(res, AUTH.ERRORS.UNAUTHORIZED);
       return;
     }
 
-    const { mois, annee, contexte } = req.query;
-    if (!mois || !annee) {
-      sendErrorClient(res, "Les paramètres mois et année sont requis");
+    logger.debug('[ctrl.repartitionRevenusParCategorie] Requête reçue', { query: req.query, userId: req.user.id });
+
+    const { mois: moisQuery, annee: anneeQuery, contexte } = req.query;
+    logger.debug("[ctrl.repartitionRevenusParCategorie] Paramètres extraits:", { moisQuery, anneeQuery, contexte });
+
+    if (!moisQuery || !anneeQuery) {
+        logger.warn("[ctrl.repartitionRevenusParCategorie] Paramètres mois ou année manquants", { query: req.query });
+        sendErrorClient(res, "Les paramètres mois et année sont requis");
+        return;
+    }
+
+    const moisNum = parseInt(moisQuery as string, 10);
+    const anneeNum = parseInt(anneeQuery as string, 10);
+
+    if (isNaN(moisNum) || isNaN(anneeNum) || moisNum < 1 || moisNum > 12) {
+        logger.warn("[ctrl.repartitionRevenusParCategorie] Paramètres mois ou année invalides", { moisQuery, anneeQuery });
+        sendErrorClient(res, "Les paramètres mois et année doivent être des nombres valides (mois entre 1 et 12).");
+        return;
+    }
+
+    const dateDebutMois = new Date(anneeNum, moisNum - 1, 1);
+    const dateFinMois = new Date(anneeNum, moisNum, 0, 23, 59, 59, 999);
+    logger.debug("[ctrl.repartitionRevenusParCategorie] Période de calcul:", { dateDebutMois: dateDebutMois.toISOString(), dateFinMois: dateFinMois.toISOString() });
+
+    const userContextResult = await getUserIdsFromContext(req, res, contexte as string | undefined);
+    if (userContextResult) {
+      logger.debug("[ctrl.repartitionRevenusParCategorie] userIds obtenus de getUserIdsFromContext:", userContextResult.userIds);
+    } else {
+      logger.warn("[ctrl.repartitionRevenusParCategorie] userContextResult est null ou undefined après appel à getUserIdsFromContext");
+    }
+
+    logger.debug('[ctrl.repartitionRevenusParCategorie] Contexte utilisateur déterminé', { userContextResult, originalContext: contexte });
+
+    if (!userContextResult) {
+      logger.warn("[ctrl.repartitionRevenusParCategorie] Contexte utilisateur non résolu", { userId: req.user.id, contexte });
+      sendErrorClient(res, STATISTIQUES.ERRORS.VALIDATION_ERROR, "Contexte utilisateur non valide ou paramètres invalides");
       return;
     }
 
-    const dateDebut = new Date(`${annee}-${mois}-01`);
-    const dateFin = new Date(`${annee}-${mois}-31`);
-
-    const userContext = await getUserIdsFromContext(
-      req,
-      res,
-      contexte as string | undefined,
+    const repartition = await StatistiquesService.getRepartitionRevenusParCategorie(
+      userContextResult.userIds,
+      dateDebutMois,
+      dateFinMois,
     );
-    if (!userContext) {
-      return;
-    }
-
-    const repartition =
-      await StatistiquesService.getRepartitionRevenusParCategorie(
-        userContext.userIds,
-        dateDebut,
-        dateFin,
-      );
+    logger.debug("[ctrl.repartitionRevenusParCategorie] Résultat obtenu de StatistiquesService.getRepartitionRevenusParCategorie:", repartition);
+    logger.debug('[ctrl.repartitionRevenusParCategorie] Répartition obtenue du service', { nombreCategories: repartition.length });
 
     sendSuccess(res, STATISTIQUES.SUCCESS.REPARTITION_CATEGORIE, repartition);
   },

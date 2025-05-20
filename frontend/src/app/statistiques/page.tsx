@@ -9,7 +9,7 @@ import StatsSummary from '@/components/statistiques/StatsSummary.component';
 import TopCategoriesYearToDate from '@/components/statistiques/TopCategoriesYearToDate.component';
 import CoupleContributionsSummary from '@/components/statistiques/CoupleContributionsSummary.component';
 import CoupleFixedChargesList from '@/components/statistiques/CoupleFixedChargesList.component';
-import PieChartCategoriesRevenu from '@/components/statistiques/PieChartCategoriesRevenu.component';
+import { PieChartCategoriesRevenu } from '@/components/statistiques/PieChartCategoriesRevenu.component';
 import { useAuth } from '@/hooks/useAuth.hook';
 import { useState } from 'react';
 
@@ -20,6 +20,26 @@ export default function StatistiquesPage() {
     typeof user?.partenaireId === 'object' && user?.partenaireId?.nom
       ? user.partenaireId.nom
       : 'Partenaire';
+
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+  
+  const monthNames = [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+  ];
+  
+  const getTitleForChart = (type: 'depenses' | 'revenus') => {
+    if (statsContext === 'couple') {
+      return type === 'depenses' 
+        ? `Répartition des Dépenses Communes par Catégorie - ${monthNames[currentMonth - 1]} ${currentYear}`
+        : `Répartition des Revenus du Couple par Catégorie - ${monthNames[currentMonth - 1]} ${currentYear}`;
+    }
+    
+    return type === 'depenses'
+      ? `Répartition par Catégorie - ${monthNames[currentMonth - 1]} ${currentYear}`
+      : `Répartition des Revenus par Catégorie - ${monthNames[currentMonth - 1]} ${currentYear}`;
+  };
 
   return (
     <RequireAuth>
@@ -61,23 +81,15 @@ export default function StatistiquesPage() {
             <div className="col-span-1">
               <PieChartCategories
                 statsContext={statsContext}
-                customTitle={
-                  statsContext === 'couple'
-                    ? 'Répartition des Dépenses Communes par Catégorie'
-                    : undefined
-                }
+                customTitle={getTitleForChart('depenses')}
               />
             </div>
             <div className="col-span-1">
               <PieChartCategoriesRevenu
-                year={new Date().getFullYear()}
-                month={new Date().getMonth() + 1}
-                contexte={statsContext}
-                customTitle={
-                  statsContext === 'couple'
-                    ? 'Répartition des Revenus du Couple par Catégorie'
-                    : 'Répartition des Revenus par Catégorie'
-                }
+                initialYear={currentYear}
+                initialMonth={currentMonth}
+                statsContext={statsContext}
+                customTitle={getTitleForChart('revenus')}
               />
             </div>
           </div>

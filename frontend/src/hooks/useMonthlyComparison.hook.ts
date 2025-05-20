@@ -3,21 +3,6 @@ import fetcher from '../utils/fetcher.utils';
 import { comparaisonMoisEndpoint } from '../services/api.service';
 import { MonthlyComparisonData } from '../types/statistiques.type';
 
-// interface BackendComparaisonResponse { // L'interface BackendComparaisonResponse n'est plus nécessaire si fetcher extrait déjà data
-//   status: string;
-//   message: string;
-//   data: {
-//     actuel:
-//       | number
-//       | { totalDepenses: number; totalRevenus: number; solde: number };
-//     precedent:
-//       | number
-//       | { totalDepenses: number; totalRevenus: number; solde: number };
-//     difference: number;
-//   };
-// }
-
-// Type attendu directement de fetcher (si celui-ci extrait la propriété 'data' de la réponse backend)
 interface DirectFetcherData {
     actuel:
       | number
@@ -49,29 +34,27 @@ export const useMonthlyComparison = (
   if (type) params.append('type', type);
 
   url += `?${params.toString()}`;
-  console.log('[useMonthlyComparison] URL construite:', url, 'Params:', { contexte, type, dateActuelle, datePrecedente });
+  
 
   const {
-    data: responseData, // responseData est maintenant de type DirectFetcherData | undefined
+    data: responseData, 
     error,
     isLoading,
     mutate,
-  } = useSWR<DirectFetcherData>(url, fetcher, { // SWR attend maintenant DirectFetcherData
-    onSuccess: (dataFromFetcher) => { 
-      console.log('[useMonthlyComparison] Données BRUTES reçues du fetcher (onSuccess):', dataFromFetcher);
+  } = useSWR<DirectFetcherData>(url, fetcher, { 
+    onSuccess: () => { 
+     
     },
-    onError: (error) => {
-      console.error('[useMonthlyComparison] Erreur SWR:', error);
+    onError: () => {
     }
   });
 
   let processedData: MonthlyComparisonData | undefined;
 
-  // MODIFICATION: Utiliser responseData directement, car fetcher a déjà extrait le champ 'data'
   if (responseData) { 
-    const actualValue = responseData.actuel; // Accès direct
-    const previousValue = responseData.precedent; // Accès direct
-    const diff = responseData.difference; // Accès direct
+    const actualValue = responseData.actuel; 
+    const previousValue = responseData.precedent; 
+    const diff = responseData.difference; 
 
     const totalMoisActuel = 
       typeof actualValue === 'number'
@@ -91,7 +74,7 @@ export const useMonthlyComparison = (
             ? previousValue.totalRevenus
             : previousValue.solde;
     
-    console.log('[useMonthlyComparison] Valeurs extraites:', { totalMoisActuel, totalMoisPrecedent, difference: diff });
+   
 
     let pourcentageVariation = 0;
     const denominator =
@@ -117,7 +100,6 @@ export const useMonthlyComparison = (
     };
   }
 
-  console.log('[useMonthlyComparison] Données retournées par le hook:', { data: processedData, isLoading, isError: !!error });
   return {
     data: processedData,
     isLoading,

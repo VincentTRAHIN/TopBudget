@@ -4,6 +4,9 @@ import useSWR from 'swr';
 import fetcher from '@/utils/fetcher.utils';
 import { IDepense } from '@/types/depense.type';
 import { depensesEndpoint } from '@/services/api.service';
+import debug from 'debug';
+
+const log = debug('app:frontend:useDepenses');
 
 export interface DepensesResponse {
   depenses: IDepense[];
@@ -36,6 +39,15 @@ export const useDepenses = (
   sort: DepenseSort = {},
   vue: 'moi' | 'partenaire' | 'couple_complet' = 'moi',
 ) => {
+  log(
+    'Hook useDepenses appelé avec page: %d, limit: %d, filtres: %O, tri: %O, vue: %s',
+    page,
+    limit,
+    filters,
+    sort,
+    vue,
+  );
+
   const queryParams = new URLSearchParams({
     page: String(page),
     limit: String(limit),
@@ -57,6 +69,8 @@ export const useDepenses = (
   }
 
   const url = `${depensesEndpoint}?${queryParams.toString()}`;
+  log('URL SWR pour useDepenses: %s', url);
+
   const { data, error, isLoading, mutate } = useSWR<DepensesResponse>(
     url,
     fetcher,

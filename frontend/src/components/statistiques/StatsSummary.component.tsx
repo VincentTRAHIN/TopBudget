@@ -55,9 +55,13 @@ const Tooltip = ({
         {children}
       </div>
       {isOpen && (
-        <div className="absolute z-10 right-0 mt-2 w-64 px-4 py-3 bg-white border rounded-md shadow-lg text-sm text-gray-700">
-          {content}
-        </div>
+        <div
+        role="tooltip"
+        className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-md shadow-lg md:left-auto md:right-0 md:-translate-x-0"
+      >
+        {content}
+        <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-3 h-3 bg-gray-800 rotate-45 md:left-auto md:right-3"></div> {/* Flèche */}
+      </div>
       )}
     </div>
   );
@@ -79,6 +83,7 @@ const formatMonthYear = (dateStr: string): string => {
       year: 'numeric',
     });
   } catch (e) {
+    console.error('Erreur lors du formatage de la date:', e);
     return 'Date incorrecte';
   }
 };
@@ -265,8 +270,8 @@ export default function StatsSummary({
                 <div>
                   <p className="font-medium mb-1">À propos des dépenses</p>
                   <p>
-                    Ce bloc résume vos dépenses. 'Moyenne mensuelle' est
-                    calculée sur les 12 derniers mois. 'Mois en cours' sont les
+                    Ce bloc résume vos dépenses. `Moyenne mensuelle` est
+                    calculée sur les 12 derniers mois. `Mois en cours`` sont les
                     dépenses depuis le début du mois actuel. La tendance indique
                     si vos dépenses récentes augmentent ou diminuent.
                   </p>
@@ -377,8 +382,8 @@ export default function StatsSummary({
                 <div>
                   <p className="font-medium mb-1">À propos des revenus</p>
                   <p>
-                    Ce bloc résume vos revenus. 'Moyenne mensuelle' est calculée
-                    sur les 12 derniers mois. 'Mois en cours' sont les revenus
+                    Ce bloc résume vos revenus. `Moyenne mensuelle`` est calculée
+                    sur les 12 derniers mois. `Mois en cours` sont les revenus
                     depuis le début du mois actuel. La tendance indique si vos
                     revenus récents augmentent ou diminuent.
                   </p>
@@ -483,10 +488,10 @@ export default function StatsSummary({
                 <div>
                   <p className="font-medium mb-1">À propos du solde</p>
                   <p>
-                    Ce bloc montre votre solde (Revenus - Dépenses). 'Moyenne
-                    mensuelle' est calculée sur les 12 derniers mois. 'Mois en
-                    cours' est le solde depuis le début du mois actuel. La
-                    tendance indique si votre solde récent s'améliore ou se
+                    Ce bloc montre votre solde (Revenus - Dépenses). `Moyenne
+                    mensuelle` est calculée sur les 12 derniers mois. `Mois en
+                    cours` est le solde depuis le début du mois actuel. La
+                    tendance indique si votre solde récent s&apos;améliore ou se
                     dégrade.
                   </p>
                 </div>

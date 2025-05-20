@@ -52,22 +52,7 @@ export default function PieChartCategories({
     statsContext,
   );
 
-  const monthNames = [
-    'Janvier',
-    'Février',
-    'Mars',
-    'Avril',
-    'Mai',
-    'Juin',
-    'Juillet',
-    'Août',
-    'Septembre',
-    'Octobre',
-    'Novembre',
-    'Décembre',
-  ];
-  const defaultTitle = `Répartition par Catégorie - ${monthNames[selectedMonth - 1]} ${selectedYear}`;
-  const chartTitle = customTitle || defaultTitle;
+  const chartTitle = customTitle;
 
   let labels: string[] = [];
   let dataValues: number[] = [];
@@ -124,10 +109,12 @@ export default function PieChartCategories({
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { position: 'top' as const },
+        legend: { 
+          position: 'right' as const,
+          align: 'center' as const
+        },
         title: {
-          display: true,
-          text: chartTitle,
+          display: false,
         },
         tooltip: {
           callbacks: {
@@ -246,21 +233,27 @@ export default function PieChartCategories({
       </div>
 
       {isLoading && (
-        <p className="text-center py-4">Chargement des données...</p>
+        <div className="h-80 md:h-96 flex items-center justify-center">
+          <p className="text-center py-4">Chargement des données...</p>
+        </div>
       )}
       {isError && (
-        <p className="text-center py-4 text-red-500">
-          Erreur lors du chargement des données.
-        </p>
+        <div className="h-80 md:h-96 flex items-center justify-center">
+          <p className="text-center py-4 text-red-500">
+            Erreur lors du chargement des données.
+          </p>
+        </div>
       )}
       {!isLoading &&
         !isError &&
         categoryDistribution &&
         categoryDistribution.length === 0 && (
-          <p className="text-center py-4">Aucune dépense pour cette période.</p>
+          <div className="h-80 md:h-96 flex items-center justify-center">
+            <p className="text-center py-4">Aucune dépense pour cette période.</p>
+          </div>
         )}
 
-      <div className="relative h-80 md:h-96">
+      <div className="h-80 md:h-96 flex justify-center">
         {!isLoading && !isError && (
           <Pie data={chartData} options={chartData.options} />
         )}

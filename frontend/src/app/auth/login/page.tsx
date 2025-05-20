@@ -6,7 +6,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import AuthNav from '@/components/auth/authNav.component';
 import { toast } from 'react-hot-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string().email('Email invalide').required('Requis'),
@@ -18,13 +18,12 @@ export default function LoginPage() {
   const { login, loadingAction } = useAuth();
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  useState(() => {
+  useEffect(() => {
     const existingToken = localStorage.getItem('authToken');
     if (existingToken) {
-      console.log('Token existant trouvé, redirection vers le dashboard...');
       router.push('/dashboard');
     }
-  });
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -39,9 +38,7 @@ export default function LoginPage() {
             setLoginError(null);
             try {
               await login(values.email, values.motDePasse);
-              const token = localStorage.getItem('authToken');
-
-              console.log('Connexion réussie, token stocké:', !!token);
+              
               toast.success('Connexion réussie');
 
               setTimeout(() => {

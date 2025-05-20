@@ -13,12 +13,6 @@ export interface CurrentMonthFlowsData {
 
 export const useCurrentMonthFlows = (contexte: 'moi' | 'couple' = 'moi') => {
   const url = `${soldeMensuelEndpoint}${contexte !== 'moi' ? `?contexte=${contexte}` : ''}`;
-  console.log(
-    '[useCurrentMonthFlows] Appel API avec URL:',
-    url,
-    'et contexte:',
-    contexte,
-  );
 
   const {
     data: responseData,
@@ -32,16 +26,7 @@ export const useCurrentMonthFlows = (contexte: 'moi' | 'couple' = 'moi') => {
     dedupingInterval: 60000,
   });
 
-  console.log(
-    '[useCurrentMonthFlows] Données brutes reçues par SWR (responseData):',
-    responseData,
-  );
-
   const flowData = responseData;
-  console.log(
-    '[useCurrentMonthFlows] flowData assigné (directement depuis responseData):',
-    flowData,
-  );
 
   const returnObject = {
     totalDepenses: flowData?.totalDepenses || 0,
@@ -51,10 +36,6 @@ export const useCurrentMonthFlows = (contexte: 'moi' | 'couple' = 'moi') => {
     isError: !!error,
     mutate,
   };
-  console.log(
-    '[useCurrentMonthFlows] Objet retourné par le hook:',
-    returnObject,
-  );
 
   return returnObject;
 };
