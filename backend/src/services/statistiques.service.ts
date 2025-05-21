@@ -4,7 +4,6 @@ import RevenuModel from "../models/revenu.model";
 import User from "../models/user.model";
 import { IDepensePopulated } from "../types/depense.types";
 import { IUserPopulated } from "../types/user.types";
-import logger from "../utils/logger.utils";
 
 export type UserIdsType =
   | mongoose.Types.ObjectId
@@ -56,17 +55,8 @@ export class StatistiquesService {
     typeFlux: "depense" | "revenu",
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     model: any,
-    additionalMatch: Record<string, unknown> = {},
+    additionalMatch: Record<string, unknown> = {}
   ): Promise<number> {
-    // logService("StatistiquesService", "getTotalFluxMensuel", { // Commenté pour réduire le bruit
-    //   userIds: JSON.stringify(userIds),
-    //   dateDebut: dateDebut.toISOString(),
-    //   dateFin: dateFin.toISOString(),
-    //   typeFlux,
-    //   modelName: model.modelName,
-    //   additionalMatch,
-    // });
-
     const match: Record<string, unknown> = {
       utilisateur: userIds,
       date: { $gte: dateDebut, $lte: dateFin },
@@ -78,23 +68,15 @@ export class StatistiquesService {
       { $group: { _id: null, total: { $sum: "$montant" } } },
     ]);
     const total = result[0]?.total || 0;
-    // logService("StatistiquesService", "getTotalFluxMensuel", { // Commenté pour réduire le bruit
-    //   message: `Résultat calculé pour ${typeFlux}`,
-    //   total
-    // });
+
     return total;
   }
 
   static async getSoldePourPeriode(
     userIds: UserIdsType,
     dateDebut: Date,
-    dateFin: Date,
+    dateFin: Date
   ): Promise<{ totalRevenus: number; totalDepenses: number; solde: number }> {
-    // logService("StatistiquesService", "getSoldePourPeriode", { // Commenté pour réduire le bruit
-    //   userIds: JSON.stringify(userIds),
-    //   dateDebut: dateDebut.toISOString(),
-    //   dateFin: dateFin.toISOString(),
-    // });
 
     const [totalRevenus, totalDepenses] = await Promise.all([
       this.getTotalFluxMensuel(
@@ -102,17 +84,16 @@ export class StatistiquesService {
         dateDebut,
         dateFin,
         "revenu",
-        RevenuModel,
+        RevenuModel
       ),
       this.getTotalFluxMensuel(
         userIds,
         dateDebut,
         dateFin,
         "depense",
-        DepenseModel,
+        DepenseModel
       ),
     ]);
-
 
     return {
       totalRevenus,
@@ -125,31 +106,13 @@ export class StatistiquesService {
     userIds: UserIdsType,
     dateDebut: Date,
     dateFin: Date,
-    typeFlux: "depense" | "revenu",
+    typeFlux: "depense" | "revenu"
   ): Promise<CategorieRepartition[]> {
-    // logService("StatistiquesService", "getRepartitionParCategorie", { // Commenté temporairement pour le test spécifique
-    //   userIds: JSON.stringify(userIds),
-    //   dateDebut,
-    //   dateFin,
-    //   typeFlux,
-    // });
-    logger.debug("[svc.getRepartitionParCategorie] Appel avec:", { userIds, dateDebut: dateDebut.toISOString(), dateFin: dateFin.toISOString(), typeFlux });
-
     const model = typeFlux === "depense" ? DepenseModel : RevenuModel;
     const categorieField =
       typeFlux === "depense" ? "categorie" : "categorieRevenu";
     const categorieCollection =
       typeFlux === "depense" ? "categories" : "categorierevenus";
-
-    // logService("StatistiquesService", "getRepartitionParCategorie", {
-    //   modelName: model.modelName,
-    // });
-    // logService("StatistiquesService", "getRepartitionParCategorie", {
-    //   categorieCollection,
-    // });
-    // logService("StatistiquesService", "getRepartitionParCategorie", {
-    //   categorieField,
-    // });
 
     const aggregationPipeline: mongoose.PipelineStage[] = [
       {
@@ -192,17 +155,7 @@ export class StatistiquesService {
       },
     ];
 
-    // logService("StatistiquesService", "getRepartitionParCategorie", {
-    //   firstStage: JSON.stringify(aggregationPipeline[0]),
-    //   secondStage: JSON.stringify(aggregationPipeline[1]),
-    // });
-
     const resultatAggregation = await model.aggregate(aggregationPipeline);
-    logger.debug("[svc.getRepartitionParCategorie] resultatAggregation brut:", resultatAggregation);
-
-    // logService("StatistiquesService", "getRepartitionParCategorie", { // Commenté temporairement pour le test spécifique
-    //   resultatAggregation,
-    // });
 
     return resultatAggregation;
   }
@@ -211,12 +164,12 @@ export class StatistiquesService {
     userIds: UserIdsType,
     dateActuelle: Date,
     datePrecedente: Date,
-    type: "depenses" | "revenus" | "solde",
+    type: "depenses" | "revenus" | "solde"
   ): Promise<ComparaisonInfo> {
     const startActuelle = new Date(
       dateActuelle.getFullYear(),
       dateActuelle.getMonth(),
-      1,
+      1
     );
     const endActuelle = new Date(
       dateActuelle.getFullYear(),
@@ -225,12 +178,12 @@ export class StatistiquesService {
       23,
       59,
       59,
-      999,
+      999
     );
     const startPrecedente = new Date(
       datePrecedente.getFullYear(),
       datePrecedente.getMonth(),
-      1,
+      1
     );
     const endPrecedente = new Date(
       datePrecedente.getFullYear(),
@@ -239,7 +192,7 @@ export class StatistiquesService {
       23,
       59,
       59,
-      999,
+      999
     );
     if (type === "solde") {
       const [soldeActuel, soldePrecedent] = await Promise.all([
@@ -259,14 +212,14 @@ export class StatistiquesService {
           startActuelle,
           endActuelle,
           type === "depenses" ? "depense" : "revenu",
-          model,
+          model
         ),
         this.getTotalFluxMensuel(
           userIds,
           startPrecedente,
           endPrecedente,
           type === "depenses" ? "depense" : "revenu",
-          model,
+          model
         ),
       ]);
       return {
@@ -282,7 +235,7 @@ export class StatistiquesService {
     nbMois: number,
     dateReference: Date,
     typeFlux: "depenses" | "revenus" | "solde",
-    options?: { estRecurrent?: boolean },
+    options?: { estRecurrent?: boolean }
   ): Promise<EvolutionFluxResult[]> {
     const results: EvolutionFluxResult[] = [];
     for (let i = nbMois - 1; i >= 0; i--) {
@@ -296,7 +249,7 @@ export class StatistiquesService {
         23,
         59,
         59,
-        999,
+        999
       );
 
       const baseResult = {
@@ -322,7 +275,7 @@ export class StatistiquesService {
           end,
           typeFlux === "depenses" ? "depense" : "revenu",
           model,
-          match,
+          match
         );
 
         if (typeFlux === "depenses") {
@@ -331,7 +284,7 @@ export class StatistiquesService {
             start,
             end,
             "revenu",
-            RevenuModel,
+            RevenuModel
           );
 
           results.push({
@@ -346,7 +299,7 @@ export class StatistiquesService {
             start,
             end,
             "depense",
-            DepenseModel,
+            DepenseModel
           );
 
           results.push({
@@ -365,21 +318,22 @@ export class StatistiquesService {
   static async getRepartitionRevenusParCategorie(
     userIds: UserIdsType,
     dateDebut: Date,
-    dateFin: Date,
+    dateFin: Date
   ): Promise<CategorieRepartition[]> {
-    return this.getRepartitionParCategorie(
+    const result = await this.getRepartitionParCategorie(
       userIds,
       dateDebut,
       dateFin,
-      "revenu",
+      "revenu"
     );
+    return result;
   }
 
   static async getSyntheseMensuelleCouple(
     userIdPrincipal: string,
     partenaireId: string,
     dateDebut: Date,
-    dateFin: Date,
+    dateFin: Date
   ): Promise<{
     soldeGlobal: SoldeInfo;
     utilisateurPrincipal: {
@@ -410,12 +364,12 @@ export class StatistiquesService {
       this.getSoldePourPeriode(
         new mongoose.Types.ObjectId(userIdPrincipal),
         dateDebut,
-        dateFin,
+        dateFin
       ),
       this.getSoldePourPeriode(
         new mongoose.Types.ObjectId(partenaireId),
         dateDebut,
-        dateFin,
+        dateFin
       ),
     ]);
 
@@ -474,7 +428,7 @@ export class StatistiquesService {
     userIdPrincipal: string,
     partenaireId: string,
     dateDebut: Date,
-    dateFin: Date,
+    dateFin: Date
   ): Promise<{
     contributionsUtilisateurs: ContributionCouple[];
     totalDepensesCouple: number;
@@ -494,12 +448,12 @@ export class StatistiquesService {
       this.getSoldePourPeriode(
         new mongoose.Types.ObjectId(userIdPrincipal),
         dateDebut,
-        dateFin,
+        dateFin
       ),
       this.getSoldePourPeriode(
         new mongoose.Types.ObjectId(partenaireId),
         dateDebut,
-        dateFin,
+        dateFin
       ),
     ]);
 
@@ -559,7 +513,7 @@ export class StatistiquesService {
     userIdPrincipal: string,
     partenaireId: string,
     dateDebut: Date,
-    dateFin: Date,
+    dateFin: Date
   ): Promise<{
     chargesUtilisateurPrincipal: IDepensePopulated[];
     chargesPartenaire: IDepensePopulated[];
@@ -589,12 +543,12 @@ export class StatistiquesService {
 
     const totalChargesUtilisateurPrincipal = chargesUtilisateurPrincipal.reduce(
       (acc: number, charge: IDepensePopulated) => acc + charge.montant,
-      0,
+      0
     );
 
     const totalChargesPartenaire = chargesPartenaire.reduce(
       (acc: number, charge: IDepensePopulated) => acc + charge.montant,
-      0,
+      0
     );
 
     const totalChargesCouple =

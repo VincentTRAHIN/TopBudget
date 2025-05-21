@@ -41,8 +41,8 @@ yarn-error.log*
 next-env.d.ts
 backend.txt
 frontend.txt
+structure.txt
 extract-code.js
 generate-structure.js
-structure.txt
 memory-bank/
 .cursor/

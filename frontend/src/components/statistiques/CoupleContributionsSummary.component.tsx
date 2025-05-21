@@ -28,7 +28,7 @@ export default function CoupleContributionsSummary({
       : 'Partenaire');
 
   let message = '';
-  if (data) {
+  if (data && data.ecartUtilisateurActuel !== undefined) {
     if (data.ecartUtilisateurActuel < 0) {
       message = `Vous avez payé moins que votre part. Vous devez ${Math.abs(data.ecartUtilisateurActuel).toFixed(2)}€ à ${nomPartenaire}.`;
     } else if (data.ecartUtilisateurActuel > 0) {
@@ -92,19 +92,19 @@ export default function CoupleContributionsSummary({
         <div className="space-y-2">
           <p>
             <span className="font-medium">Total des dépenses communes :</span>{' '}
-            {data.totalDepensesCommunes.toFixed(2)}€
+            {data.totalDepensesCommunes !== undefined ? data.totalDepensesCommunes.toFixed(2) : '0.00'}€
           </p>
           <p>
             <span className="font-medium">
               Ma contribution aux dépenses communes :
             </span>{' '}
-            {data.contributionUtilisateurActuel.toFixed(2)}€
+            {data.contributionUtilisateurActuel !== undefined ? data.contributionUtilisateurActuel.toFixed(2) : '0.00'}€
           </p>
           <p>
             <span className="font-medium">
               Contribution de {nomPartenaire} aux dépenses communes :
             </span>{' '}
-            {data.contributionPartenaire.toFixed(2)}€
+            {data.contributionPartenaire !== undefined ? data.contributionPartenaire.toFixed(2) : '0.00'}€
           </p>
           <p className="mt-2 font-semibold text-blue-700">{message}</p>
         </div>

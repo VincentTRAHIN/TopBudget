@@ -12,7 +12,7 @@ import {
   Legend,
   ChartOptions,
 } from 'chart.js';
-import { useMonthlyExpensesEvolution } from '@/hooks/useMonthlyExpensesEvolution.hook';
+import { useMonthlyExpensesEvolution } from '@/hooks/useMonthlyFlowsEvolution.hook';
 
 ChartJS.register(
   CategoryScale,

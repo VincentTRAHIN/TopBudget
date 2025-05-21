@@ -12,9 +12,10 @@ export const useCategoriesRevenu = () => {
     {
       fallbackData: [],
       onSuccess: () => {
-       
+        console.log('Categories de revenus récupérées avec succès');
       },
       onError: () => {
+        console.error('Erreur lors de la récupération des catégories de revenus');
       },
     },
   );

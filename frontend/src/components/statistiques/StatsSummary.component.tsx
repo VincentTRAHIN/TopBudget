@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useMonthlyFlowsEvolution } from '@/hooks/useMonthlyExpensesEvolution.hook';
+import { useMonthlyFlowsEvolution } from '@/hooks/useMonthlyFlowsEvolution.hook';
 import { useCurrentMonthFlows } from '@/hooks/useCurrentMonthTotal.hook';
 import {
   ArrowDownRight,

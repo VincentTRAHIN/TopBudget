@@ -72,7 +72,7 @@ export default function TableDepenses({
       log(`Dépense ID: %s supprimée avec succès. Rafraîchissement des dépenses.`, id);
       refreshDepenses();
     } catch (error) {
-      log.error(`Erreur lors de la suppression de la dépense ID: %s, Erreur: %O`, id, error);
+      log(`Erreur lors de la suppression de la dépense ID: %s, Erreur: %O`, id, error);
       toast.error('Erreur lors de la suppression de la dépense');
     }
   };

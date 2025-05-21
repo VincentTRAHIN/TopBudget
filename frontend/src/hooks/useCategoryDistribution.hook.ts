@@ -3,6 +3,7 @@
 import useSWR from 'swr';
 import fetcher from '@/utils/fetcher.utils';
 import { statistiquesParCategorieEndpoint } from '@/services/api.service';
+import { useEffect } from 'react';
 
 export interface CategoryDistributionDataPoint {
   _id: string;
@@ -25,6 +26,10 @@ export const useCategoryDistribution = (
   >(url, fetcher, {
     shouldRetryOnError: false,
   });
+
+  useEffect(() => {
+    mutate();
+  }, [year, month, contexte, mutate]);
 
   return {
     categoryDistribution: data || [],

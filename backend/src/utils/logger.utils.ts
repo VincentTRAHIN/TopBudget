@@ -20,8 +20,7 @@ const devFormat = combine(
     colors: { 
       info: 'blue', 
       http: 'magenta', 
-      debug: 'green' // Optionnel, pour différencier de info/http si besoin
-      // les autres niveaux (error, warn) prendront leurs couleurs par défaut (rouge, jaune)
+      debug: 'green' 
     } 
   }),
   timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" }),
@@ -36,7 +35,6 @@ const devFormat = combine(
       log += `\n${stack}`;
     }
     const filteredMeta = { ...meta };
-    // Supprime les clés déjà affichées pour éviter la redondance dans meta
     ['level', 'message', 'timestamp', 'stack', 'service', 'method'].forEach(key => {
       const metaKey = key as keyof typeof filteredMeta;
       delete filteredMeta[metaKey];

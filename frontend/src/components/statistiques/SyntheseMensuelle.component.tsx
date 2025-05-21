@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import {
   useSyntheseMensuelle,
-  SyntheseCoupleResponse,
-  SyntheseMoiResponse,
 } from '@/hooks/useSyntheseMensuelle.hook';
 import { useAuth } from '@/hooks/useAuth.hook';
 
@@ -48,6 +46,26 @@ export default function SyntheseMensuelle({
     'Novembre',
     'Décembre',
   ];
+
+  const processedData = data ? {
+    ...data,
+    totaux: data.totaux || (contexte === 'moi' ? 
+      {
+        personnelles: data.utilisateurPrincipal?.depenses || 0,
+        communesPayeesParMoi: 0, 
+      } : {
+        personnellesMoi: data.utilisateurPrincipal?.depenses || 0,
+        personnellesPartenaire: data.partenaire?.depenses || 0,
+        communesCouple: 0,
+      })
+  } : null;
+
+  const hasDataContent = processedData && (
+    processedData.soldeGlobal || 
+    processedData.utilisateurPrincipal || 
+    processedData.partenaire || 
+    (processedData.categoriesEnHausse && processedData.categoriesEnHausse.length > 0)
+  );
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto text-gray-800">
@@ -104,95 +122,96 @@ export default function SyntheseMensuelle({
           Erreur lors du chargement des données.
         </p>
       )}
-      {!isLoading && !isError && !data && (
+      {!isLoading && !isError && !hasDataContent && (
         <p className="text-center py-4 text-gray-500">
           Aucune donnée disponible pour cette période.
         </p>
       )}
-      {!isLoading && !isError && data && (
+      {!isLoading && !isError && hasDataContent && (
         <div className="space-y-6">
-          {contexte === 'moi' && data.totaux && (
+          {contexte === 'moi' && processedData?.utilisateurPrincipal && (
             <div className="bg-gray-50 rounded-lg p-4">
               <p className="mb-2">
                 <span className="font-semibold text-gray-700">
                   Vos dépenses personnelles :
                 </span>{' '}
-                {formatEuros((data as SyntheseMoiResponse).totaux.personnelles)}
+                {formatEuros(processedData.utilisateurPrincipal.depenses)}
+              </p>
+              <p className="mb-2">
+                <span className="font-semibold text-gray-700">
+                  Vos revenus :
+                </span>{' '}
+                {formatEuros(processedData.utilisateurPrincipal.revenus)}
               </p>
               <p>
                 <span className="font-semibold text-gray-700">
-                  Dépenses communes payées par vous :
+                  Votre solde pour ce mois :
                 </span>{' '}
-                {formatEuros(
-                  (data as SyntheseMoiResponse).totaux.communesPayeesParMoi,
-                )}
+                {formatEuros(processedData.utilisateurPrincipal.solde)}
               </p>
             </div>
           )}
-          {contexte === 'couple' && data.totaux && (
+          {contexte === 'couple' && processedData?.utilisateurPrincipal && processedData?.partenaire && (
             <div className="bg-gray-50 rounded-lg p-4">
               <p className="mb-2">
                 <span className="font-semibold text-gray-700">
                   Dépenses personnelles {nomMoi} :
                 </span>{' '}
-                {formatEuros(
-                  (data as SyntheseCoupleResponse).totaux.personnellesMoi,
-                )}
+                {formatEuros(processedData.utilisateurPrincipal.depenses)}
               </p>
               <p className="mb-2">
                 <span className="font-semibold text-gray-700">
                   Dépenses personnelles {nomPartenaire} :
                 </span>{' '}
-                {formatEuros(
-                  (data as SyntheseCoupleResponse).totaux
-                    .personnellesPartenaire,
-                )}
+                {formatEuros(processedData.partenaire.depenses)}
               </p>
-              <p>
+              <p className="mb-2">
                 <span className="font-semibold text-gray-700">
-                  Total dépenses communes du couple :
+                  Revenus {nomMoi} :
                 </span>{' '}
-                {formatEuros(
-                  (data as SyntheseCoupleResponse).totaux.communesCouple,
-                )}
+                {formatEuros(processedData.utilisateurPrincipal.revenus)}
               </p>
+              <p className="mb-2">
+                <span className="font-semibold text-gray-700">
+                  Revenus {nomPartenaire} :
+                </span>{' '}
+                {formatEuros(processedData.partenaire.revenus)}
+              </p>
+              {processedData.soldeGlobal && (
+                <p>
+                  <span className="font-semibold text-gray-700">
+                    Solde global du couple :
+                  </span>{' '}
+                  {formatEuros(processedData.soldeGlobal.solde)}
+                </p>
+              )}
             </div>
           )}
-          {!data.totaux && (
-            <div className="bg-gray-50 rounded-lg p-4 text-center text-gray-500">
-              Aucune donnée de synthèse disponible pour cette période.
-            </div>
-          )}
-          <div className="bg-red-50 rounded-lg p-4">
-            <h4 className="font-semibold text-lg mb-3 text-red-700">
-              Catégories en Forte Hausse :
-            </h4>
-            {data.categoriesEnHausse && data.categoriesEnHausse.length === 0 ? (
-              <p className="text-gray-500">
-                Aucune catégorie en forte hausse ce mois-ci.
-              </p>
-            ) : (
+          {processedData?.categoriesEnHausse && processedData.categoriesEnHausse.length > 0 && (
+            <div className="bg-red-50 rounded-lg p-4">
+              <h4 className="font-semibold text-lg mb-3 text-red-700">
+                Catégories en Forte Hausse :
+              </h4>
               <ul className="space-y-2">
-                {data.categoriesEnHausse &&
-                  data.categoriesEnHausse.map((cat) => (
-                    <li
-                      key={cat.categorieId}
-                      className="p-3 bg-red-100 rounded-md"
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium text-red-800">
-                          {cat.nom}
-                        </span>
-                        <span className="text-sm font-semibold text-red-600">
-                          +{cat.variationValeur.toFixed(2)} € (
-                          {cat.variationPourcent.toFixed(1)}%)
-                        </span>
-                      </div>
-                    </li>
-                  ))}
+                {processedData.categoriesEnHausse.map((cat) => (
+                  <li
+                    key={cat.categorieId}
+                    className="p-3 bg-red-100 rounded-md"
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-red-800">
+                        {cat.nom}
+                      </span>
+                      <span className="text-sm font-semibold text-red-600">
+                        +{cat.variationValeur.toFixed(2)} € (
+                        {cat.variationPourcent.toFixed(1)}%)
+                      </span>
+                    </div>
+                  </li>
+                ))}
               </ul>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -1,40 +1,69 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from 'chart.js';
 import { useRevenuDistributionByCategorie } from '@/hooks/useRevenuDistributionByCategorie.hook';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
 interface PieChartCategoriesRevenuProps {
-  initialYear?: number;
-  initialMonth?: number;
-  statsContext?: 'moi' | 'couple';
+  year: number;
+  month: number;
+  contexte: 'perso' | 'couple' | 'foyer';
   customTitle?: string;
 }
 
-export function PieChartCategoriesRevenu({
-  initialYear,
-  initialMonth,
-  statsContext = 'moi',
-  customTitle,
-}: PieChartCategoriesRevenuProps) {
-  const [selectedYear, setSelectedYear] = useState<number>(
-    initialYear || new Date().getFullYear(),
-  );
-  const [selectedMonth, setSelectedMonth] = useState<number>(
-    initialMonth || new Date().getMonth() + 1,
-  );
+export const PieChartCategoriesRevenu: React.FC<
+  PieChartCategoriesRevenuProps
+> = ({ year, month, contexte, customTitle }) => {
+  const [selectedYear, setSelectedYear] = useState<number>(year);
+  const [selectedMonth, setSelectedMonth] = useState<number>(month);
 
-  const { revenuDistribution, isLoading, isError, error, mutate } =
-    useRevenuDistributionByCategorie(selectedYear, selectedMonth, statsContext);
+  let hookContexte: 'moi' | 'couple' | undefined = undefined;
+  if (contexte === 'perso') {
+    hookContexte = 'moi';
+  } else if (contexte === 'couple') {
+    hookContexte = 'couple';
+  }
 
-  useEffect(() => {
-    mutate();
-  }, [selectedMonth, selectedYear, mutate]);
+  const { revenuDistribution, isLoading, isError, error } =
+    useRevenuDistributionByCategorie(selectedYear, selectedMonth, hookContexte);
 
-  const chartTitle = customTitle;
+  const monthNames = [
+    'Janvier',
+    'Février',
+    'Mars',
+    'Avril',
+    'Mai',
+    'Juin',
+    'Juillet',
+    'Août',
+    'Septembre',
+    'Octobre',
+    'Novembre',
+    'Décembre',
+  ];
+  const currentMonthName = monthNames[selectedMonth - 1] || '';
+  const contexteText =
+    contexte === 'couple'
+      ? 'du Couple '
+      : contexte === 'perso'
+        ? 'Personnel '
+        : '';
+
+  let baseTitlePart = 'Répartition des Revenus';
+  if (
+    customTitle &&
+    !customTitle.includes(String(year)) &&
+    !customTitle.includes(monthNames[month - 1])
+  ) {
+    baseTitlePart = customTitle.replace(/ - [A-Za-z]+ [0-9]{4}$/, '');
+  } else if (customTitle) {
+    baseTitlePart = customTitle.split(' - ')[0] || baseTitlePart;
+  }
+
+  const displayTitle = `${baseTitlePart} ${contexteText}par Catégorie - ${currentMonthName} ${selectedYear}`;
 
   const renderChart = () => {
     if (isLoading) {
@@ -107,7 +136,7 @@ export function PieChartCategoriesRevenu({
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h3 className="text-lg font-semibold mb-4">{chartTitle}</h3>
+      <h3 className="text-lg font-semibold mb-4">{displayTitle}</h3>
 
       <div className="flex justify-center mb-4">
         <div className="inline-flex items-center gap-6">
@@ -153,4 +182,4 @@ export function PieChartCategoriesRevenu({
       {renderChart()}
     </div>
   );
-}
+};

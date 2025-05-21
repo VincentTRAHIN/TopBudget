@@ -23,19 +23,29 @@ export default function StatistiquesPage() {
 
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
-  
+
   const monthNames = [
-    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
-    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+    'Janvier',
+    'Février',
+    'Mars',
+    'Avril',
+    'Mai',
+    'Juin',
+    'Juillet',
+    'Août',
+    'Septembre',
+    'Octobre',
+    'Novembre',
+    'Décembre',
   ];
-  
+
   const getTitleForChart = (type: 'depenses' | 'revenus') => {
     if (statsContext === 'couple') {
-      return type === 'depenses' 
+      return type === 'depenses'
         ? `Répartition des Dépenses Communes par Catégorie - ${monthNames[currentMonth - 1]} ${currentYear}`
         : `Répartition des Revenus du Couple par Catégorie - ${monthNames[currentMonth - 1]} ${currentYear}`;
     }
-    
+
     return type === 'depenses'
       ? `Répartition par Catégorie - ${monthNames[currentMonth - 1]} ${currentYear}`
       : `Répartition des Revenus par Catégorie - ${monthNames[currentMonth - 1]} ${currentYear}`;
@@ -45,7 +55,11 @@ export default function StatistiquesPage() {
     <RequireAuth>
       <Layout>
         <div className="space-y-6">
-          <h1 className="text-2xl font-bold">Statistiques</h1>
+          <h1 className="text-2xl font-bold">
+            {statsContext === 'moi'
+              ? 'Statistiques Personnelles'
+              : 'Statistiques du Couple'}
+          </h1>
 
           {/* Sélecteur de contexte statistiques */}
           <div className="mb-4">
@@ -86,9 +100,9 @@ export default function StatistiquesPage() {
             </div>
             <div className="col-span-1">
               <PieChartCategoriesRevenu
-                initialYear={currentYear}
-                initialMonth={currentMonth}
-                statsContext={statsContext}
+                year={currentYear}
+                month={currentMonth}
+                contexte={statsContext === 'moi' ? 'perso' : statsContext}
                 customTitle={getTitleForChart('revenus')}
               />
             </div>
@@ -103,7 +117,6 @@ export default function StatistiquesPage() {
           {/* Section dédiée aux statistiques du couple */}
           {user?.partenaireId && statsContext === 'couple' && (
             <section className="mb-8">
-              <h2 className="text-xl font-bold mb-4">Statistiques du Couple</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <CoupleContributionsSummary partenaireNom={partenaireNom} />
                 <CoupleFixedChargesList />

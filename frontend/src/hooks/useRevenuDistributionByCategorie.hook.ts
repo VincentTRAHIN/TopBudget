@@ -3,6 +3,7 @@
 import useSWR from 'swr';
 import { createSafeDataFetcher } from '@/utils/fetcher.utils';
 import { statistiquesRevenusParCategorieEndpoint } from '@/services/api.service';
+import { useEffect } from 'react';
 
 export interface RevenuDistributionDataPoint {
   _id: string;
@@ -39,6 +40,10 @@ export const useRevenuDistributionByCategorie = (
       console.error('[useRevenuDistributionByCategorie] Error fetching data:', error);
     }
   });
+
+  useEffect(() => {
+    mutate();
+  }, [contexte, year, month, mutate]);
 
   return {
     revenuDistribution: Array.isArray(data)

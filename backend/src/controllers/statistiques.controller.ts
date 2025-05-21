@@ -65,7 +65,7 @@ export const getTotalFluxMensuel = createAsyncHandler(
       return sendErrorClient(
         res,
         STATISTIQUES.ERRORS.VALIDATION_ERROR,
-        errors.array(),
+        errors.array()
       );
     }
 
@@ -92,11 +92,11 @@ export const getTotalFluxMensuel = createAsyncHandler(
       new Date(dateDebut as string),
       new Date(dateFin as string),
       type as "depense" | "revenu",
-      type === "depense" ? DepenseModel : RevenuModel,
+      type === "depense" ? DepenseModel : RevenuModel
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.FLUX_MENSUEL, result);
-  },
+  }
 );
 
 /**
@@ -145,7 +145,7 @@ export const getRepartitionParCategorie = createAsyncHandler(
       return sendErrorClient(
         res,
         STATISTIQUES.ERRORS.VALIDATION_ERROR,
-        errors.array(),
+        errors.array()
       );
     }
 
@@ -171,11 +171,11 @@ export const getRepartitionParCategorie = createAsyncHandler(
       userIds,
       new Date(dateDebut as string),
       new Date(dateFin as string),
-      type as "depense" | "revenu",
+      type as "depense" | "revenu"
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.REPARTITION_CATEGORIE, result);
-  },
+  }
 );
 
 /**
@@ -230,7 +230,7 @@ export const getEvolutionFluxMensuels = createAsyncHandler(
       return sendErrorClient(
         res,
         STATISTIQUES.ERRORS.VALIDATION_ERROR,
-        errors.array(),
+        errors.array()
       );
     }
 
@@ -257,11 +257,11 @@ export const getEvolutionFluxMensuels = createAsyncHandler(
       parseInt(nbMois as string),
       new Date(dateReference as string),
       type as "depenses" | "revenus" | "solde",
-      { estRecurrent: estRecurrent === "true" },
+      { estRecurrent: estRecurrent === "true" }
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.EVOLUTION_SOLDES, result);
-  },
+  }
 );
 
 /**
@@ -303,7 +303,7 @@ export const getSoldePourPeriode = createAsyncHandler(
       return sendErrorClient(
         res,
         STATISTIQUES.ERRORS.VALIDATION_ERROR,
-        errors.array(),
+        errors.array()
       );
     }
 
@@ -328,11 +328,11 @@ export const getSoldePourPeriode = createAsyncHandler(
     const result = await StatistiquesService.getSoldePourPeriode(
       userIds,
       new Date(dateDebut as string),
-      new Date(dateFin as string),
+      new Date(dateFin as string)
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.SOLDE_MENSUEL, result);
-  },
+  }
 );
 
 /**
@@ -381,7 +381,7 @@ export const getComparaisonMois = createAsyncHandler(
       return sendErrorClient(
         res,
         STATISTIQUES.ERRORS.VALIDATION_ERROR,
-        errors.array(),
+        errors.array()
       );
     }
 
@@ -407,11 +407,11 @@ export const getComparaisonMois = createAsyncHandler(
       userIds,
       new Date(dateActuelle as string),
       new Date(datePrecedente as string),
-      type as "depenses" | "revenus" | "solde",
+      type as "depenses" | "revenus" | "solde"
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.COMPARAISON_MOIS, result);
-  },
+  }
 );
 
 /**
@@ -453,7 +453,7 @@ export const getContributionsCouple = createAsyncHandler(
       return sendErrorClient(
         res,
         STATISTIQUES.ERRORS.VALIDATION_ERROR,
-        errors.array(),
+        errors.array()
       );
     }
 
@@ -479,11 +479,11 @@ export const getContributionsCouple = createAsyncHandler(
       userComplete._id.toString(),
       userComplete.partenaireId.toString(),
       new Date(dateDebut as string),
-      new Date(dateFin as string),
+      new Date(dateFin as string)
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.CONTRIBUTIONS_COUPLE, result);
-  },
+  }
 );
 
 /**
@@ -525,7 +525,7 @@ export const getChargesFixesCouple = createAsyncHandler(
       return sendErrorClient(
         res,
         STATISTIQUES.ERRORS.VALIDATION_ERROR,
-        errors.array(),
+        errors.array()
       );
     }
 
@@ -551,11 +551,11 @@ export const getChargesFixesCouple = createAsyncHandler(
       userComplete._id.toString(),
       userComplete.partenaireId.toString(),
       new Date(dateDebut as string),
-      new Date(dateFin as string),
+      new Date(dateFin as string)
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.CHARGES_FIXES, result);
-  },
+  }
 );
 
 /**
@@ -597,7 +597,7 @@ export const getSyntheseMensuelleCouple = createAsyncHandler(
       return sendErrorClient(
         res,
         STATISTIQUES.ERRORS.VALIDATION_ERROR,
-        errors.array(),
+        errors.array()
       );
     }
 
@@ -623,17 +623,17 @@ export const getSyntheseMensuelleCouple = createAsyncHandler(
       userComplete._id.toString(),
       userComplete.partenaireId.toString(),
       new Date(dateDebut as string),
-      new Date(dateFin as string),
+      new Date(dateFin as string)
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.SYNTHESE_MENSUELLE, result);
-  },
+  }
 );
 
 export const totalDepensesMensuelles = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userContext = await getUserIdsFromContext(req, res);
@@ -651,13 +651,13 @@ export const totalDepensesMensuelles = async (
       dateDebut,
       dateFin,
       "depense",
-      DepenseModel,
+      DepenseModel
     );
     sendSuccess(res, STATISTIQUES.SUCCESS.DEPENSES_MENSUELLES, result);
   } catch (error: unknown) {
     logger.error(
       "Erreur lors de la récupération des dépenses mensuelles:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.DEPENSES_MENSUELLES, 500));
   }
@@ -666,7 +666,7 @@ export const totalDepensesMensuelles = async (
 export const repartitionDepensesParCategorie = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userContext = await getUserIdsFromContext(req, res);
@@ -683,13 +683,13 @@ export const repartitionDepensesParCategorie = async (
       userIds as UserIdsType,
       dateDebut,
       dateFin,
-      "depense",
+      "depense"
     );
     sendSuccess(res, STATISTIQUES.SUCCESS.REPARTITION_CATEGORIE, result);
   } catch (error: unknown) {
     logger.error(
       "Erreur lors de la récupération de la répartition des dépenses:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.REPARTITION_CATEGORIE, 500));
   }
@@ -698,7 +698,7 @@ export const repartitionDepensesParCategorie = async (
 export const evolutionDepenses = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userContext = await getUserIdsFromContext(req, res);
@@ -710,13 +710,13 @@ export const evolutionDepenses = async (
       userIds as UserIdsType,
       12,
       dateReference,
-      "depenses",
+      "depenses"
     );
     sendSuccess(res, STATISTIQUES.SUCCESS.EVOLUTION_DEPENSES, result);
   } catch (error: unknown) {
     logger.error(
       "Erreur lors de la récupération de l'évolution des dépenses:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.EVOLUTION_DEPENSES, 500));
   }
@@ -725,7 +725,7 @@ export const evolutionDepenses = async (
 export const evolutionRevenus = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userContext = await getUserIdsFromContext(req, res);
@@ -737,13 +737,13 @@ export const evolutionRevenus = async (
       userIds as UserIdsType,
       12,
       dateReference,
-      "revenus",
+      "revenus"
     );
     sendSuccess(res, STATISTIQUES.SUCCESS.EVOLUTION_REVENUS, result);
   } catch (error: unknown) {
     logger.error(
       "Erreur lors de la récupération de l'évolution des revenus:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.EVOLUTION_REVENUS, 500));
   }
@@ -752,7 +752,7 @@ export const evolutionRevenus = async (
 export const evolutionSolde = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userContext = await getUserIdsFromContext(req, res);
@@ -764,13 +764,13 @@ export const evolutionSolde = async (
       userIds as UserIdsType,
       12,
       dateReference,
-      "solde",
+      "solde"
     );
     sendSuccess(res, STATISTIQUES.SUCCESS.EVOLUTION_SOLDES, result);
   } catch (error: unknown) {
     logger.error(
       "Erreur lors de la récupération de l'évolution du solde:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.EVOLUTION_SOLDES, 500));
   }
@@ -779,7 +779,7 @@ export const evolutionSolde = async (
 export const evolutionDepensesRevenus = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userContext = await getUserIdsFromContext(req, res);
@@ -795,13 +795,13 @@ export const evolutionDepensesRevenus = async (
     const result = await StatistiquesService.getSoldePourPeriode(
       userIds as UserIdsType,
       dateDebut,
-      dateFin,
+      dateFin
     );
     sendSuccess(res, STATISTIQUES.SUCCESS.SOLDE_MENSUEL, result);
   } catch (error: unknown) {
     logger.error(
       "Erreur lors de la récupération de l'évolution des dépenses et revenus:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.SOLDE_MENSUEL, 500));
   }
@@ -810,7 +810,7 @@ export const evolutionDepensesRevenus = async (
 export const comparaisonMoisPrecedent = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userContext = await getUserIdsFromContext(req, res);
@@ -825,13 +825,13 @@ export const comparaisonMoisPrecedent = async (
       userIds as UserIdsType,
       dateActuelle,
       datePrecedente,
-      "solde",
+      "solde"
     );
     sendSuccess(res, STATISTIQUES.SUCCESS.COMPARAISON_MOIS, result);
   } catch (error: unknown) {
     logger.error(
       "Erreur lors de la récupération de la comparaison avec le mois précédent:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.COMPARAISON_MOIS, 500));
   }
@@ -840,7 +840,7 @@ export const comparaisonMoisPrecedent = async (
 export const repartitionDepensesCouple = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userContext = await getUserIdsFromContext(req, res);
@@ -857,13 +857,13 @@ export const repartitionDepensesCouple = async (
       userIds.toString(),
       utilisateurFilter.toString(),
       dateDebut,
-      dateFin,
+      dateFin
     );
     sendSuccess(res, STATISTIQUES.SUCCESS.CONTRIBUTIONS_COUPLE, result);
   } catch (error: unknown) {
     logger.error(
       "Erreur lors de la récupération de la répartition des dépenses du couple:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.CONTRIBUTIONS_COUPLE, 500));
   }
@@ -872,7 +872,7 @@ export const repartitionDepensesCouple = async (
 export const repartitionChargesCouple = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userContext = await getUserIdsFromContext(req, res);
@@ -889,13 +889,13 @@ export const repartitionChargesCouple = async (
       userIds.toString(),
       utilisateurFilter.toString(),
       dateDebut,
-      dateFin,
+      dateFin
     );
     sendSuccess(res, STATISTIQUES.SUCCESS.CHARGES_FIXES, result);
   } catch (error: unknown) {
     logger.error(
       "Erreur lors de la récupération de la répartition des charges du couple:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.CHARGES_FIXES, 500));
   }
@@ -904,7 +904,7 @@ export const repartitionChargesCouple = async (
 export const repartitionDepensesRevenusCouple = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const userContext = await getUserIdsFromContext(req, res);
@@ -921,13 +921,13 @@ export const repartitionDepensesRevenusCouple = async (
       userIds.toString(),
       utilisateurFilter.toString(),
       dateDebut,
-      dateFin,
+      dateFin
     );
     sendSuccess(res, STATISTIQUES.SUCCESS.SYNTHESE_MENSUELLE, result);
   } catch (error: unknown) {
     logger.error(
       "Erreur lors de la récupération de la répartition des dépenses et revenus du couple:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.SYNTHESE_MENSUELLE, 500));
   }
@@ -953,7 +953,7 @@ export const repartitionParCategorie = createAsyncHandler(
     const userContext = await getUserIdsFromContext(
       req,
       res,
-      contexte as string | undefined,
+      contexte as string | undefined
     );
     if (!userContext) {
       return;
@@ -963,86 +963,110 @@ export const repartitionParCategorie = createAsyncHandler(
       userContext.userIds,
       dateDebut,
       dateFin,
-      "depense",
+      "depense"
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.REPARTITION_CATEGORIE, repartition);
-  },
+  }
 );
 
 export const repartitionRevenusParCategorie = createAsyncHandler(
-  async (req: AuthRequest, res: Response): Promise<void> => {
-    logger.info("[TEST LOG] Entrée dans repartitionRevenusParCategorie");
-    logger.debug("[ctrl.repartitionRevenusParCategorie] req.query reçu:", req.query);
-
+  async (req: AuthRequest, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      logger.warn("[ctrl.repartitionRevenusParCategorie] Erreurs de validation", { errors: errors.array(), query: req.query });
-      sendErrorClient(res, STATISTIQUES.ERRORS.VALIDATION_ERROR, errors.array());
+      logger.warn(
+        "[ctrl.repartitionRevenusParCategorie] Erreurs de validation",
+        { errors: errors.array(), query: req.query }
+      );
+      sendErrorClient(
+        res,
+        STATISTIQUES.ERRORS.VALIDATION_ERROR,
+        errors.array()
+      );
       return;
     }
 
     if (!req.user) {
-      logger.warn("[ctrl.repartitionRevenusParCategorie] Utilisateur non authentifié tenté d'accéder");
+      logger.warn(
+        "[ctrl.repartitionRevenusParCategorie] Utilisateur non authentifié tenté d'accéder"
+      );
       sendErrorClient(res, AUTH.ERRORS.UNAUTHORIZED);
       return;
     }
 
-    logger.debug('[ctrl.repartitionRevenusParCategorie] Requête reçue', { query: req.query, userId: req.user.id });
-
     const { mois: moisQuery, annee: anneeQuery, contexte } = req.query;
-    logger.debug("[ctrl.repartitionRevenusParCategorie] Paramètres extraits:", { moisQuery, anneeQuery, contexte });
 
     if (!moisQuery || !anneeQuery) {
-        logger.warn("[ctrl.repartitionRevenusParCategorie] Paramètres mois ou année manquants", { query: req.query });
-        sendErrorClient(res, "Les paramètres mois et année sont requis");
-        return;
+      logger.warn(
+        "[ctrl.repartitionRevenusParCategorie] Paramètres mois ou année manquants",
+        { query: req.query }
+      );
+      sendErrorClient(res, "Les paramètres mois et année sont requis");
+      return;
     }
 
     const moisNum = parseInt(moisQuery as string, 10);
     const anneeNum = parseInt(anneeQuery as string, 10);
 
     if (isNaN(moisNum) || isNaN(anneeNum) || moisNum < 1 || moisNum > 12) {
-        logger.warn("[ctrl.repartitionRevenusParCategorie] Paramètres mois ou année invalides", { moisQuery, anneeQuery });
-        sendErrorClient(res, "Les paramètres mois et année doivent être des nombres valides (mois entre 1 et 12).");
-        return;
+      logger.warn(
+        "[ctrl.repartitionRevenusParCategorie] Paramètres mois ou année invalides",
+        { moisQuery, anneeQuery }
+      );
+      sendErrorClient(
+        res,
+        "Les paramètres mois et année doivent être des nombres valides (mois entre 1 et 12)."
+      );
+      return;
     }
 
     const dateDebutMois = new Date(anneeNum, moisNum - 1, 1);
     const dateFinMois = new Date(anneeNum, moisNum, 0, 23, 59, 59, 999);
-    logger.debug("[ctrl.repartitionRevenusParCategorie] Période de calcul:", { dateDebutMois: dateDebutMois.toISOString(), dateFinMois: dateFinMois.toISOString() });
 
-    const userContextResult = await getUserIdsFromContext(req, res, contexte as string | undefined);
+    const userContextResult = await getUserIdsFromContext(
+      req,
+      res,
+      contexte as string | undefined
+    );
     if (userContextResult) {
-      logger.debug("[ctrl.repartitionRevenusParCategorie] userIds obtenus de getUserIdsFromContext:", userContextResult.userIds);
+      logger.debug(
+        "[ctrl.repartitionRevenusParCategorie] userIds obtenus de getUserIdsFromContext:",
+        userContextResult.userIds
+      );
     } else {
-      logger.warn("[ctrl.repartitionRevenusParCategorie] userContextResult est null ou undefined après appel à getUserIdsFromContext");
+      logger.warn(
+        "[ctrl.repartitionRevenusParCategorie] userContextResult est null ou undefined après appel à getUserIdsFromContext"
+      );
     }
 
-    logger.debug('[ctrl.repartitionRevenusParCategorie] Contexte utilisateur déterminé', { userContextResult, originalContext: contexte });
-
     if (!userContextResult) {
-      logger.warn("[ctrl.repartitionRevenusParCategorie] Contexte utilisateur non résolu", { userId: req.user.id, contexte });
-      sendErrorClient(res, STATISTIQUES.ERRORS.VALIDATION_ERROR, "Contexte utilisateur non valide ou paramètres invalides");
+      logger.warn(
+        "[ctrl.repartitionRevenusParCategorie] Contexte utilisateur non résolu",
+        { userId: req.user.id, contexte }
+      );
+      sendErrorClient(
+        res,
+        STATISTIQUES.ERRORS.VALIDATION_ERROR,
+        "Contexte utilisateur non valide ou paramètres invalides"
+      );
       return;
     }
 
-    const repartition = await StatistiquesService.getRepartitionRevenusParCategorie(
-      userContextResult.userIds,
-      dateDebutMois,
-      dateFinMois,
-    );
-    logger.debug("[ctrl.repartitionRevenusParCategorie] Résultat obtenu de StatistiquesService.getRepartitionRevenusParCategorie:", repartition);
-    logger.debug('[ctrl.repartitionRevenusParCategorie] Répartition obtenue du service', { nombreCategories: repartition.length });
+    const repartition =
+      await StatistiquesService.getRepartitionRevenusParCategorie(
+        userContextResult.userIds,
+        dateDebutMois,
+        dateFinMois
+      );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.REPARTITION_CATEGORIE, repartition);
-  },
+  }
 );
 
 export const getSoldeMensuel = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -1056,12 +1080,6 @@ export const getSoldeMensuel = async (
       contexte,
     } = req.query as { mois?: string; annee?: string; contexte?: string };
 
-    logger.info("Début getSoldeMensuel - Query params:", {
-      moisQuery,
-      anneeQuery,
-      contexte,
-    });
-
     const now = new Date();
     const currentMonth = moisQuery
       ? parseInt(moisQuery, 10) - 1
@@ -1073,26 +1091,16 @@ export const getSoldeMensuel = async (
     const dateDebutMois = startOfMonth(new Date(currentYear, currentMonth));
     const dateFinMois = endOfMonth(new Date(currentYear, currentMonth));
 
-    logger.info("Dates calculées pour le mois:", {
-      dateDebutMois: dateDebutMois.toISOString(),
-      dateFinMois: dateFinMois.toISOString(),
-    });
-
     const userContext = await getUserIdsFromContext(req, res, contexte);
     if (!userContext) {
       logger.warn("Contexte utilisateur non résolu dans getSoldeMensuel");
       return;
     }
-    logger.info("User context résolu:", { userIds: userContext.userIds });
 
     const resultatSolde = await StatistiquesService.getSoldePourPeriode(
       userContext.userIds,
       dateDebutMois,
-      dateFinMois,
-    );
-    logger.info(
-      "Résultat de StatistiquesService.getSoldePourPeriode:",
-      resultatSolde,
+      dateFinMois
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.SOLDE_MENSUEL, {
@@ -1108,7 +1116,7 @@ export const getSoldeMensuel = async (
 export const comparaisonMois = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -1156,7 +1164,7 @@ export const comparaisonMois = async (
       userContext.userIds,
       dateQueryActuelle,
       dateQueryPrecedente,
-      type,
+      type
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.COMPARAISON_MOIS, result);
@@ -1169,7 +1177,7 @@ export const comparaisonMois = async (
 export const getEvolutionDepensesMensuelles = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -1193,7 +1201,7 @@ export const getEvolutionDepensesMensuelles = async (
       } else {
         sendErrorClient(
           res,
-          "Le paramètre nbMois doit être un nombre entre 1 et 24.",
+          "Le paramètre nbMois doit être un nombre entre 1 et 24."
         );
         return;
       }
@@ -1202,7 +1210,7 @@ export const getEvolutionDepensesMensuelles = async (
     const userContext = await getUserIdsFromContext(
       req,
       res,
-      contexte as string | undefined,
+      contexte as string | undefined
     );
     if (!userContext) {
       return;
@@ -1220,7 +1228,7 @@ export const getEvolutionDepensesMensuelles = async (
       nbMois,
       dateActuelle,
       fluxType,
-      options,
+      options
     );
 
     const formattedEvolution = evolution.map((item) => {
@@ -1257,7 +1265,7 @@ export const getEvolutionDepensesMensuelles = async (
   } catch (error) {
     logger.error(
       `Erreur lors du calcul de l'évolution des flux mensuels (${req.query.dataType}):`,
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.EVOLUTION_DEPENSES, 500));
   }
@@ -1266,7 +1274,7 @@ export const getEvolutionDepensesMensuelles = async (
 export const getEvolutionRevenusMensuels = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -1292,7 +1300,7 @@ export const getEvolutionRevenusMensuels = async (
       } else {
         sendErrorClient(
           res,
-          "Le paramètre nbMois doit être un nombre entre 1 et 24.",
+          "Le paramètre nbMois doit être un nombre entre 1 et 24."
         );
         return;
       }
@@ -1315,14 +1323,14 @@ export const getEvolutionRevenusMensuels = async (
       nbMois,
       dateActuelle,
       "revenus",
-      options,
+      options
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.EVOLUTION_REVENUS, evolution);
   } catch (error) {
     logger.error(
       "Erreur lors du calcul de l'évolution des revenus mensuels:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.EVOLUTION_REVENUS, 500));
   }
@@ -1331,7 +1339,7 @@ export const getEvolutionRevenusMensuels = async (
 export const getEvolutionSoldesMensuels = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -1352,7 +1360,7 @@ export const getEvolutionSoldesMensuels = async (
       } else {
         sendErrorClient(
           res,
-          "Le paramètre nbMois doit être un nombre entre 1 et 24.",
+          "Le paramètre nbMois doit être un nombre entre 1 et 24."
         );
         return;
       }
@@ -1368,14 +1376,14 @@ export const getEvolutionSoldesMensuels = async (
       userContext.userIds,
       nbMois,
       dateActuelle,
-      "solde",
+      "solde"
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.EVOLUTION_SOLDES, evolution);
   } catch (error) {
     logger.error(
       "Erreur lors du calcul de l'évolution des soldes mensuels:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.EVOLUTION_SOLDES, 500));
   }
@@ -1384,7 +1392,7 @@ export const getEvolutionSoldesMensuels = async (
 export const getCoupleContributionsSummary = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -1398,7 +1406,7 @@ export const getCoupleContributionsSummary = async (
     if (!fullCurrentUser || !fullCurrentUser.partenaireId) {
       sendErrorClient(
         res,
-        "Partenaire non défini pour l'utilisateur ou non trouvé.",
+        "Partenaire non défini pour l'utilisateur ou non trouvé."
       );
       return;
     }
@@ -1425,14 +1433,14 @@ export const getCoupleContributionsSummary = async (
       userId,
       partenaireId,
       dateDebutMois,
-      dateFinMois,
+      dateFinMois
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.CONTRIBUTIONS_COUPLE, result);
   } catch (error) {
     logger.error(
       "Erreur lors du calcul du résumé des contributions du couple:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.CONTRIBUTIONS_COUPLE, 500));
   }
@@ -1441,7 +1449,7 @@ export const getCoupleContributionsSummary = async (
 export const getCoupleFixedCharges = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -1477,14 +1485,14 @@ export const getCoupleFixedCharges = async (
       userId,
       partenaireId,
       dateDebutMois,
-      dateFinMois,
+      dateFinMois
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.CHARGES_FIXES, result);
   } catch (error) {
     logger.error(
       "Erreur lors de la récupération des charges fixes du couple:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.CHARGES_FIXES, 500));
   }
@@ -1493,7 +1501,7 @@ export const getCoupleFixedCharges = async (
 export const getSyntheseMensuelle = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -1530,14 +1538,14 @@ export const getSyntheseMensuelle = async (
       String(req.user.id),
       partenaireId,
       dateDebutMois,
-      dateFinMois,
+      dateFinMois
     );
 
     sendSuccess(res, STATISTIQUES.SUCCESS.SYNTHESE_MENSUELLE, result);
   } catch (error) {
     logger.error(
       "Erreur lors de la génération de la synthèse mensuelle:",
-      error,
+      error
     );
     next(new AppError(STATISTIQUES.ERRORS.SYNTHESE_MENSUELLE, 500));
   }

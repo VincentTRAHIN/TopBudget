@@ -52,7 +52,21 @@ export default function PieChartCategories({
     statsContext,
   );
 
-  const chartTitle = customTitle;
+  const monthNames = [
+    "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+    "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+  ];
+  const currentMonthName = monthNames[selectedMonth - 1] || "";
+  const contexteText = statsContext === 'couple' ? "du Couple " : (statsContext === 'moi' ? "Personnelles " : "");
+
+  let baseTitlePart = "Répartition des Dépenses";
+  if (customTitle && !customTitle.includes(String(new Date().getFullYear())) && !customTitle.includes(monthNames[new Date().getMonth()])) {
+    baseTitlePart = customTitle.replace(/ - [A-Za-z]+ [0-9]{4}$/, ''); 
+  } else if (customTitle) {
+    baseTitlePart = customTitle.split(' - ')[0] || baseTitlePart;
+  }
+
+  const displayTitle = `${baseTitlePart} ${contexteText}par Catégorie - ${currentMonthName} ${selectedYear}`;
 
   let labels: string[] = [];
   let dataValues: number[] = [];
@@ -189,7 +203,7 @@ export default function PieChartCategories({
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h3 className="text-lg font-semibold mb-4">{chartTitle}</h3>
+      <h3 className="text-lg font-semibold mb-4">{displayTitle}</h3>
 
       <div className="flex justify-center mb-4">
         <div className="inline-flex items-center gap-6">

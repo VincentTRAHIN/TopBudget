@@ -138,6 +138,7 @@ export const createSafeDataFetcher = <T>(
   errorHandler?: (error: APIError) => void,
 ) => {
   return async (url: string) => {
+    console.log('[createSafeDataFetcher] Actual URL being fetched:', url);
     try {
       const result = await fetcher<T>(url);
       return result || defaultValue;
@@ -155,6 +156,6 @@ export const createSafeDataFetcher = <T>(
       throw apiError;
     }
   };
-};
+}
 
 export default fetcher;
