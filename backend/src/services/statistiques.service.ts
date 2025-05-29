@@ -16,6 +16,15 @@ interface CategorieRepartition {
   readonly nom?: string;
 }
 
+interface CategorieEnHausse {
+  readonly categorieId: string;
+  readonly nom: string;
+  readonly totalMoisActuel: number;
+  readonly totalMoisPrecedent: number;
+  readonly variationPourcent: number;
+  readonly variationValeur: number;
+}
+
 interface SoldeInfo {
   readonly totalRevenus: number;
   readonly totalDepenses: number;
@@ -329,6 +338,77 @@ export class StatistiquesService {
     return result;
   }
 
+  static async getCategoriesEnHausse(
+    userIds: UserIdsType,
+    dateDebutMoisActuel: Date,
+    dateFinMoisActuel: Date,
+    seuilPourcentageMinimum: number = 20,
+    seuilValeurMinimum: number = 10
+  ): Promise<CategorieEnHausse[]> {
+    const dateDebutMoisPrecedent = new Date(dateDebutMoisActuel);
+    dateDebutMoisPrecedent.setMonth(dateDebutMoisPrecedent.getMonth() - 1);
+    
+    const dateFinMoisPrecedent = new Date(dateFinMoisActuel);
+    dateFinMoisPrecedent.setMonth(dateFinMoisPrecedent.getMonth() - 1);
+
+    const [categoriesMoisActuel, categoriesMoisPrecedent] = await Promise.all([
+      this.getRepartitionParCategorie(
+        userIds,
+        dateDebutMoisActuel,
+        dateFinMoisActuel,
+        "depense"
+      ),
+      this.getRepartitionParCategorie(
+        userIds,
+        dateDebutMoisPrecedent,
+        dateFinMoisPrecedent,
+        "depense"
+      ),
+    ]);
+
+    const categoriesPrecedentesMap = new Map<string, number>();
+    categoriesMoisPrecedent.forEach((cat) => {
+      categoriesPrecedentesMap.set(cat._id.toString(), cat.total);
+    });
+
+    const categoriesEnHausse: CategorieEnHausse[] = [];
+
+    categoriesMoisActuel.forEach((categorieActuelle) => {
+      const categorieId = categorieActuelle._id.toString();
+      const totalMoisActuel = categorieActuelle.total;
+      const totalMoisPrecedent = categoriesPrecedentesMap.get(categorieId) || 0;
+      
+      const variationValeur = totalMoisActuel - totalMoisPrecedent;
+      
+      if (variationValeur <= 0) {
+        return;
+      }
+
+      let variationPourcent: number;
+      if (totalMoisPrecedent === 0) {
+        variationPourcent = totalMoisActuel > 0 ? 100 : 0;
+      } else {
+        variationPourcent = (variationValeur / totalMoisPrecedent) * 100;
+      }
+
+      const respecteSeuilPourcentage = variationPourcent >= seuilPourcentageMinimum;
+      const respecteSeuilValeur = variationValeur >= seuilValeurMinimum;
+
+      if (respecteSeuilPourcentage && respecteSeuilValeur) {
+        categoriesEnHausse.push({
+          categorieId,
+          nom: categorieActuelle.nom || "Catégorie inconnue",
+          totalMoisActuel,
+          totalMoisPrecedent,
+          variationPourcent: Math.round(variationPourcent * 100) / 100,
+          variationValeur: Math.round(variationValeur * 100) / 100,
+        });
+      }
+    });
+
+    return categoriesEnHausse.sort((a, b) => b.variationPourcent - a.variationPourcent);
+  }
+
   static async getSyntheseMensuelleCouple(
     userIdPrincipal: string,
     partenaireId: string,
@@ -350,6 +430,7 @@ export class StatistiquesService {
     };
     ratioDependes: { utilisateurPrincipal: number; partenaire: number };
     ratioRevenus: { utilisateurPrincipal: number; partenaire: number };
+    categoriesEnHausse: CategorieEnHausse[];
   }> {
     const [utilisateurPrincipal, partenaire] = await Promise.all([
       User.findById(userIdPrincipal).lean<IUserPopulated>(),
@@ -360,7 +441,14 @@ export class StatistiquesService {
       throw new Error("Utilisateur principal ou partenaire non trouvé");
     }
 
-    const [statsPrincipal, statsPartenaire] = await Promise.all([
+    const userIds = {
+      $in: [
+        new mongoose.Types.ObjectId(userIdPrincipal),
+        new mongoose.Types.ObjectId(partenaireId),
+      ],
+    };
+
+    const [statsPrincipal, statsPartenaire, categoriesEnHausse] = await Promise.all([
       this.getSoldePourPeriode(
         new mongoose.Types.ObjectId(userIdPrincipal),
         dateDebut,
@@ -371,6 +459,7 @@ export class StatistiquesService {
         dateDebut,
         dateFin
       ),
+      this.getCategoriesEnHausse(userIds, dateDebut, dateFin),
     ]);
 
     const totalDepensesCouple =
@@ -421,6 +510,50 @@ export class StatistiquesService {
       },
       ratioDependes,
       ratioRevenus,
+      categoriesEnHausse,
+    };
+  }
+
+  static async getSyntheseMensuelleUtilisateur(
+    userId: string,
+    dateDebut: Date,
+    dateFin: Date
+  ): Promise<{
+    soldeGlobal: SoldeInfo;
+    utilisateurPrincipal: {
+      nom: string;
+      depenses: number;
+      revenus: number;
+      solde: number;
+    };
+    categoriesEnHausse: CategorieEnHausse[];
+  }> {
+    const utilisateur = await User.findById(userId).lean<IUserPopulated>();
+
+    if (!utilisateur) {
+      throw new Error("Utilisateur non trouvé");
+    }
+
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+
+    const [statsUtilisateur, categoriesEnHausse] = await Promise.all([
+      this.getSoldePourPeriode(userObjectId, dateDebut, dateFin),
+      this.getCategoriesEnHausse(userObjectId, dateDebut, dateFin),
+    ]);
+
+    return {
+      soldeGlobal: {
+        totalRevenus: statsUtilisateur.totalRevenus,
+        totalDepenses: statsUtilisateur.totalDepenses,
+        solde: statsUtilisateur.solde,
+      },
+      utilisateurPrincipal: {
+        nom: utilisateur.nom,
+        depenses: statsUtilisateur.totalDepenses,
+        revenus: statsUtilisateur.totalRevenus,
+        solde: statsUtilisateur.solde,
+      },
+      categoriesEnHausse,
     };
   }
 

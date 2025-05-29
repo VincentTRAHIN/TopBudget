@@ -1526,20 +1526,29 @@ export const getSyntheseMensuelle = async (
     const dateDebutMois = startOfMonth(new Date(currentYear, currentMonth));
     const dateFinMois = endOfMonth(new Date(currentYear, currentMonth));
 
-    let partenaireId = "";
+    let result;
+
     if (contexte === "couple") {
       const fullCurrentUser = await User.findById(req.user.id);
-      if (fullCurrentUser && fullCurrentUser.partenaireId) {
-        partenaireId = String(fullCurrentUser.partenaireId);
+      if (!fullCurrentUser || !fullCurrentUser.partenaireId) {
+        sendErrorClient(res, "Partenaire non défini pour l'utilisateur.");
+        return;
       }
-    }
 
-    const result = await StatistiquesService.getSyntheseMensuelleCouple(
-      String(req.user.id),
-      partenaireId,
-      dateDebutMois,
-      dateFinMois
-    );
+      const partenaireId = String(fullCurrentUser.partenaireId);
+      result = await StatistiquesService.getSyntheseMensuelleCouple(
+        String(req.user.id),
+        partenaireId,
+        dateDebutMois,
+        dateFinMois
+      );
+    } else {
+      result = await StatistiquesService.getSyntheseMensuelleUtilisateur(
+        String(req.user.id),
+        dateDebutMois,
+        dateFinMois
+      );
+    }
 
     sendSuccess(res, STATISTIQUES.SUCCESS.SYNTHESE_MENSUELLE, result);
   } catch (error) {
