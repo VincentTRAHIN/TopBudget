@@ -9,7 +9,7 @@ import { useCategories } from '@/hooks/useCategories.hook';
 import { ICategorie } from '@/types/categorie.type';
 
 export default function CategoriesPage() {
-  const { categories, refreshCategories } = useCategories();
+  const { categories, isLoading, isError, refreshCategories } = useCategories();
   const [selectedCategorie, setSelectedCategorie] = useState<ICategorie | null>(
     null,
   );
@@ -29,6 +29,12 @@ export default function CategoriesPage() {
     refreshCategories();
   };
 
+  const handleFormClose = () => {
+    setShowAddForm(false);
+    setSelectedCategorie(null);
+    refreshCategories();
+  };
+
   return (
     <RequireAuth>
       <Layout>
@@ -40,15 +46,14 @@ export default function CategoriesPage() {
           {showAddForm && (
             <FormCategorie
               existingCategorie={selectedCategorie ?? undefined}
-              onClose={() => {
-                setShowAddForm(false);
-                setSelectedCategorie(null);
-              }}
+              onClose={handleFormClose}
             />
           )}
 
           <CategoriesList
             categories={categories}
+            isLoading={isLoading}
+            isError={isError}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onAdd={handleAdd}

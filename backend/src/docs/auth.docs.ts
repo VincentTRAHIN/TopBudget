@@ -77,7 +77,7 @@
 
 /**
  * @swagger
- * /api/auth/register:
+ * /api/auth/inscription:
  *   post:
  *     summary: Inscription d'un nouvel utilisateur
  *     tags: [Auth]
@@ -110,7 +110,7 @@
 
 /**
  * @swagger
- * /api/auth/login:
+ * /api/auth/connexion:
  *   post:
  *     summary: Connexion d'un utilisateur
  *     tags: [Auth]

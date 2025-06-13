@@ -12,7 +12,7 @@ import {
   Legend,
   ChartOptions,
 } from 'chart.js';
-import { useMonthlyExpensesEvolution } from '@/hooks/useMonthlyFlowsEvolution.hook';
+import { useMonthlyFlowsEvolution } from '@/hooks/useMonthlyFlowsEvolution.hook';
 
 ChartJS.register(
   CategoryScale,
@@ -27,7 +27,7 @@ export default function AnnualExpenseDistribution() {
   const [selectedYear, setSelectedYear] = useState<number>(
     new Date().getFullYear(),
   );
-  const { data, isLoading, isError } = useMonthlyExpensesEvolution(12);
+  const { data, isLoading, isError } = useMonthlyFlowsEvolution(12, 'moi', 'depenses');
 
   const filteredData = data.filter((item) => {
     const year = parseInt(item.mois.split('-')[0]);

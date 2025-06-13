@@ -14,12 +14,12 @@ import { asyncHandler } from "../utils/async.utils";
 const router = Router();
 
 router.post(
-  "/register",
+  "/inscription",
   registerValidator,
   asyncHandler(inscriptionController),
 );
 
-router.post("/login", loginValidator, asyncHandler(connexionController));
+router.post("/connexion", loginValidator, asyncHandler(connexionController));
 
 router.get("/me", proteger, asyncHandler(getMeController));
 

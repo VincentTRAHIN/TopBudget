@@ -9,7 +9,7 @@ import { useCategoriesRevenu } from '@/hooks/useCategoriesRevenu.hook';
 import { ICategorieRevenu } from '@/types/categorieRevenu.type';
 
 export default function CategoriesRevenuPage() {
-  const { categoriesRevenu, refreshCategoriesRevenu } = useCategoriesRevenu();
+  const { categoriesRevenu, isLoading, isError, refreshCategoriesRevenu } = useCategoriesRevenu();
   const [selectedCategorieRevenu, setSelectedCategorieRevenu] =
     useState<ICategorieRevenu | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -27,6 +27,7 @@ export default function CategoriesRevenuPage() {
   const handleCloseForm = () => {
     setSelectedCategorieRevenu(null);
     setShowAddForm(false);
+    refreshCategoriesRevenu();
   };
 
   const handleSuccess = () => {
@@ -50,6 +51,8 @@ export default function CategoriesRevenuPage() {
 
           <CategoriesRevenuList
             categoriesRevenu={categoriesRevenu}
+            isLoading={isLoading}
+            isError={isError}
             onEdit={handleEdit}
             onDelete={handleSuccess}
             onAdd={handleAdd}
