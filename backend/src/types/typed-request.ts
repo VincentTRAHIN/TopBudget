@@ -66,8 +66,8 @@ export interface DepenseCreateBody {
   commentaire?: string;
   typeCompte: TypeCompte;
   typeDepense: TypeDepense;
-  recurrence?: string;
-  categorie: mongoose.Types.ObjectId;
+  recurrence?: boolean;
+  categorie: mongoose.Types.ObjectId | string;
   description?: string;
   estChargeFixe?: boolean;
 }
@@ -173,16 +173,32 @@ export type AsyncController<
   next: NextFunction,
 ) => Promise<unknown>;
 
-export interface DepenseQueryParams {
-  vue?: ViewType;
-  categorie?: string;
-  dateDebut?: string;
-  dateFin?: string;
-  typeCompte?: TypeCompte;
-  typeDepense?: TypeDepense;
-  search?: string;
-  page?: string;
-  limit?: string;
-  sortBy?: string;
-  order?: "asc" | "desc";
+/**
+ * Types pour les requêtes d'authentification
+ * Note: Ces types sont également définis dans auth.types.ts
+ * TODO: Consolider les types d'authentification
+ */
+export interface LoginBody {
+  email: string;
+  motDePasse: string;
 }
+
+export interface RegisterBody {
+  nom: string;
+  email: string;
+  motDePasse: string;
+  role?: "Perso" | "Conjoint";
+}
+
+/**
+ * Types pour les requêtes de profil utilisateur
+ */
+export interface ProfileUpdateBody {
+  nom?: string;
+  email?: string;
+  avatarUrl?: string;
+  partenaireId?: string;
+  sobriquetPartenaire?: string;
+}
+
+
