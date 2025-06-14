@@ -5,11 +5,12 @@ import RequireAuth from '@/components/auth/requireAuth.component';
 import TableRevenus from '@/components/revenus/tableRevenus.component';
 import FormRevenu from '@/components/revenus/formRevenu.component';
 import ImportCsvModalRevenu from '@/components/revenus/importCsvModalRevenu.component';
+import RevenusSummaryCard from '@/components/revenus/RevenusSummaryCard.component';
 import { useRevenus, RevenuFilters, RevenuSort } from '@/hooks/useRevenus.hook';
 import { useAuth } from '@/hooks/useAuth.hook';
 import { useState } from 'react';
 import { IRevenu } from '@/types/revenu.type';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Upload, User, Users } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 25;
 
@@ -24,6 +25,7 @@ export default function RevenusPage() {
     'moi' | 'partenaire' | 'couple_complet'
   >('moi');
   const [showImportModalRevenu, setShowImportModalRevenu] = useState(false);
+  
   const { revenus, pagination, isLoading, isError } = useRevenus(
     currentPage,
     ITEMS_PER_PAGE,
@@ -92,34 +94,170 @@ export default function RevenusPage() {
   return (
     <RequireAuth>
       <Layout>
-        <div className="space-y-6">
-          <h1 className="text-2xl font-bold">Mes Revenus</h1>
+        <div className="space-y-8">
+          {/* Enhanced Page Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Gestion des Revenus
+            </h1>
+            <p className="text-sm text-gray-600 mb-6">
+              {selectedVue === 'moi' 
+                ? 'Gérez et suivez vos revenus personnels en temps réel'
+                : selectedVue === 'partenaire'
+                ? `Consultez les revenus de ${user?.partenaireId && typeof user.partenaireId === 'object' ? user.partenaireId.nom : 'votre partenaire'}`
+                : 'Vue d\'ensemble des revenus du couple'
+              }
+            </p>
 
-          {/* Sélecteur de vue */}
-          <div className="mb-4">
-            <label htmlFor="vue-select" className="mr-2 font-medium">
-              Vue :
-            </label>
-            <select
-              id="vue-select"
-              value={selectedVue}
-              onChange={handleVueChange}
-              className="border rounded px-2 py-1"
-            >
-              <option value="moi">Mes Revenus</option>
-              {user?.partenaireId && typeof user.partenaireId === 'object' && (
-                <option value="partenaire">
-                  Revenus de {user.partenaireId.nom}
-                </option>
-              )}
-              {user?.partenaireId && (
-                <option value="couple_complet">
-                  Tous les Revenus du Couple
-                </option>
-              )}
-            </select>
+            {/* Enhanced View Switcher */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+                <button
+                  onClick={() => handleVueChange({ target: { value: 'moi' } } as React.ChangeEvent<HTMLSelectElement>)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                    selectedVue === 'moi'
+                      ? 'bg-white text-indigo-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <User className="w-4 h-4" />
+                  <span>Mes Revenus</span>
+                </button>
+                {user?.partenaireId && typeof user.partenaireId === 'object' && (
+                  <button
+                    onClick={() => handleVueChange({ target: { value: 'partenaire' } } as React.ChangeEvent<HTMLSelectElement>)}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                      selectedVue === 'partenaire'
+                        ? 'bg-white text-indigo-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <User className="w-4 h-4" />
+                    <span>{user.partenaireId.nom}</span>
+                  </button>
+                )}
+                {user?.partenaireId && (
+                  <button
+                    onClick={() => handleVueChange({ target: { value: 'couple_complet' } } as React.ChangeEvent<HTMLSelectElement>)}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                      selectedVue === 'couple_complet'
+                        ? 'bg-white text-indigo-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <Users className="w-4 h-4" />
+                    <span>Couple Complet</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleAdd}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md flex items-center gap-2 transition-colors shadow-sm"
+                >
+                  <Plus size={16} />
+                  Nouveau Revenu
+                </button>
+                
+                <button
+                  onClick={handleOpenImportModalRevenu}
+                  className="border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+                >
+                  <Upload size={16} />
+                  Importer CSV
+                </button>
+              </div>
+            </div>
           </div>
 
+          {/* Section 2: Vue d'ensemble */}
+          <section className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">
+              Vue d&apos;ensemble
+            </h2>
+            <RevenusSummaryCard 
+              selectedVue={selectedVue}
+              filters={filters}
+            />
+          </section>
+
+          {/* Section 3: Liste des Revenus */}
+          <section className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">
+              Liste des Revenus
+            </h2>
+            
+            {isLoading && (
+              <div className="bg-white p-8 rounded-lg shadow-md text-center">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto mb-2"></div>
+                  <div className="text-gray-500">Chargement des revenus...</div>
+                </div>
+              </div>
+            )}
+            
+            {isError && (
+              <div className="bg-red-50 border border-red-200 p-4 rounded-lg text-center text-red-600">
+                Erreur lors du chargement des revenus.
+              </div>
+            )}
+
+            {!isError && !isLoading && (
+              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <TableRevenus
+                  revenus={revenus}
+                  currentSort={sort}
+                  onEdit={handleEdit}
+                  onFilterChange={handleFilterChange}
+                  onSortChange={handleSortChange}
+                  currentUserId={user?._id}
+                />
+              </div>
+            )}
+          </section>
+
+          {/* Section 4: Pagination */}
+          {pagination && pagination.total > 0 && (
+            <section>
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-700">
+                    <span className="font-medium">{pagination.total}</span> revenus au total
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
+                    <div className="text-sm text-gray-500">
+                      Page {pagination.page} sur {pagination.pages}
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={handlePrevPage}
+                        disabled={currentPage === 1 || isLoading}
+                        className="p-2 rounded-md border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Page précédente"
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </button>
+
+                      <button
+                        onClick={handleNextPage}
+                        disabled={currentPage === pagination.pages || isLoading}
+                        className="p-2 rounded-md border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Page suivante"
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Modals */}
           {showAddForm && (
             <FormRevenu
               existingRevenu={selectedRevenu ?? undefined}
@@ -128,60 +266,6 @@ export default function RevenusPage() {
                 setSelectedRevenu(null);
               }}
             />
-          )}
-          {isLoading && (
-            <div className="text-center p-4">Chargement des revenus...</div>
-          )}
-          {isError && (
-            <div className="text-center p-4 text-red-600">
-              Erreur lors du chargement des revenus.
-            </div>
-          )}
-
-          {!isError && (
-            <>
-              <TableRevenus
-                revenus={revenus}
-                currentSort={sort}
-                onEdit={handleEdit}
-                onAdd={handleAdd}
-                onImport={handleOpenImportModalRevenu}
-                onFilterChange={handleFilterChange}
-                onSortChange={handleSortChange}
-                currentUserId={user?._id}
-              />
-              {/* --- Section Pagination --- */}
-              {pagination && pagination.total > 0 && (
-                <div className="flex items-center justify-between mt-4 p-4 bg-white rounded shadow">
-                  <span className="text-sm text-gray-700">
-                    Total de {pagination.total} revenus
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={handlePrevPage}
-                      disabled={currentPage === 1 || isLoading}
-                      className="p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
-                      aria-label="Page précédente"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-
-                    <span className="text-sm font-medium">
-                      Page {pagination.page} sur {pagination.pages}
-                    </span>
-
-                    <button
-                      onClick={handleNextPage}
-                      disabled={currentPage === pagination.pages || isLoading}
-                      className="p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
-                      aria-label="Page suivante"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </>
           )}
           {showImportModalRevenu && (
             <ImportCsvModalRevenu onClose={handleCloseImportModalRevenu} />
