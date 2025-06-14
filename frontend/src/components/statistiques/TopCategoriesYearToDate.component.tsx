@@ -134,26 +134,43 @@ export default function TopCategoriesYearToDate({
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h3 className="text-lg font-semibold mb-4">
+    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+      <h3 className="text-lg font-semibold mb-4 text-gray-800">
         Top Catégories de Dépenses {currentYear}
       </h3>
 
       {isLoading && (
         <div className="h-80 md:h-96 flex items-center justify-center">
-          <p>Chargement des données...</p>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
+            <p className="text-gray-500">Chargement des données...</p>
+          </div>
         </div>
       )}
 
       {isError && (
         <div className="h-80 md:h-96 flex items-center justify-center">
-          <p className="text-red-500">Erreur lors du chargement des données</p>
+          <div className="text-center">
+            <div className="text-red-500 mb-2">
+              <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-red-500 font-medium">Erreur lors du chargement des données</p>
+          </div>
         </div>
       )}
 
       {!isLoading && !isError && categoryData.labels.length === 0 && (
         <div className="h-80 md:h-96 flex items-center justify-center">
-          <p>Aucune dépense enregistrée pour cette année</p>
+          <div className="text-center">
+            <div className="text-gray-400 mb-2">
+              <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <p className="text-gray-500">Aucune dépense enregistrée pour cette année</p>
+          </div>
         </div>
       )}
 
