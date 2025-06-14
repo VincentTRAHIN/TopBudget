@@ -5,7 +5,7 @@ import { IDepense } from '@/types/depense.type';
 import { toast } from 'react-hot-toast';
 import fetcher from '@/utils/fetcher.utils';
 import { depensesEndpoint } from '@/services/api.service';
-import { Edit, Trash2, Upload, Pin } from 'lucide-react';
+import { Edit, Trash2, Pin } from 'lucide-react';
 import {
   useDepenses,
   DepenseFilters,
@@ -21,9 +21,6 @@ interface TableDepensesProps {
   depenses: IDepense[];
   currentSort: DepenseSort;
   onEdit: (depense: IDepense) => void;
-  onAdd: () => void;
-  onAddCategorie: () => void;
-  onImport: () => void;
   onFilterChange: (filters: Partial<DepenseFilters>) => void;
   onSortChange: (sort: Partial<DepenseSort>) => void;
   currentUserId?: string;
@@ -35,9 +32,6 @@ export default function TableDepenses({
   categories = [],
   currentSort,
   onEdit,
-  onAdd,
-  onAddCategorie,
-  onImport,
   onFilterChange,
   onSortChange,
   currentUserId,
@@ -219,25 +213,6 @@ export default function TableDepenses({
             <option value="Commune">Commune</option>
           </select>
         </div>
-        {/* Boutons d'action */}
-        <button
-          onClick={onAdd}
-          className="btn-primary px-4 py-2 whitespace-nowrap flex-shrink-0 self-end"
-        >
-          + Dépense
-        </button>
-        <button
-          onClick={onAddCategorie}
-          className="btn-primary px-4 py-2 whitespace-nowrap flex-shrink-0 self-end"
-        >
-          + Catégorie
-        </button>
-        <button
-          onClick={onImport}
-          className="btn-secondary px-4 py-2 whitespace-nowrap flex-shrink-0 self-end flex items-center gap-1"
-        >
-          <Upload size={16} /> Importer CSV
-        </button>
       </div>
 
       {/* Tableau des Dépenses */}
