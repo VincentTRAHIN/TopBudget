@@ -35,4 +35,11 @@ UserSchema.methods.comparerMotDePasse = async function (
   return bcrypt.compare(motDePasse, this.motDePasse);
 };
 
+// Indexes for optimal query performance
+// Index for user search by name (case-insensitive exact match)
+UserSchema.index({ nom: 1 });
+
+// Note: email already has unique index from { unique: true }
+// Note: partenaireId already has sparse unique index from { unique: true, sparse: true }
+
 export default mongoose.model<IUser>("User", UserSchema);
