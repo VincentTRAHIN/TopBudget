@@ -5,7 +5,7 @@ import { IRevenu } from '@/types/revenu.type';
 import { toast } from 'react-hot-toast';
 import fetcher from '@/utils/fetcher.utils';
 import { revenusEndpoint } from '@/services/api.service';
-import { Edit, Trash2, Upload } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import { useRevenus, RevenuFilters, RevenuSort } from '@/hooks/useRevenus.hook';
 import { ICategorieRevenu } from '@/types/categorieRevenu.type';
 import { useCategoriesRevenu } from '@/hooks/useCategoriesRevenu.hook';
@@ -14,8 +14,6 @@ interface TableRevenusProps {
   revenus: IRevenu[];
   currentSort: RevenuSort;
   onEdit: (revenu: IRevenu) => void;
-  onAdd: () => void;
-  onImport: () => void;
   onFilterChange: (filters: Partial<RevenuFilters>) => void;
   onSortChange: (sort: Partial<RevenuSort>) => void;
   currentUserId?: string;
@@ -25,8 +23,6 @@ export default function TableRevenus({
   revenus = [],
   currentSort,
   onEdit,
-  onAdd,
-  onImport,
   onFilterChange,
   onSortChange,
   currentUserId,
@@ -197,18 +193,6 @@ export default function TableRevenus({
             <option value="false">Non</option>
           </select>
         </div>
-        <button
-          onClick={onAdd}
-          className="btn-primary px-4 py-2 whitespace-nowrap flex-shrink-0 self-end"
-        >
-          + Revenu
-        </button>
-        <button
-          onClick={onImport}
-          className="btn-secondary px-4 py-2 whitespace-nowrap flex-shrink-0 self-end flex items-center gap-1"
-        >
-          <Upload size={16} /> Importer CSV
-        </button>
       </div>
       {/* Tableau des Revenus */}
       <div className="overflow-x-auto">
