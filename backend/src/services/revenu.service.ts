@@ -66,8 +66,9 @@ export class RevenuService {
       estRecurrent,
     } = data;
 
-    const categorieExiste =
-      await CategorieRevenuModel.findById(categorieRevenu);
+    const categorieExiste = await CategorieRevenuModel.findById(categorieRevenu)
+      .select("_id")
+      .lean();
     if (!categorieExiste) {
       throw new AppError(REVENU.ERRORS.CATEGORIE_REVENU_NOT_FOUND, 404);
     }
@@ -86,12 +87,19 @@ export class RevenuService {
     await nouveauRevenu.save();
 
     return RevenuModel.findById(nouveauRevenu._id)
+      .select("montant date categorieRevenu description utilisateur typeCompte estRecurrent commentaire")
       .populate<{
         categorieRevenu: IRevenuPopulated["categorieRevenu"];
-      }>("categorieRevenu", "nom description image")
+      }>({
+        path: "categorieRevenu",
+        select: "nom description image _id"
+      })
       .populate<{
         utilisateur: IRevenuPopulated["utilisateur"];
-      }>("utilisateur", "nom _id")
+      }>({
+        path: "utilisateur",
+        select: "nom _id"
+      })
       .lean<IRevenuPopulated>();
   }
 
@@ -107,8 +115,9 @@ export class RevenuService {
     if (vue === "moi") {
       userIdsToQuery.push(new mongoose.Types.ObjectId(userId));
     } else if (vue === "partenaire") {
-      const currentUser =
-        await UserModel.findById(userId).select("partenaireId");
+      const currentUser = await UserModel.findById(userId)
+        .select("partenaireId")
+        .lean();
       if (currentUser?.partenaireId) {
         const partenaireId =
           typeof currentUser.partenaireId === "string"
@@ -123,8 +132,9 @@ export class RevenuService {
       }
     } else if (vue === "couple_complet") {
       userIdsToQuery.push(new mongoose.Types.ObjectId(userId));
-      const currentUser =
-        await UserModel.findById(userId).select("partenaireId");
+      const currentUser = await UserModel.findById(userId)
+        .select("partenaireId")
+        .lean();
       if (currentUser?.partenaireId) {
         const partenaireId =
           typeof currentUser.partenaireId === "string"
@@ -145,13 +155,20 @@ export class RevenuService {
     sortOptions[sortBy as string] = order === "asc" ? 1 : -1;
 
     const revenus = await RevenuModel.find(queryFilters)
+      .select("montant date categorieRevenu description utilisateur typeCompte estRecurrent commentaire")
       .sort(sortOptions)
       .skip(skip)
       .limit(limit)
       .populate<{
         categorieRevenu: IRevenuPopulated["categorieRevenu"];
-      }>("categorieRevenu", "nom description image")
-      .populate<{ utilisateur: Pick<IUser, "nom"> }>("utilisateur", "nom")
+      }>({
+        path: "categorieRevenu",
+        select: "nom description image _id"
+      })
+      .populate<{ utilisateur: Pick<IUser, "nom" | "_id"> }>({
+        path: "utilisateur",
+        select: "nom _id"
+      })
       .lean<IRevenuPopulated[]>();
 
     return {
@@ -171,12 +188,19 @@ export class RevenuService {
     }
 
     const revenu = await RevenuModel.findById(id)
+      .select("montant date categorieRevenu description utilisateur typeCompte estRecurrent commentaire")
       .populate<{
         categorieRevenu: IRevenuPopulated["categorieRevenu"];
-      }>("categorieRevenu", "nom description image")
+      }>({
+        path: "categorieRevenu",
+        select: "nom description image _id"
+      })
       .populate<{
         utilisateur: IRevenuPopulated["utilisateur"];
-      }>("utilisateur", "nom email")
+      }>({
+        path: "utilisateur",
+        select: "nom email _id"
+      })
       .lean<IRevenuPopulated>();
 
     if (!revenu) {
@@ -191,8 +215,9 @@ export class RevenuService {
     let hasAccess = utilisateurId === revenuUtilisateurId;
 
     if (!hasAccess) {
-      const currentUser =
-        await UserModel.findById(userId).select("partenaireId");
+      const currentUser = await UserModel.findById(userId)
+        .select("partenaireId")
+        .lean();
       if (currentUser?.partenaireId) {
         const partenaireId = currentUser.partenaireId.toString();
         hasAccess = partenaireId === revenuUtilisateurId;
@@ -219,7 +244,9 @@ export class RevenuService {
     if (data.categorieRevenu) {
       const categorieExiste = await CategorieRevenuModel.findById(
         data.categorieRevenu,
-      );
+      )
+        .select("_id")
+        .lean();
       if (!categorieExiste) {
         throw new AppError(REVENU.ERRORS.CATEGORIE_REVENU_NOT_FOUND, 404);
       }
@@ -233,12 +260,19 @@ export class RevenuService {
     await revenu.save();
 
     return RevenuModel.findById(id)
+      .select("montant date categorieRevenu description utilisateur typeCompte estRecurrent commentaire")
       .populate<{
         categorieRevenu: IRevenuPopulated["categorieRevenu"];
-      }>("categorieRevenu", "nom description image")
+      }>({
+        path: "categorieRevenu",
+        select: "nom description image _id"
+      })
       .populate<{
         utilisateur: IRevenuPopulated["utilisateur"];
-      }>("utilisateur", "nom email")
+      }>({
+        path: "utilisateur",
+        select: "nom email _id"
+      })
       .lean<IRevenuPopulated>();
   }
 
@@ -247,11 +281,13 @@ export class RevenuService {
       throw new AppError(REVENU.ERRORS.INVALID_ID, 400);
     }
 
-    const revenu = await RevenuModel.findOne({ _id: id, utilisateur: userId });
+    const revenu = await RevenuModel.findOne({ _id: id, utilisateur: userId })
+      .select("_id")
+      .lean();
     if (!revenu) {
       throw new AppError(REVENU.ERRORS.NOT_FOUND, 404);
     }
 
-    await revenu.deleteOne();
+    await RevenuModel.findByIdAndDelete(id);
   }
 }

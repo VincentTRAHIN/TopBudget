@@ -14,7 +14,9 @@ export class UserService {
       const searchRegex = new RegExp(`^${query.trim()}$`, "i");
       const user = await UserModel.findOne({
         $or: [{ email: searchRegex }, { nom: searchRegex }],
-      }).select("_id nom email");
+      })
+        .select("_id nom email")
+        .lean();
 
       if (!user) {
         throw new AppError(USER.ERRORS.NOT_FOUND, 404);

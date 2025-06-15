@@ -18,7 +18,9 @@ export class AuthService {
   static async inscription(data: AuthInscriptionBody) {
     const { nom, email, motDePasse } = data;
 
-    const userExistant = await User.findOne({ email });
+    const userExistant = await User.findOne({ email })
+      .select("_id")
+      .lean();
     if (userExistant) {
       throw new AppError(AUTH.ERRORS.ALREADY_EXISTS, 409);
     }
@@ -37,12 +39,16 @@ export class AuthService {
   static async connexion(data: AuthConnexionBody) {
     const { email, motDePasse } = data;
 
-    const utilisateur = await User.findOne({ email });
+    const utilisateur = await User.findOne({ email })
+      .select("_id nom email motDePasse")
+      .lean();
     if (!utilisateur) {
       throw new AppError(AUTH.ERRORS.INVALID_CREDENTIALS, 401);
     }
 
-    const motDePasseValide = await utilisateur.comparerMotDePasse(motDePasse);
+    // Create a temporary user instance to use the comparerMotDePasse method
+    const tempUser = new User(utilisateur);
+    const motDePasseValide = await tempUser.comparerMotDePasse(motDePasse);
     if (!motDePasseValide) {
       throw new AppError(AUTH.ERRORS.INVALID_CREDENTIALS, 401);
     }
@@ -57,10 +63,13 @@ export class AuthService {
 
   static async getMe(userId: string): Promise<IUserPopulated> {
     const utilisateur = await User.findById(userId)
-      .select("-motDePasse")
+      .select("-motDePasse -__v")
       .populate<{
         partenaireId: IUserPopulated["partenaireId"];
-      }>("partenaireId", "nom email avatarUrl _id")
+      }>({
+        path: "partenaireId",
+        select: "nom email avatarUrl _id"
+      })
       .lean<IUserPopulated>();
 
     if (!utilisateur) {
