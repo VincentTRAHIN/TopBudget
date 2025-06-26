@@ -14,7 +14,7 @@ import {
 } from '@/hooks/useDepenses.hook';
 import { useCategories } from '@/hooks/useCategories.hook';
 import { useAuth } from '@/hooks/useAuth.hook';
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { IDepense } from '@/types/depense.type';
 import { ChevronLeft, ChevronRight, Plus, Upload, Settings, User, Users } from 'lucide-react';
 
@@ -42,49 +42,50 @@ export default function ExpensesPage() {
   );
   const { categories } = useCategories();
 
-  const handleEdit = (depense: IDepense) => {
+  // Memoized callbacks for better performance
+  const handleEdit = useCallback((depense: IDepense) => {
     setSelectedDepense(depense);
     setShowAddForm(true);
     setShowImportModal(false);
     setShowAddCategorieForm(false);
-  };
+  }, []);
 
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     setSelectedDepense(null);
     setShowAddForm(true);
     setShowImportModal(false);
     setShowAddCategorieForm(false);
-  };
+  }, []);
 
-  const handleAddCategorie = () => {
+  const handleAddCategorie = useCallback(() => {
     setShowAddCategorieForm(true);
     setShowAddForm(false);
     setShowImportModal(false);
-  };
+  }, []);
 
-  const handleOpenImportModal = () => {
+  const handleOpenImportModal = useCallback(() => {
     setShowImportModal(true);
     setShowAddForm(false);
     setShowAddCategorieForm(false);
-  };
+  }, []);
 
-  const handleCloseImportModal = () => {
+  const handleCloseImportModal = useCallback(() => {
     setShowImportModal(false);
-  };
+  }, []);
 
-  const handleNextPage = () => {
+  const handleNextPage = useCallback(() => {
     if (pagination && currentPage < pagination.pages) {
       setCurrentPage(currentPage + 1);
     }
-  };
+  }, [pagination, currentPage]);
 
-  const handlePrevPage = () => {
+  const handlePrevPage = useCallback(() => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
-  };
+  }, [currentPage]);
 
-  const handleFilterOrSortChange = (
+  const handleFilterOrSortChange = useCallback((
     changedFilters?: Partial<DepenseFilters>,
     changedSort?: DepenseSort,
   ) => {
@@ -95,22 +96,70 @@ export default function ExpensesPage() {
       setSort(changedSort);
     }
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleSortChange = (newSort: DepenseSort) => {
+  const handleSortChange = useCallback((newSort: DepenseSort) => {
     handleFilterOrSortChange(undefined, newSort);
-  };
+  }, [handleFilterOrSortChange]);
 
-  const handleFilterChange = (newFilters: Partial<DepenseFilters>) => {
+  const handleFilterChange = useCallback((newFilters: Partial<DepenseFilters>) => {
     handleFilterOrSortChange(newFilters, undefined);
-  };
+  }, [handleFilterOrSortChange]);
 
-  const handleVueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleVueChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedVue(e.target.value as 'moi' | 'partenaire' | 'couple_complet');
     setCurrentPage(1);
-  };
+  }, []);
 
+  // Memoized button handlers for view switcher
+  const handleVueMoi = useCallback(() => {
+    handleVueChange({ target: { value: 'moi' } } as React.ChangeEvent<HTMLSelectElement>);
+  }, [handleVueChange]);
 
+  const handleVuePartenaire = useCallback(() => {
+    handleVueChange({ target: { value: 'partenaire' } } as React.ChangeEvent<HTMLSelectElement>);
+  }, [handleVueChange]);
+
+  const handleVueCouple = useCallback(() => {
+    handleVueChange({ target: { value: 'couple_complet' } } as React.ChangeEvent<HTMLSelectElement>);
+  }, [handleVueChange]);
+
+  // Modal close handlers
+  const handleCloseAddCategorieForm = useCallback(() => {
+    setShowAddCategorieForm(false);
+  }, []);
+
+  const handleCloseAddForm = useCallback(() => {
+    setShowAddForm(false);
+    setSelectedDepense(null);
+  }, []);
+
+  // Memoized computed values
+  const pageDescription = useMemo(() => {
+    if (selectedVue === 'moi') {
+      return 'Gérez et suivez vos dépenses personnelles en temps réel';
+    } else if (selectedVue === 'partenaire') {
+      return `Consultez les dépenses de ${user?.partenaireId && typeof user.partenaireId === 'object' ? user.partenaireId.nom : 'votre partenaire'}`;
+    } else {
+      return 'Vue d\'ensemble des dépenses du couple';
+    }
+  }, [selectedVue, user?.partenaireId]);
+
+  const partenaireId = useMemo(() => {
+    return user?.partenaireId && typeof user.partenaireId === 'object'
+      ? user.partenaireId._id
+      : undefined;
+  }, [user?.partenaireId]);
+
+  const hasPartner = useMemo(() => {
+    return user?.partenaireId && typeof user.partenaireId === 'object';
+  }, [user?.partenaireId]);
+
+  const partnerName = useMemo(() => {
+    return user?.partenaireId && typeof user.partenaireId === 'object'
+      ? (user.partenaireId as { nom: string; _id: string }).nom
+      : '';
+  }, [user?.partenaireId]);
 
   return (
     <RequireAuth>
@@ -122,19 +171,14 @@ export default function ExpensesPage() {
               Gestion des Dépenses
             </h1>
             <p className="text-sm text-gray-600 mb-6">
-              {selectedVue === 'moi' 
-                ? 'Gérez et suivez vos dépenses personnelles en temps réel'
-                : selectedVue === 'partenaire'
-                ? `Consultez les dépenses de ${user?.partenaireId && typeof user.partenaireId === 'object' ? user.partenaireId.nom : 'votre partenaire'}`
-                : 'Vue d\'ensemble des dépenses du couple'
-              }
+              {pageDescription}
             </p>
 
             {/* Enhanced View Switcher */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
                 <button
-                  onClick={() => handleVueChange({ target: { value: 'moi' } } as React.ChangeEvent<HTMLSelectElement>)}
+                  onClick={handleVueMoi}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                     selectedVue === 'moi'
                       ? 'bg-white text-indigo-600 shadow-sm'
@@ -144,9 +188,9 @@ export default function ExpensesPage() {
                   <User className="w-4 h-4" />
                   <span>Mes Dépenses</span>
                 </button>
-                {user?.partenaireId && typeof user.partenaireId === 'object' && (
+                {hasPartner && (
                   <button
-                    onClick={() => handleVueChange({ target: { value: 'partenaire' } } as React.ChangeEvent<HTMLSelectElement>)}
+                    onClick={handleVuePartenaire}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                       selectedVue === 'partenaire'
                         ? 'bg-white text-indigo-600 shadow-sm'
@@ -154,12 +198,12 @@ export default function ExpensesPage() {
                     }`}
                   >
                     <User className="w-4 h-4" />
-                    <span>{user.partenaireId.nom}</span>
+                    <span>{partnerName}</span>
                   </button>
                 )}
                 {user?.partenaireId && (
                   <button
-                    onClick={() => handleVueChange({ target: { value: 'couple_complet' } } as React.ChangeEvent<HTMLSelectElement>)}
+                    onClick={handleVueCouple}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                       selectedVue === 'couple_complet'
                         ? 'bg-white text-indigo-600 shadow-sm'
@@ -243,11 +287,7 @@ export default function ExpensesPage() {
                   onFilterChange={handleFilterChange}
                   onSortChange={handleSortChange}
                   currentUserId={user?._id}
-                  partenaireId={
-                    user?.partenaireId && typeof user.partenaireId === 'object'
-                      ? user.partenaireId._id
-                      : undefined
-                  }
+                  partenaireId={partenaireId}
                 />
               </div>
             )}
@@ -295,18 +335,13 @@ export default function ExpensesPage() {
           {/* Modals */}
           {showAddCategorieForm && (
             <FormCategorie
-              onClose={() => {
-                setShowAddCategorieForm(false);
-              }}
+              onClose={handleCloseAddCategorieForm}
             />
           )}
           {showAddForm && (
             <FormDepense
               existingDepense={selectedDepense ?? undefined}
-              onClose={() => {
-                setShowAddForm(false);
-                setSelectedDepense(null);
-              }}
+              onClose={handleCloseAddForm}
             />
           )}
           {showImportModal && (

@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { Home } from 'lucide-react';
+import React from 'react';
 
-export default function AuthNav() {
+function AuthNav() {
   return (
     <nav className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,3 +23,5 @@ export default function AuthNav() {
     </nav>
   );
 }
+
+export default React.memo(AuthNav);

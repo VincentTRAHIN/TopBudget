@@ -6,18 +6,19 @@ import { LogIn, LogOut } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { getAvatarColor, getInitials } from '@/utils/avatar.utils';
 import Image from 'next/image';
+import React, { useCallback } from 'react';
 
-export default function HomeHeader() {
+function HomeHeader() {
   const { user, logout } = useAuth();
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await logout();
       toast.success('Déconnexion réussie');
     } catch {
       toast.error('Erreur lors de la déconnexion');
     }
-  };
+  }, [logout]);
 
   return (
     <header className="bg-white shadow-sm">
@@ -79,3 +80,5 @@ export default function HomeHeader() {
     </header>
   );
 }
+
+export default React.memo(HomeHeader);

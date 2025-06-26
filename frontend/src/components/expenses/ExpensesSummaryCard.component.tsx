@@ -3,6 +3,7 @@
 import { useCurrentMonthFlows } from '@/hooks/useCurrentMonthTotal.hook';
 import { DepenseFilters } from '@/hooks/useDepenses.hook';
 import { TrendingDown, Hash, Calendar, CreditCard } from 'lucide-react';
+import React, { useMemo } from 'react';
 
 interface ExpensesSummaryCardProps {
   selectedVue: 'moi' | 'partenaire' | 'couple_complet';
@@ -17,7 +18,22 @@ interface SummaryStatProps {
   isLoading?: boolean;
 }
 
-function SummaryStatCard({ title, value, icon: Icon, colorClass, isLoading }: SummaryStatProps) {
+const SummaryStatCard = React.memo(function SummaryStatCard({ 
+  title, 
+  value, 
+  icon: Icon, 
+  colorClass, 
+  isLoading 
+}: SummaryStatProps) {
+  const formattedValue = useMemo(() => {
+    if (isLoading) return null;
+    return typeof value === 'number' ? value.toLocaleString('fr-FR') : value;
+  }, [value, isLoading]);
+
+  const backgroundColorClass = useMemo(() => {
+    return colorClass.includes('red') ? 'bg-red-100' : 'bg-blue-100';
+  }, [colorClass]);
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-l-red-500">
       <div className="flex items-center justify-between">
@@ -29,24 +45,25 @@ function SummaryStatCard({ title, value, icon: Icon, colorClass, isLoading }: Su
             </div>
           ) : (
             <p className={`text-2xl font-bold ${colorClass}`}>
-              {typeof value === 'number' ? value.toLocaleString('fr-FR') : value}
+              {formattedValue}
             </p>
           )}
         </div>
-        <div className={`p-3 rounded-full ${colorClass.includes('red') ? 'bg-red-100' : 'bg-blue-100'}`}>
+        <div className={`p-3 rounded-full ${backgroundColorClass}`}>
           <Icon className={`h-6 w-6 ${colorClass}`} />
         </div>
       </div>
     </div>
   );
-}
+});
 
-export default function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSummaryCardProps) {
+function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSummaryCardProps) {
   const { totalDepenses, isLoading, isError } = useCurrentMonthFlows(
     selectedVue === 'couple_complet' ? 'couple' : 'moi'
   );
 
-  const getContextText = () => {
+  // Memoized computed values
+  const contextText = useMemo(() => {
     const currentMonth = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
     switch (selectedVue) {
       case 'partenaire':
@@ -56,14 +73,29 @@ export default function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSu
       default:
         return `pour ${currentMonth}`;
     }
-  };
+  }, [selectedVue]);
 
-  const formatAmount = (amount: number) => {
-    return `${amount.toLocaleString('fr-FR', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    })} €`;
-  };
+  const formatAmount = useMemo(() => {
+    return (amount: number) => {
+      return `${amount.toLocaleString('fr-FR', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+      })} €`;
+    };
+  }, []);
+
+  const formattedTotalDepenses = useMemo(() => {
+    return formatAmount(totalDepenses);
+  }, [totalDepenses, formatAmount]);
+
+  const averagePerDay = useMemo(() => {
+    const currentDate = new Date().getDate();
+    return formatAmount(totalDepenses / currentDate);
+  }, [totalDepenses, formatAmount]);
+
+  const hasActiveFilters = useMemo(() => {
+    return Object.keys(filters).length > 0;
+  }, [filters]);
 
   if (isError) {
     return (
@@ -77,7 +109,7 @@ export default function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSu
     <div className="bg-gradient-to-r from-red-50 to-rose-50 p-6 rounded-lg shadow-md">
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-gray-900">
-          Résumé des dépenses {getContextText()}
+          Résumé des dépenses {contextText}
         </h3>
         <p className="text-sm text-gray-600 mt-1">
           Vue d&apos;ensemble de vos sorties financières
@@ -87,7 +119,7 @@ export default function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSu
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <SummaryStatCard
           title="Total Dépenses"
-          value={formatAmount(totalDepenses)}
+          value={formattedTotalDepenses}
           icon={TrendingDown}
           colorClass="text-red-600"
           isLoading={isLoading}
@@ -103,7 +135,7 @@ export default function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSu
         
         <SummaryStatCard
           title="Moyenne/Jour"
-          value={formatAmount(totalDepenses / new Date().getDate())}
+          value={averagePerDay}
           icon={Calendar}
           colorClass="text-gray-600"
           isLoading={isLoading}
@@ -118,7 +150,7 @@ export default function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSu
         />
       </div>
 
-      {Object.keys(filters).length > 0 && (
+      {hasActiveFilters && (
         <div className="mt-4 p-3 bg-red-100 rounded-md">
           <p className="text-sm text-red-800">
             <strong>Filtres actifs:</strong> Les données affichées peuvent être filtrées
@@ -127,4 +159,6 @@ export default function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSu
       )}
     </div>
   );
-} 
+}
+
+export default React.memo(ExpensesSummaryCard); 
