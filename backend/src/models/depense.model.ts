@@ -30,26 +30,19 @@ const DepenseSchema = new Schema<IDepense>(
     },
     estChargeFixe: { type: Boolean, default: false, required: true },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-// Indexes for optimal query performance
-// Primary index for user-specific queries with date sorting (most common pattern)
 DepenseSchema.index({ utilisateur: 1, date: -1 });
 
-// Compound index for filtering by category within user context
 DepenseSchema.index({ utilisateur: 1, categorie: 1, date: -1 });
 
-// Compound index for filtering by estChargeFixe (used in statistiques)
 DepenseSchema.index({ utilisateur: 1, estChargeFixe: 1, date: -1 });
 
-// Compound index for filtering by typeDepense within user context
 DepenseSchema.index({ utilisateur: 1, typeDepense: 1, date: -1 });
 
-// Compound index for filtering by typeCompte within user context
 DepenseSchema.index({ utilisateur: 1, typeCompte: 1, date: -1 });
 
-// Text search index for description and commentaire fields
 DepenseSchema.index({ description: "text", commentaire: "text" });
 
 export default mongoose.model<IDepense>("Depense", DepenseSchema);

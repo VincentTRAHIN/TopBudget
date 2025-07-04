@@ -42,7 +42,6 @@ export default function ExpensesPage() {
   );
   const { categories } = useCategories();
 
-  // Memoized callbacks for better performance
   const handleEdit = useCallback((depense: IDepense) => {
     setSelectedDepense(depense);
     setShowAddForm(true);
@@ -111,7 +110,6 @@ export default function ExpensesPage() {
     setCurrentPage(1);
   }, []);
 
-  // Memoized button handlers for view switcher
   const handleVueMoi = useCallback(() => {
     handleVueChange({ target: { value: 'moi' } } as React.ChangeEvent<HTMLSelectElement>);
   }, [handleVueChange]);
@@ -124,7 +122,6 @@ export default function ExpensesPage() {
     handleVueChange({ target: { value: 'couple_complet' } } as React.ChangeEvent<HTMLSelectElement>);
   }, [handleVueChange]);
 
-  // Modal close handlers
   const handleCloseAddCategorieForm = useCallback(() => {
     setShowAddCategorieForm(false);
   }, []);
@@ -134,7 +131,6 @@ export default function ExpensesPage() {
     setSelectedDepense(null);
   }, []);
 
-  // Memoized computed values
   const pageDescription = useMemo(() => {
     if (selectedVue === 'moi') {
       return 'Gérez et suivez vos dépenses personnelles en temps réel';
@@ -165,7 +161,6 @@ export default function ExpensesPage() {
     <RequireAuth>
       <Layout>
         <div className="space-y-8">
-          {/* Enhanced Page Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Gestion des Dépenses
@@ -174,7 +169,6 @@ export default function ExpensesPage() {
               {pageDescription}
             </p>
 
-            {/* Enhanced View Switcher */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
                 <button
@@ -216,7 +210,6 @@ export default function ExpensesPage() {
                 )}
               </div>
 
-              {/* Action Buttons */}
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={handleAdd}
@@ -245,7 +238,6 @@ export default function ExpensesPage() {
             </div>
           </div>
 
-          {/* Section 2: Vue d'ensemble */}
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
               Vue d&apos;ensemble
@@ -256,7 +248,6 @@ export default function ExpensesPage() {
             />
           </section>
 
-          {/* Section 3: Liste des Dépenses */}
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
               Liste des Dépenses
@@ -293,7 +284,6 @@ export default function ExpensesPage() {
             )}
           </section>
 
-          {/* Section 4: Pagination */}
           {pagination && pagination.total > 0 && (
             <section>
               <div className="bg-white p-6 rounded-lg shadow-md">
@@ -332,7 +322,6 @@ export default function ExpensesPage() {
             </section>
           )}
 
-          {/* Modals */}
           {showAddCategorieForm && (
             <FormCategorie
               onClose={handleCloseAddCategorieForm}

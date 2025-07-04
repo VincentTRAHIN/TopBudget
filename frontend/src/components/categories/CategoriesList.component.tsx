@@ -39,7 +39,8 @@ export default function CategoriesList({
       refreshCategories();
       onDelete();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Erreur inconnue';
       if (errorMessage.includes('utilisée')) {
         toast.error('Cette catégorie est utilisée et ne peut être supprimée.');
       } else {
@@ -61,8 +62,6 @@ export default function CategoriesList({
       categorie.description?.toLowerCase().includes(searchLower)
     );
   });
-
-  // Loading State
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -93,7 +92,6 @@ export default function CategoriesList({
     );
   }
 
-  // Error State
   if (isError) {
     return (
       <div className="space-y-4">
@@ -117,8 +115,18 @@ export default function CategoriesList({
         <div className="bg-white rounded-lg shadow-md p-8">
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="text-red-500">
-              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-12 h-12"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
             <div className="text-center">
@@ -177,7 +185,9 @@ export default function CategoriesList({
                 <td colSpan={3} className="px-4 py-8 text-center">
                   {search ? (
                     <div className="text-gray-500">
-                      <p className="mb-2">Aucune catégorie trouvée pour &quot;{search}&quot;</p>
+                      <p className="mb-2">
+                        Aucune catégorie trouvée pour &quot;{search}&quot;
+                      </p>
                       <button
                         onClick={() => setSearch('')}
                         className="text-indigo-600 hover:text-indigo-800 text-sm"
@@ -187,8 +197,13 @@ export default function CategoriesList({
                     </div>
                   ) : categories.length === 0 ? (
                     <div className="text-gray-500">
-                      <p className="mb-4">Aucune catégorie de dépense trouvée.</p>
-                      <p className="text-sm mb-4">Commencez par créer votre première catégorie pour organiser vos dépenses.</p>
+                      <p className="mb-4">
+                        Aucune catégorie de dépense trouvée.
+                      </p>
+                      <p className="text-sm mb-4">
+                        Commencez par créer votre première catégorie pour
+                        organiser vos dépenses.
+                      </p>
                       <button
                         onClick={onAdd}
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -197,7 +212,9 @@ export default function CategoriesList({
                       </button>
                     </div>
                   ) : (
-                    <p className="text-gray-500">Aucune catégorie ne correspond à votre recherche.</p>
+                    <p className="text-gray-500">
+                      Aucune catégorie ne correspond à votre recherche.
+                    </p>
                   )}
                 </td>
               </tr>

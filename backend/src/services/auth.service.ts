@@ -46,7 +46,6 @@ export class AuthService {
       throw new AppError(AUTH.ERRORS.INVALID_CREDENTIALS, 401);
     }
 
-    // Create a temporary user instance to use the comparerMotDePasse method
     const tempUser = new User(utilisateur);
     const motDePasseValide = await tempUser.comparerMotDePasse(motDePasse);
     if (!motDePasseValide) {

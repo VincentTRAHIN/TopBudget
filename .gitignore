@@ -45,4 +45,5 @@ structure.txt
 extract-code.js
 generate-structure.js
 .cursor/
-structure.txt
+.structure.txt
+.cursorignore

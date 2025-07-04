@@ -18,12 +18,12 @@ interface SummaryStatProps {
   isLoading?: boolean;
 }
 
-const SummaryStatCard = React.memo(function SummaryStatCard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  colorClass, 
-  isLoading 
+const SummaryStatCard = React.memo(function SummaryStatCard({
+  title,
+  value,
+  icon: Icon,
+  colorClass,
+  isLoading,
 }: SummaryStatProps) {
   const formattedValue = useMemo(() => {
     if (isLoading) return null;
@@ -57,14 +57,19 @@ const SummaryStatCard = React.memo(function SummaryStatCard({
   );
 });
 
-function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSummaryCardProps) {
+function ExpensesSummaryCard({
+  selectedVue,
+  filters,
+}: ExpensesSummaryCardProps) {
   const { totalDepenses, isLoading, isError } = useCurrentMonthFlows(
-    selectedVue === 'couple_complet' ? 'couple' : 'moi'
+    selectedVue === 'couple_complet' ? 'couple' : 'moi',
   );
 
-  // Memoized computed values
   const contextText = useMemo(() => {
-    const currentMonth = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    const currentMonth = new Date().toLocaleDateString('fr-FR', {
+      month: 'long',
+      year: 'numeric',
+    });
     switch (selectedVue) {
       case 'partenaire':
         return `du partenaire pour ${currentMonth}`;
@@ -77,9 +82,9 @@ function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSummaryCardProps)
 
   const formatAmount = useMemo(() => {
     return (amount: number) => {
-      return `${amount.toLocaleString('fr-FR', { 
-        minimumFractionDigits: 2, 
-        maximumFractionDigits: 2 
+      return `${amount.toLocaleString('fr-FR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
       })} €`;
     };
   }, []);
@@ -124,7 +129,7 @@ function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSummaryCardProps)
           colorClass="text-red-600"
           isLoading={isLoading}
         />
-        
+
         <SummaryStatCard
           title="Nombre de Dépenses"
           value="--"
@@ -132,7 +137,7 @@ function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSummaryCardProps)
           colorClass="text-blue-600"
           isLoading={isLoading}
         />
-        
+
         <SummaryStatCard
           title="Moyenne/Jour"
           value={averagePerDay}
@@ -140,7 +145,7 @@ function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSummaryCardProps)
           colorClass="text-gray-600"
           isLoading={isLoading}
         />
-        
+
         <SummaryStatCard
           title="Catégorie Principale"
           value="--"
@@ -153,7 +158,8 @@ function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSummaryCardProps)
       {hasActiveFilters && (
         <div className="mt-4 p-3 bg-red-100 rounded-md">
           <p className="text-sm text-red-800">
-            <strong>Filtres actifs:</strong> Les données affichées peuvent être filtrées
+            <strong>Filtres actifs:</strong> Les données affichées peuvent être
+            filtrées
           </p>
         </div>
       )}
@@ -161,4 +167,4 @@ function ExpensesSummaryCard({ selectedVue, filters }: ExpensesSummaryCardProps)
   );
 }
 
-export default React.memo(ExpensesSummaryCard); 
+export default React.memo(ExpensesSummaryCard);

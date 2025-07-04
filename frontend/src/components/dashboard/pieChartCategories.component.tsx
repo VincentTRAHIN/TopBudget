@@ -55,13 +55,11 @@ function PieChartCategories({
     statsContext,
   );
 
-  // Memoized month names array
   const monthNames = useMemo(() => [
     "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
     "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
   ], []);
 
-  // Memoized computed values
   const currentMonthName = useMemo(() => {
     return monthNames[selectedMonth - 1] || "";
   }, [monthNames, selectedMonth]);
@@ -81,12 +79,10 @@ function PieChartCategories({
     return `${baseTitlePart} ${contexteText}par Catégorie - ${currentMonthName} ${selectedYear}`;
   }, [customTitle, contexteText, currentMonthName, selectedYear, monthNames]);
 
-  // Memoized border colors
   const borderColors = useMemo(() => {
     return BACKGROUND_COLORS.map((color) => color.replace('0.6', '1'));
   }, []);
 
-  // Memoized chart options
   const chartOptions = useMemo<ChartOptions<'pie'>>(() => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -132,7 +128,6 @@ function PieChartCategories({
     },
   }), []);
 
-  // Memoized chart data from API distribution
   const apiChartData = useMemo(() => {
     if (!categoryDistribution || categoryDistribution.length === 0) {
       return null;
@@ -155,7 +150,6 @@ function PieChartCategories({
     };
   }, [categoryDistribution, borderColors]);
 
-  // Memoized fallback chart data from local depenses
   const fallbackChartData = useMemo(() => {
     const dataParCategorie: { [key: string]: number } = {};
 
@@ -185,7 +179,6 @@ function PieChartCategories({
     };
   }, [depenses, categories, borderColors]);
 
-  // Final memoized chart data selection
   const chartData = useMemo(() => {
     if (!isLoading && !isError && apiChartData) {
       return apiChartData;
