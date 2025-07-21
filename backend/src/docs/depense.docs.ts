@@ -13,93 +13,93 @@
  *       properties:
  *         montant:
  *           type: number
- *           description: Montant de la dépense
+ *           description: 'Montant de la dépense'
  *         date:
  *           type: string
  *           format: date
- *           description: Date de la dépense
+ *           description: 'Date de la dépense'
  *         commentaire:
  *           type: string
- *           description: Commentaire sur la dépense
+ *           description: 'Commentaire sur la dépense'
  *         description:
  *           type: string
- *           description: Description de la dépense
+ *           description: 'Description de la dépense'
  *         typeCompte:
  *           type: string
  *           enum: [Perso, Conjoint]
- *           description: Type de compte
+ *           description: 'Type de compte'
  *         typeDepense:
  *           type: string
  *           enum: [Perso, Commune]
- *           description: Type de dépense
+ *           description: 'Type de dépense'
  *         recurrence:
  *           type: boolean
- *           description: Si la dépense est récurrente
+ *           description: 'Si la dépense est récurrente'
  *         categorie:
  *           type: string
- *           description: ID de la catégorie
+ *           description: 'ID de la catégorie'
  *         estChargeFixe:
  *           type: boolean
- *           description: Indique si la dépense est une charge fixe (ex : loyer, abonnement, etc.) (optionnel)
+ *           description: 'Indique si la dépense est une charge fixe (ex : loyer, abonnement, etc.) (optionnel)'
  *     DepenseResponse:
  *       type: object
  *       properties:
  *         id:
  *           type: string
- *           description: ID de la dépense
+ *           description: 'ID de la dépense'
  *         montant:
  *           type: number
- *           description: Montant de la dépense
+ *           description: 'Montant de la dépense'
  *         date:
  *           type: string
  *           format: date
- *           description: Date de la dépense
+ *           description: 'Date de la dépense'
  *         commentaire:
  *           type: string
- *           description: Commentaire sur la dépense
+ *           description: 'Commentaire sur la dépense'
  *         description:
  *           type: string
- *           description: Description de la dépense
+ *           description: 'Description de la dépense'
  *         typeCompte:
  *           type: string
  *           enum: [Perso, Conjoint]
- *           description: Type de compte
+ *           description: 'Type de compte'
  *         typeDepense:
  *           type: string
  *           enum: [Perso, Commune]
- *           description: Type de dépense
+ *           description: 'Type de dépense'
  *         recurrence:
  *           type: boolean
- *           description: Si la dépense est récurrente
+ *           description: 'Si la dépense est récurrente'
  *         categorie:
  *           type: object
  *           properties:
  *             id:
  *               type: string
- *               description: ID de la catégorie
+ *               description: 'ID de la catégorie'
  *             nom:
  *               type: string
- *               description: Nom de la catégorie
+ *               description: 'Nom de la catégorie'
  *         utilisateur:
  *           type: object
  *           properties:
  *             id:
  *               type: string
- *               description: ID de l'utilisateur
+ *               description: 'ID de l\'utilisateur'
  *             nom:
  *               type: string
- *               description: Nom de l'utilisateur
+ *               description: 'Nom de l\'utilisateur'
  *         estChargeFixe:
  *           type: boolean
- *           description: Indique si la dépense est une charge fixe (ex : loyer, abonnement, etc.)
+ *           description: 'Indique si la dépense est une charge fixe (ex : loyer, abonnement, etc.)'
  *         createdAt:
  *           type: string
  *           format: date-time
- *           description: Date de création
+ *           description: 'Date de création'
  *         updatedAt:
  *           type: string
  *           format: date-time
- *           description: Date de mise à jour
+ *           description: 'Date de mise à jour'
  */
 
 /**
@@ -361,7 +361,7 @@
  *               csvFile:
  *                 type: string
  *                 format: binary
- *                 description: "Fichier CSV à importer (séparateur ',', en-têtes attendus: Date;Montant;Categorie;Description)"
+ *                 description: 'Fichier CSV à importer (séparateur \',\', en-têtes attendus: Date;Montant;Categorie;Description)'
  *           encoding:
  *             csvFile:
  *               contentType: text/csv

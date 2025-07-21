@@ -13,50 +13,50 @@
  *       properties:
  *         montant:
  *           type: number
- *           description: Montant du revenu
+ *           description: 'Montant du revenu'
  *         date:
  *           type: string
  *           format: date
- *           description: Date du revenu
+ *           description: 'Date du revenu'
  *         description:
  *           type: string
- *           description: Description du revenu (ex: Salaire, CAF, etc.)
+ *           description: 'Description du revenu (ex: Salaire, CAF, etc.)'
  *         commentaire:
  *           type: string
- *           description: Commentaire sur le revenu
+ *           description: 'Commentaire sur le revenu'
  *         typeCompte:
  *           type: string
  *           enum: [Perso, Conjoint]
- *           description: Type de compte
+ *           description: 'Type de compte'
  *         categorieRevenu:
  *           type: string
- *           description: ID de la catégorie de revenu
+ *           description: 'ID de la catégorie de revenu'
  *         estRecurrent:
  *           type: boolean
- *           description: Indique si le revenu est récurrent (fixe)
+ *           description: 'Indique si le revenu est récurrent (fixe)'
  *     RevenuResponse:
  *       type: object
  *       properties:
  *         id:
  *           type: string
- *           description: ID du revenu
+ *           description: 'ID du revenu'
  *         montant:
  *           type: number
- *           description: Montant du revenu
+ *           description: 'Montant du revenu'
  *         date:
  *           type: string
  *           format: date
- *           description: Date du revenu
+ *           description: 'Date du revenu'
  *         description:
  *           type: string
- *           description: Description du revenu (ex: Salaire, CAF, etc.)
+ *           description: 'Description du revenu (ex: Salaire, CAF, etc.)'
  *         commentaire:
  *           type: string
- *           description: Commentaire sur le revenu
+ *           description: 'Commentaire sur le revenu'
  *         typeCompte:
  *           type: string
  *           enum: [Perso, Conjoint]
- *           description: Type de compte
+ *           description: 'Type de compte'
  *         categorieRevenu:
  *           type: object
  *           properties:
@@ -68,27 +68,27 @@
  *               type: string
  *             image:
  *               type: string
- *           description: Catégorie de revenu associée (populée)
+ *           description: 'Catégorie de revenu associée (populée)'
  *         estRecurrent:
  *           type: boolean
- *           description: Indique si le revenu est récurrent (fixe)
+ *           description: 'Indique si le revenu est récurrent (fixe)'
  *         utilisateur:
  *           type: object
  *           properties:
  *             id:
  *               type: string
- *               description: ID de l'utilisateur
+ *               description: 'ID de l\'utilisateur'
  *             nom:
  *               type: string
- *               description: Nom de l'utilisateur
+ *               description: 'Nom de l\'utilisateur'
  *         createdAt:
  *           type: string
  *           format: date-time
- *           description: Date de création
+ *           description: 'Date de création'
  *         updatedAt:
  *           type: string
  *           format: date-time
- *           description: Date de mise à jour
+ *           description: 'Date de mise à jour'
  */
 
 /**
