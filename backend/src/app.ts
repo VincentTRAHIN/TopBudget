@@ -43,7 +43,8 @@ console.log("--> [DEBUG] app.ts: Helmet middleware added.");
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://top-budget.vercel.app' 
+  'https://top-budget.vercel.app',
+  'https://topbudget-api-cd9072907313.herokuapp.com'
 ];
 
 const corsOptions: cors.CorsOptions = {
