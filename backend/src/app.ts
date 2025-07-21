@@ -1,9 +1,11 @@
+console.log("🔍 DEBUG: Starting imports...");
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import helmet from "helmet";
 import morgan from "morgan";
+console.log("🔍 DEBUG: Basic imports successful");
 import swaggerUi from "swagger-ui-express";
 import authRoutes from "./routes/auth.route";
 import depenseRoutes from "./routes/depense.route";
@@ -14,10 +16,14 @@ import userRoutes from "./routes/user.route";
 import revenuRoutes from "./routes/revenu.route";
 import categorieRevenuRoutes from "./routes/categorieRevenu.route";
 import logger from "./utils/logger.utils";
+console.log("🔍 DEBUG: Logger imported");
 import { swaggerSpec } from "./docs/swagger.config";
+console.log("🔍 DEBUG: Swagger config imported");
 import { errorHandler, AppError } from "./middlewares/error.middleware";
+console.log("🔍 DEBUG: All imports completed");
 
 dotenv.config();
+console.log("🔍 DEBUG: dotenv configured");
 
 const app = express();
 
@@ -107,8 +113,15 @@ const PORT = process.env.PORT || 5001;
 
 const startServer = async () => {
   try {
+    console.log("🔍 DEBUG: Starting server...");
+    console.log("🔍 DEBUG: PORT =", PORT);
+    console.log("🔍 DEBUG: MONGO_URI =", process.env.MONGO_URI ? "SET" : "NOT SET");
+    
     await connectDB();
+    console.log("🔍 DEBUG: Database connected successfully");
+    
     const server = app.listen(PORT, () => {
+      console.log(`🚀 DEBUG: Server started on port ${PORT}`);
       logger.info(`🚀 Serveur backend démarré sur le port ${PORT}`);
     });
 
@@ -126,4 +139,8 @@ const startServer = async () => {
   }
 };
 
-startServer();
+console.log("🔍 DEBUG: About to start server...");
+startServer().catch((error) => {
+  console.error("🚨 FATAL ERROR during server startup:", error);
+  process.exit(1);
+});
