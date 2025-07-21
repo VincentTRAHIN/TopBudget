@@ -12,18 +12,18 @@
  *         email:
  *           type: string
  *           format: email
- *           description: 'Email de l\'utilisateur'
+ *           description: "Email de l'utilisateur"
  *         motDePasse:
  *           type: string
  *           format: password
- *           description: 'Mot de passe de l\'utilisateur'
+ *           description: "Mot de passe de l'utilisateur"
  *         nom:
  *           type: string
- *           description: 'Nom de l\'utilisateur'
+ *           description: "Nom de l'utilisateur"
  *         role:
  *           type: string
  *           enum: [Perso, Conjoint, Admin]
- *           description: 'Rôle de l\'utilisateur'
+ *           description: "Rôle de l'utilisateur"
  *     UserLogin:
  *       type: object
  *       required:
@@ -33,127 +33,127 @@
  *         email:
  *           type: string
  *           format: email
- *           description: 'Email de l\'utilisateur'
+ *           description: "Email de l'utilisateur"
  *         motDePasse:
  *           type: string
  *           format: password
- *           description: 'Mot de passe de l\'utilisateur'
+ *           description: "Mot de passe de l'utilisateur"
  *     UserResponse:
  *       type: object
  *       properties:
  *         id:
  *           type: string
- *           description: 'ID de l\'utilisateur'
+ *           description: "ID de l'utilisateur"
  *         nom:
  *           type: string
- *           description: 'Nom de l\'utilisateur'
+ *           description: "Nom de l'utilisateur"
  *         email:
  *           type: string
  *           format: email
- *           description: 'Email de l\'utilisateur'
+ *           description: "Email de l'utilisateur"
  *         role:
  *           type: string
  *           enum: [Perso, Conjoint, Admin]
- *           description: 'Rôle de l\'utilisateur'
+ *           description: "Rôle de l'utilisateur"
  *         dateCreation:
  *           type: string
  *           format: date-time
- *           description: 'Date de création du compte'
+ *           description: "Date de création du compte"
  *     AuthResponse:
  *       type: object
  *       properties:
  *         token:
  *           type: string
- *           description: 'JWT token d\'authentification'
+ *           description: "JWT token d'authentification"
  *         user:
- *           $ref: '#/components/schemas/UserResponse'
+ *           $ref: '#/components/schemas/UserResponse"
  *     Error:
  *       type: object
  *       properties:
  *         message:
  *           type: string
- *           description: 'Message d\'erreur'
+ *           description: "Message d'erreur"
  */
 
 /**
  * @swagger
  * /api/auth/inscription:
  *   post:
- *     summary: 'Inscription d\'un nouvel utilisateur'
+ *     summary: "Inscription d'un nouvel utilisateur"
  *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserInput'
+ *             $ref: '#/components/schemas/UserInput"
  *     responses:
  *       201:
- *         description: 'Utilisateur créé avec succès'
+ *         description: "Utilisateur créé avec succès"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/AuthResponse'
+ *               $ref: '#/components/schemas/AuthResponse"
  *       400:
- *         description: 'Données invalides'
+ *         description: "Données invalides"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  *       409:
- *         description: 'Email déjà utilisé'
+ *         description: "Email déjà utilisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  */
 
 /**
  * @swagger
  * /api/auth/connexion:
  *   post:
- *     summary: 'Connexion d\'un utilisateur'
+ *     summary: "Connexion d'un utilisateur"
  *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserLogin'
+ *             $ref: '#/components/schemas/UserLogin"
  *     responses:
  *       200:
- *         description: 'Connexion réussie'
+ *         description: "Connexion réussie"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/AuthResponse'
+ *               $ref: '#/components/schemas/AuthResponse"
  *       401:
- *         description: 'Identifiants invalides'
+ *         description: "Identifiants invalides"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  */
 
 /**
  * @swagger
  * /api/auth/me:
  *   get:
- *     summary: 'Récupère les informations de l\'utilisateur connecté'
+ *     summary: "Récupère les informations de l'utilisateur connecté"
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: 'Informations de l\'utilisateur'
+ *         description: "Informations de l'utilisateur"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/UserResponse'
+ *               $ref: '#/components/schemas/UserResponse"
  *       401:
- *         description: 'Non autorisé'
+ *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  */

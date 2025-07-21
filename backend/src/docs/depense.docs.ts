@@ -13,100 +13,100 @@
  *       properties:
  *         montant:
  *           type: number
- *           description: 'Montant de la dépense'
+ *           description: "Montant de la dépense"
  *         date:
  *           type: string
  *           format: date
- *           description: 'Date de la dépense'
+ *           description: "Date de la dépense"
  *         commentaire:
  *           type: string
- *           description: 'Commentaire sur la dépense'
+ *           description: "Commentaire sur la dépense"
  *         description:
  *           type: string
- *           description: 'Description de la dépense'
+ *           description: "Description de la dépense"
  *         typeCompte:
  *           type: string
  *           enum: [Perso, Conjoint]
- *           description: 'Type de compte'
+ *           description: "Type de compte"
  *         typeDepense:
  *           type: string
  *           enum: [Perso, Commune]
- *           description: 'Type de dépense'
+ *           description: "Type de dépense"
  *         recurrence:
  *           type: boolean
- *           description: 'Si la dépense est récurrente'
+ *           description: "Si la dépense est récurrente"
  *         categorie:
  *           type: string
- *           description: 'ID de la catégorie'
+ *           description: "ID de la catégorie"
  *         estChargeFixe:
  *           type: boolean
- *           description: 'Indique si la dépense est une charge fixe (ex : loyer, abonnement, etc.) (optionnel)'
+ *           description: "Indique si la dépense est une charge fixe (ex : loyer, abonnement, etc.) (optionnel)"
  *     DepenseResponse:
  *       type: object
  *       properties:
  *         id:
  *           type: string
- *           description: 'ID de la dépense'
+ *           description: "ID de la dépense"
  *         montant:
  *           type: number
- *           description: 'Montant de la dépense'
+ *           description: "Montant de la dépense"
  *         date:
  *           type: string
  *           format: date
- *           description: 'Date de la dépense'
+ *           description: "Date de la dépense"
  *         commentaire:
  *           type: string
- *           description: 'Commentaire sur la dépense'
+ *           description: "Commentaire sur la dépense"
  *         description:
  *           type: string
- *           description: 'Description de la dépense'
+ *           description: "Description de la dépense"
  *         typeCompte:
  *           type: string
  *           enum: [Perso, Conjoint]
- *           description: 'Type de compte'
+ *           description: "Type de compte"
  *         typeDepense:
  *           type: string
  *           enum: [Perso, Commune]
- *           description: 'Type de dépense'
+ *           description: "Type de dépense"
  *         recurrence:
  *           type: boolean
- *           description: 'Si la dépense est récurrente'
+ *           description: "Si la dépense est récurrente"
  *         categorie:
  *           type: object
  *           properties:
  *             id:
  *               type: string
- *               description: 'ID de la catégorie'
+ *               description: "ID de la catégorie"
  *             nom:
  *               type: string
- *               description: 'Nom de la catégorie'
+ *               description: "Nom de la catégorie"
  *         utilisateur:
  *           type: object
  *           properties:
  *             id:
  *               type: string
- *               description: 'ID de l\'utilisateur'
+ *               description: "ID de l'utilisateur"
  *             nom:
  *               type: string
- *               description: 'Nom de l\'utilisateur'
+ *               description: "Nom de l'utilisateur"
  *         estChargeFixe:
  *           type: boolean
- *           description: 'Indique si la dépense est une charge fixe (ex : loyer, abonnement, etc.)'
+ *           description: "Indique si la dépense est une charge fixe (ex : loyer, abonnement, etc.)"
  *         createdAt:
  *           type: string
  *           format: date-time
- *           description: 'Date de création'
+ *           description: "Date de création"
  *         updatedAt:
  *           type: string
  *           format: date-time
- *           description: 'Date de mise à jour'
+ *           description: "Date de mise à jour"
  */
 
 /**
  * @swagger
  * /api/depenses:
  *   get:
- *     summary: Récupère toutes les dépenses
+ *     summary: "Récupère toutes les dépenses"
  *     tags: [Dépenses]
  *     security:
  *       - bearerAuth: []
@@ -115,55 +115,55 @@
  *         name: page
  *         schema:
  *           type: integer
- *         description: Numéro de la page à récupérer (par défaut 1)
+ *         description: "Numéro de la page à récupérer (par défaut 1)"
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
- *         description: Nombre de résultats par page (par défaut 10)
+ *         description: "Nombre de résultats par page (par défaut 10)"
  *       - in: query
  *         name: categorie
  *         schema:
  *           type: string
- *         description: Filtrer par catégorie
+ *         description: "Filtrer par catégorie"
  *       - in: query
  *         name: dateDebut
  *         schema:
  *           type: string
  *           format: date
- *         description: Date de début pour le filtre
+ *         description: "Date de début pour le filtre"
  *       - in: query
  *         name: dateFin
  *         schema:
  *           type: string
  *           format: date
- *         description: Date de fin pour le filtre
+ *         description: "Date de fin pour le filtre"
  *       - in: query
  *         name: typeCompte
  *         schema:
  *           type: string
  *           enum: [Perso, Conjoint]
- *         description: Filtrer par type de compte
+ *         description: "Filtrer par type de compte"
  *       - in: query
  *         name: typeDepense
  *         schema:
  *           type: string
  *           enum: [Perso, Commune]
- *         description: Filtrer par type de dépense
+ *         description: "Filtrer par type de dépense"
  *       - in: query
  *         name: sortBy
  *         schema:
  *           type: string
- *         description: Champ par lequel trier (ex. montant, date)
+ *         description: "Champ par lequel trier (ex. montant, date)"
  *       - in: query
  *         name: order
  *         schema:
  *           type: string
  *           enum: [asc, desc]
- *         description: Ordre de tri (ascendant ou descendant)
+ *         description: "Ordre de tri (ascendant ou descendant)"
  *     responses:
  *       200:
- *         description: Liste des dépenses
+ *         description: "Liste des dépenses"
  *         content:
  *           application/json:
  *             schema:
@@ -172,7 +172,7 @@
  *                 depenses:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/DepenseResponse'
+ *                     $ref: '#/components/schemas/DepenseResponse"
  *                 pagination:
  *                   type: object
  *                   properties:
@@ -185,18 +185,18 @@
  *                     limit:
  *                       type: integer
  *       401:
- *         description: Non autorisé
+ *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  */
 
 /**
  * @swagger
  * /api/depenses:
  *   post:
- *     summary: Crée une nouvelle dépense
+ *     summary: "Crée une nouvelle dépense"
  *     tags: [Dépenses]
  *     security:
  *       - bearerAuth: []
@@ -205,33 +205,33 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/DepenseInput'
+ *             $ref: '#/components/schemas/DepenseInput"
  *     responses:
  *       201:
- *         description: Dépense créée avec succès
+ *         description: "Dépense créée avec succès"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/DepenseResponse'
+ *               $ref: '#/components/schemas/DepenseResponse"
  *       400:
- *         description: Données invalides
+ *         description: "Données invalides"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  *       401:
- *         description: Non autorisé
+ *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  */
 
 /**
  * @swagger
  * /api/depenses/{id}:
  *   get:
- *     summary: Récupère une dépense par son ID
+ *     summary: "Récupère une dépense par son ID"
  *     tags: [Dépenses]
  *     security:
  *       - bearerAuth: []
@@ -241,33 +241,33 @@
  *         required: true
  *         schema:
  *           type: string
- *         description: ID de la dépense
+ *         description: "ID de la dépense"
  *     responses:
  *       200:
- *         description: Détails de la dépense
+ *         description: "Détails de la dépense"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/DepenseResponse'
+ *               $ref: '#/components/schemas/DepenseResponse"
  *       404:
- *         description: Dépense non trouvée
+ *         description: "Dépense non trouvée"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  *       401:
- *         description: Non autorisé
+ *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  */
 
 /**
  * @swagger
  * /api/depenses/{id}:
  *   put:
- *     summary: Met à jour une dépense
+ *     summary: "Met à jour une dépense"
  *     tags: [Dépenses]
  *     security:
  *       - bearerAuth: []
@@ -277,45 +277,45 @@
  *         required: true
  *         schema:
  *           type: string
- *         description: ID de la dépense
+ *         description: "ID de la dépense"
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/DepenseInput'
+ *             $ref: '#/components/schemas/DepenseInput"
  *     responses:
  *       200:
- *         description: Dépense mise à jour avec succès
+ *         description: "Dépense mise à jour avec succès"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/DepenseResponse'
+ *               $ref: '#/components/schemas/DepenseResponse"
  *       400:
- *         description: Données invalides
+ *         description: "Données invalides"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  *       404:
- *         description: Dépense non trouvée
+ *         description: "Dépense non trouvée"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  *       401:
- *         description: Non autorisé
+ *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  */
 
 /**
  * @swagger
  * /api/depenses/{id}:
  *   delete:
- *     summary: Supprime une dépense
+ *     summary: "Supprime une dépense"
  *     tags: [Dépenses]
  *     security:
  *       - bearerAuth: []
@@ -325,29 +325,29 @@
  *         required: true
  *         schema:
  *           type: string
- *         description: ID de la dépense
+ *         description: "ID de la dépense"
  *     responses:
  *       204:
- *         description: Dépense supprimée avec succès
+ *         description: "Dépense supprimée avec succès"
  *       404:
- *         description: Dépense non trouvée
+ *         description: "Dépense non trouvée"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  *       401:
- *         description: Non autorisé
+ *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  */
 
 /**
  * @swagger
  * /api/depenses/import:
  *   post:
- *     summary: Importe des dépenses depuis un fichier CSV
+ *     summary: "Importe des dépenses depuis un fichier CSV"
  *     tags: [Dépenses]
  *     security:
  *       - bearerAuth: []
@@ -361,13 +361,13 @@
  *               csvFile:
  *                 type: string
  *                 format: binary
- *                 description: 'Fichier CSV à importer (séparateur \',\', en-têtes attendus: Date;Montant;Categorie;Description)'
+ *                 description: "Fichier CSV à importer (séparateur ',', en-têtes attendus: Date;Montant;Categorie;Description)"
  *           encoding:
  *             csvFile:
  *               contentType: text/csv
  *     responses:
  *       200:
- *         description: Résultat de l'importation
+ *         description: "Résultat de l'importation"
  *         content:
  *           application/json:
  *             schema:
@@ -393,21 +393,21 @@
  *                       message:
  *                         type: string
  *       400:
- *         description: Fichier manquant, mauvais format de fichier ou données invalides dans le fichier
+ *         description: "Fichier manquant, mauvais format de fichier ou données invalides dans le fichier"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  *       401:
- *         description: Non autorisé
+ *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  *       500:
- *         description: Erreur serveur lors du parsing ou de l'insertion
+ *         description: "Erreur serveur lors du parsing ou de l'insertion"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               $ref: '#/components/schemas/Error"
  */
