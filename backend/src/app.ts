@@ -41,7 +41,26 @@ console.log("--> [DEBUG] app.ts: Express app created. Setting up middleware...")
 app.use(helmet());
 console.log("--> [DEBUG] app.ts: Helmet middleware added.");
 
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://top-budget.vercel.app' 
+];
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    if (!origin && process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+
+    if (origin && allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+};
+
+app.use(cors(corsOptions));
 console.log("--> [DEBUG] app.ts: CORS middleware added.");
 
 app.use(express.json());
