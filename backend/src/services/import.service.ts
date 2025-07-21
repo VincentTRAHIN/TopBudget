@@ -148,7 +148,9 @@ export class ImportService {
     csvBuffer: Buffer,
     userId: string
   ): Promise<ImportResultType> {
-    const categorieDocs = await Categorie.find().lean();
+    const categorieDocs = await Categorie.find()
+      .select("nom _id")
+      .lean();
     const categorieMap = new Map(
       categorieDocs.map((cat) => [
         String(cat.nom).toLowerCase(),
@@ -166,7 +168,9 @@ export class ImportService {
       const escapedNom = nom.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
       const existingCat = await Categorie.findOne({
         nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
-      }).lean();
+      })
+        .select("_id")
+        .lean();
 
       if (existingCat && existingCat._id) {
         const idStr = String(existingCat._id);
@@ -174,7 +178,9 @@ export class ImportService {
         return new mongoose.Types.ObjectId(idStr);
       }
 
-      const exactMatch = await Categorie.findOne({ nom: nom }).lean();
+      const exactMatch = await Categorie.findOne({ nom: nom })
+        .select("_id")
+        .lean();
       if (exactMatch && exactMatch._id) {
         const idStr = String(exactMatch._id);
         categorieMap.set(nomLower, idStr);
@@ -267,7 +273,9 @@ export class ImportService {
   ): Promise<ImportResultType> {
     const categorieRevenuDocs = await CategorieRevenuModel.find({
       utilisateur: userId,
-    }).lean();
+    })
+      .select("nom _id")
+      .lean();
 
     const categorieRevenuMap = new Map(
       categorieRevenuDocs.map((cat) => [
@@ -288,7 +296,9 @@ export class ImportService {
       const existingCatRegex = await CategorieRevenuModel.findOne({
         $or: [{ utilisateur: userId }, { utilisateur: { $exists: false } }],
         nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
-      }).lean();
+      })
+        .select("_id")
+        .lean();
 
       if (existingCatRegex && existingCatRegex._id) {
         const idStr = String(existingCatRegex._id);
@@ -298,7 +308,9 @@ export class ImportService {
       const exactMatch = await CategorieRevenuModel.findOne({
         nom: nom,
         $or: [{ utilisateur: userId }, { utilisateur: { $exists: false } }],
-      }).lean();
+      })
+        .select("_id")
+        .lean();
 
       if (exactMatch && exactMatch._id) {
         const idStr = String(exactMatch._id);
@@ -336,7 +348,9 @@ export class ImportService {
                 { utilisateur: userId },
                 { utilisateur: { $exists: false } },
               ],
-            }).lean();
+            })
+              .select("_id")
+              .lean();
 
             if (duplicateCat && duplicateCat._id) {
               const idStr = String(duplicateCat._id);

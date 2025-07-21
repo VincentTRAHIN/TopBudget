@@ -27,7 +27,7 @@ export const CATEGORIE = {
     MAX_NOM_LENGTH: 50,
     MAX_DESCRIPTION_LENGTH: 500,
     ALLOWED_IMAGE_TYPES: ["image/jpeg", "image/png", "image/gif"],
-    MAX_IMAGE_SIZE: 5 * 1024 * 1024, // 5MB
+    MAX_IMAGE_SIZE: 5 * 1024 * 1024,
   },
 
   DEFAULT_CATEGORIES: [

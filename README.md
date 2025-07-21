@@ -113,6 +113,10 @@ cp backend/.env.example backend/.env
 
 2. Configurer les variables d'environnement dans les fichiers `.env`
 
+> **📖 Documentation détaillée :**
+> - [**Backend README**](./backend/README.md) - Installation, configuration et API du backend
+> - [**Frontend README**](./frontend/README.md) - Installation, configuration et développement du frontend
+
 ## Démarrage
 
 ### Développement local

@@ -44,7 +44,9 @@ export class CategorieRevenuService {
       Object.assign(query, { _id: { $ne: excludeId } });
     }
 
-    const categorieExistante = await CategorieRevenu.findOne(query);
+    const categorieExistante = await CategorieRevenu.findOne(query)
+      .select("_id")
+      .lean();
     if (categorieExistante) {
       throw new AppError(CATEGORIE_REVENU.ERRORS.ALREADY_EXISTS, 409);
     }
@@ -65,11 +67,17 @@ export class CategorieRevenuService {
     });
 
     await categorieRevenu.save();
-    return categorieRevenu;
+    
+    return CategorieRevenu.findById(categorieRevenu._id)
+      .select("nom description image utilisateur")
+      .lean();
   }
 
   static async getAll(userId: string) {
-    return CategorieRevenu.find({ utilisateur: userId }).sort({ nom: 1 });
+    return CategorieRevenu.find({ utilisateur: userId })
+      .select("nom description image utilisateur")
+      .sort({ nom: 1 })
+      .lean();
   }
 
   static async getById(id: string, userId: string) {
@@ -80,7 +88,9 @@ export class CategorieRevenuService {
     const categorieRevenu = await CategorieRevenu.findOne({
       _id: id,
       utilisateur: userId,
-    });
+    })
+      .select("nom description image utilisateur")
+      .lean();
 
     if (!categorieRevenu) {
       throw new AppError(CATEGORIE_REVENU.ERRORS.NOT_FOUND, 404);
@@ -124,7 +134,10 @@ export class CategorieRevenuService {
     }
 
     await categorieRevenu.save();
-    return categorieRevenu;
+    
+    return CategorieRevenu.findById(id)
+      .select("nom description image utilisateur")
+      .lean();
   }
 
   static async delete(id: string, userId: string) {
@@ -135,7 +148,9 @@ export class CategorieRevenuService {
     const categorieRevenu = await CategorieRevenu.findOne({
       _id: id,
       utilisateur: userId,
-    });
+    })
+      .select("_id")
+      .lean();
 
     if (!categorieRevenu) {
       throw new AppError(CATEGORIE_REVENU.ERRORS.NOT_FOUND, 404);
@@ -150,6 +165,6 @@ export class CategorieRevenuService {
       throw new AppError(CATEGORIE_REVENU.ERRORS.IN_USE, 400);
     }
 
-    await categorieRevenu.deleteOne();
+    await CategorieRevenu.findByIdAndDelete(id);
   }
 }

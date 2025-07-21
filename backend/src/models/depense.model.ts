@@ -30,7 +30,19 @@ const DepenseSchema = new Schema<IDepense>(
     },
     estChargeFixe: { type: Boolean, default: false, required: true },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
+
+DepenseSchema.index({ utilisateur: 1, date: -1 });
+
+DepenseSchema.index({ utilisateur: 1, categorie: 1, date: -1 });
+
+DepenseSchema.index({ utilisateur: 1, estChargeFixe: 1, date: -1 });
+
+DepenseSchema.index({ utilisateur: 1, typeDepense: 1, date: -1 });
+
+DepenseSchema.index({ utilisateur: 1, typeCompte: 1, date: -1 });
+
+DepenseSchema.index({ description: "text", commentaire: "text" });
 
 export default mongoose.model<IDepense>("Depense", DepenseSchema);

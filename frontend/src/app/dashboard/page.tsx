@@ -11,22 +11,22 @@ import { useCurrentMonthFlows } from '@/hooks/useCurrentMonthTotal.hook';
 import { TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 
 export default function DashboardPage() {
-  // Call the hook once and extract individual values
-  const { totalDepenses, totalRevenus, solde, isLoading, isError } = useCurrentMonthFlows('moi');
+  const { totalDepenses, totalRevenus, solde, isLoading, isError } =
+    useCurrentMonthFlows('moi');
 
   return (
     <RequireAuth>
       <Layout>
         <div className="space-y-8">
-          {/* Page Title */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Tableau de Bord</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Tableau de Bord
+            </h1>
             <p className="mt-2 text-sm text-gray-600">
               Vue d&apos;ensemble de votre situation financière
             </p>
           </div>
 
-          {/* Section 1: Indicateurs Clés */}
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
               Indicateurs Clés
@@ -59,23 +59,17 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          {/* Section 2: Analyses Graphiques */}
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
               Analyses Graphiques
             </h2>
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              {/* Évolution des flux mensuels */}
               <div className="xl:col-span-2">
-                <MonthlyFlowsChart 
-                  statsContext="moi"
-                  defaultDataType="solde"
-                />
+                <MonthlyFlowsChart statsContext="moi" defaultDataType="solde" />
               </div>
 
-              {/* Répartition des dépenses par catégorie */}
               <div className="xl:col-span-1">
-                <PieChartCategories 
+                <PieChartCategories
                   statsContext="moi"
                   customTitle="Dépenses (Mois en cours)"
                 />
@@ -83,18 +77,15 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          {/* Section 3: Aperçu Rapide */}
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
               Aperçu Rapide
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Comparaison mensuelle */}
               <div>
                 <MonthlyComparisonSummary statsContext="moi" />
               </div>
 
-              {/* Dernières dépenses */}
               <div>
                 <LastDepenses />
               </div>

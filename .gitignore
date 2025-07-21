@@ -39,10 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Documentation files
+BDD-IDS.md
 backend.txt
 frontend.txt
 structure.txt
 extract-code.js
 generate-structure.js
+
+# Cursor files
 .cursor/
-structure.txt
+.cursorignore

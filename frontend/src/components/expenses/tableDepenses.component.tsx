@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { IDepense } from '@/types/depense.type';
 import { toast } from 'react-hot-toast';
 import fetcher from '@/utils/fetcher.utils';
@@ -13,6 +13,7 @@ import {
 } from '@/hooks/useDepenses.hook';
 import { ICategorie } from '@/types/categorie.type';
 import debug from 'debug';
+import React from 'react';
 
 const log = debug('app:frontend:TableDepenses');
 
@@ -27,7 +28,7 @@ interface TableDepensesProps {
   partenaireId?: string;
 }
 
-export default function TableDepenses({
+function TableDepenses({
   depenses = [],
   categories = [],
   currentSort,
@@ -51,11 +52,11 @@ export default function TableDepenses({
   const [typeDepense, setTypeDepense] = useState<string>('');
   const { refreshDepenses } = useDepenses();
 
-  const handleEdit = (depense: IDepense) => {
+  const handleEdit = useCallback((depense: IDepense) => {
     onEdit(depense);
-  };
+  }, [onEdit]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (!confirm('Confirmer la suppression ?')) return;
     try {
       log(`Tentative de suppression de la dépense ID: %s`, id);
@@ -69,16 +70,54 @@ export default function TableDepenses({
       log(`Erreur lors de la suppression de la dépense ID: %s, Erreur: %O`, id, error);
       toast.error('Erreur lors de la suppression de la dépense');
     }
-  };
+  }, [refreshDepenses]);
 
-  const handleSort = (field: string) => {
+  const handleSort = useCallback((field: string) => {
     const newOrder =
       currentSort.sortBy === field && currentSort.order === 'asc'
         ? 'desc'
         : 'asc';
     log('Tri demandé sur le champ: %s, nouvel ordre: %s', field, newOrder);
     onSortChange({ sortBy: field, order: newOrder });
-  };
+  }, [currentSort.sortBy, currentSort.order, onSortChange]);
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearch(value);
+    setTimeout(() => {
+      onFilterChange({ search: value });
+    }, 300);
+  }, [onFilterChange]);
+
+  const handleCategoryChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setSelectedCategory(value);
+    onFilterChange({ categorie: value });
+  }, [onFilterChange]);
+
+  const handleDateDebutChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setDateDebut(value);
+    onFilterChange({ dateDebut: value });
+  }, [onFilterChange]);
+
+  const handleDateFinChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setDateFin(value);
+    onFilterChange({ dateFin: value });
+  }, [onFilterChange]);
+
+  const handleTypeCompteChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setTypeCompte(value);
+    onFilterChange({ typeCompte: value });
+  }, [onFilterChange]);
+
+  const handleTypeDepenseChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setTypeDepense(value);
+    onFilterChange({ typeDepense: value });
+  }, [onFilterChange]);
 
   return (
     <div className="space-y-4">
@@ -96,12 +135,7 @@ export default function TableDepenses({
             type="text"
             placeholder="Description, commentaire..."
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setTimeout(() => {
-                onFilterChange({ search: e.target.value });
-              }, 300);
-            }}
+            onChange={handleSearchChange}
             className="input"
           />
         </div>
@@ -115,11 +149,7 @@ export default function TableDepenses({
           <select
             id="category-select"
             value={selectedCategory}
-            onChange={(e) => {
-              const value = e.target.value;
-              setSelectedCategory(value);
-              onFilterChange({ categorie: value });
-            }}
+            onChange={handleCategoryChange}
             className="input"
           >
             <option value="">Toutes</option>
@@ -142,10 +172,7 @@ export default function TableDepenses({
             id="date-debut"
             type="date"
             value={dateDebut}
-            onChange={(e) => {
-              setDateDebut(e.target.value);
-              onFilterChange({ dateDebut: e.target.value });
-            }}
+            onChange={handleDateDebutChange}
             className="input"
             aria-label="Date de début"
           />
@@ -161,10 +188,7 @@ export default function TableDepenses({
             id="date-fin"
             type="date"
             value={dateFin}
-            onChange={(e) => {
-              setDateFin(e.target.value);
-              onFilterChange({ dateFin: e.target.value });
-            }}
+            onChange={handleDateFinChange}
             className="input"
             aria-label="Date de fin"
           />
@@ -179,11 +203,7 @@ export default function TableDepenses({
           <select
             id="type-compte-select"
             value={typeCompte}
-            onChange={(e) => {
-              const value = e.target.value;
-              setTypeCompte(value);
-              onFilterChange({ typeCompte: value });
-            }}
+            onChange={handleTypeCompteChange}
             className="input"
           >
             <option value="">Tous</option>
@@ -201,11 +221,7 @@ export default function TableDepenses({
           <select
             id="type-depense-select"
             value={typeDepense}
-            onChange={(e) => {
-              const value = e.target.value;
-              setTypeDepense(value);
-              onFilterChange({ typeDepense: value });
-            }}
+            onChange={handleTypeDepenseChange}
             className="input"
           >
             <option value="">Tous</option>
@@ -402,3 +418,5 @@ export default function TableDepenses({
     </div>
   );
 }
+
+export default React.memo(TableDepenses);

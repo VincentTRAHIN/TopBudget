@@ -30,9 +30,11 @@ UserSchema.pre("save", async function (next) {
 });
 
 UserSchema.methods.comparerMotDePasse = async function (
-  motDePasse: string,
+  motDePasse: string
 ): Promise<boolean> {
   return bcrypt.compare(motDePasse, this.motDePasse);
 };
+
+UserSchema.index({ nom: 1 });
 
 export default mongoose.model<IUser>("User", UserSchema);
