@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node dist/app.js",
     "build": "tsc",
+    "heroku-postbuild": "npm run build",
     "watch": "ts-node-dev --respawn --transpile-only --poll src/app.ts",
     "dev": "ts-node-dev --respawn --transpile-only --poll src/app.ts",
     "seed": "ts-node scripts/seeding.script.ts",
