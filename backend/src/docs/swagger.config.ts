@@ -1,5 +1,7 @@
 import swaggerJsdoc from "swagger-jsdoc";
 
+console.log("--> [DEBUG] swagger.config.ts: Starting swagger configuration initialization...");
+
 const options: swaggerJsdoc.Options = {
   definition: {
     openapi: "3.0.0",
@@ -36,4 +38,27 @@ const options: swaggerJsdoc.Options = {
   apis: ["./src/docs/*.docs.ts"],
 };
 
-export const swaggerSpec = swaggerJsdoc(options);
+console.log("--> [DEBUG] swagger.config.ts: Options object created, about to call swaggerJsdoc...");
+
+let swaggerSpec: any;
+try {
+  console.log("--> [DEBUG] swagger.config.ts: Calling swaggerJsdoc with options...");
+  swaggerSpec = swaggerJsdoc(options);
+  console.log("--> [DEBUG] swagger.config.ts: swaggerJsdoc call successful.");
+  console.log(`--> [DEBUG] swagger.config.ts: Generated ${Object.keys(swaggerSpec.paths || {}).length} API paths`);
+  console.log(`--> [DEBUG] swagger.config.ts: Generated ${Object.keys(swaggerSpec.components?.schemas || {}).length} schemas`);
+} catch (error) {
+  const err = error as Error;
+  console.error("--> [FATAL] swagger.config.ts: CRASH during swaggerJsdoc execution:", error);
+  console.error("--> [FATAL] swagger.config.ts: Error details:", {
+    name: err?.name || 'Unknown',
+    message: err?.message || 'No message',
+    stack: err?.stack || 'No stack trace',
+  });
+  // Re-throw the error so the main process knows something is wrong
+  throw error;
+}
+
+console.log("--> [DEBUG] swagger.config.ts: Exporting swaggerSpec successfully.");
+
+export { swaggerSpec };
