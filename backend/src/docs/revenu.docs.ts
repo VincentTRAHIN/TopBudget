@@ -111,14 +111,14 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/RevenuInput"
+ *             $ref: '#/components/schemas/RevenuInput'
  *     responses:
  *       201:
  *         description: "Revenu créé avec succès"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/RevenuResponse"
+ *               $ref: '#/components/schemas/RevenuResponse'
  *       400:
  *         description: "Données invalides"
  *       401:
@@ -191,7 +191,7 @@
  *                 revenus:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/RevenuResponse"
+ *                     $ref: '#/components/schemas/RevenuResponse'
  *                 pagination:
  *                   type: object
  *                   properties:
@@ -228,7 +228,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/RevenuResponse"
+ *               $ref: '#/components/schemas/RevenuResponse'
  *       401:
  *         description: "Non autorisé"
  *       404:
@@ -251,14 +251,14 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/RevenuInput"
+ *             $ref: '#/components/schemas/RevenuInput'
  *     responses:
  *       200:
  *         description: "Revenu mis à jour"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/RevenuResponse"
+ *               $ref: '#/components/schemas/RevenuResponse'
  *       400:
  *         description: "Données invalides"
  *       401:

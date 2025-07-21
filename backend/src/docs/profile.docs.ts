@@ -36,32 +36,32 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserProfileUpdateInput"
+ *             $ref: '#/components/schemas/UserProfileUpdateInput'
  *     responses:
  *       200:
  *         description: "Profil mis à jour avec succès"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/UserResponse"
+ *               $ref: '#/components/schemas/UserResponse'
  *       400:
  *         description: "Données invalides ou erreur de validation"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: "Utilisateur ou partenaire non trouvé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -90,19 +90,19 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/UserResponse"
+ *               $ref: '#/components/schemas/UserResponse'
  *       400:
  *         description: "Format de fichier invalide ou erreur lors du téléchargement"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -144,17 +144,17 @@
  *               properties:
  *                 message:
  *                   type: string
- *                   example: 'Mot de passe mis à jour avec succès."
+ *                   example: 'Mot de passe mis à jour avec succès.'
  *       400:
  *         description: "Validation échouée (mots de passe ne correspondent pas ou complexité insuffisante)"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Mot de passe actuel incorrect"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */

@@ -172,7 +172,7 @@
  *                 depenses:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/DepenseResponse"
+ *                     $ref: '#/components/schemas/DepenseResponse'
  *                 pagination:
  *                   type: object
  *                   properties:
@@ -189,7 +189,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -205,26 +205,26 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/DepenseInput"
+ *             $ref: '#/components/schemas/DepenseInput'
  *     responses:
  *       201:
  *         description: "Dépense créée avec succès"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/DepenseResponse"
+ *               $ref: '#/components/schemas/DepenseResponse'
  *       400:
  *         description: "Données invalides"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -248,19 +248,19 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/DepenseResponse"
+ *               $ref: '#/components/schemas/DepenseResponse'
  *       404:
  *         description: "Dépense non trouvée"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -283,32 +283,32 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/DepenseInput"
+ *             $ref: '#/components/schemas/DepenseInput'
  *     responses:
  *       200:
  *         description: "Dépense mise à jour avec succès"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/DepenseResponse"
+ *               $ref: '#/components/schemas/DepenseResponse'
  *       400:
  *         description: "Données invalides"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: "Dépense non trouvée"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -334,13 +334,13 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -397,17 +397,17 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: "Erreur serveur lors du parsing ou de l'insertion"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */

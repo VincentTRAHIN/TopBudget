@@ -58,14 +58,14 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CategorieRevenuInput"
+ *             $ref: '#/components/schemas/CategorieRevenuInput'
  *     responses:
  *       201:
  *         description: "Catégorie créée avec succès"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/CategorieRevenuResponse"
+ *               $ref: '#/components/schemas/CategorieRevenuResponse'
  *       400:
  *         description: "Données invalides ou catégorie déjà existante"
  *       401:
@@ -84,7 +84,7 @@
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/CategorieRevenuResponse"
+ *                 $ref: '#/components/schemas/CategorieRevenuResponse'
  *       401:
  *         description: "Non autorisé"
  *
@@ -106,14 +106,14 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CategorieRevenuInput"
+ *             $ref: '#/components/schemas/CategorieRevenuInput'
  *     responses:
  *       200:
  *         description: "Catégorie modifiée"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/CategorieRevenuResponse"
+ *               $ref: '#/components/schemas/CategorieRevenuResponse'
  *       400:
  *         description: "Données invalides ou nom déjà utilisé"
  *       401:

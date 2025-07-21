@@ -66,7 +66,7 @@
  *           type: string
  *           description: "JWT token d'authentification"
  *         user:
- *           $ref: '#/components/schemas/UserResponse"
+ *           $ref: '#/components/schemas/UserResponse'
  *     Error:
  *       type: object
  *       properties:
@@ -86,26 +86,26 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserInput"
+ *             $ref: '#/components/schemas/UserInput'
  *     responses:
  *       201:
  *         description: "Utilisateur créé avec succès"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/AuthResponse"
+ *               $ref: '#/components/schemas/AuthResponse'
  *       400:
  *         description: "Données invalides"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       409:
  *         description: "Email déjà utilisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -119,20 +119,20 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserLogin"
+ *             $ref: '#/components/schemas/UserLogin'
  *     responses:
  *       200:
  *         description: "Connexion réussie"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/AuthResponse"
+ *               $ref: '#/components/schemas/AuthResponse'
  *       401:
  *         description: "Identifiants invalides"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -149,11 +149,11 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/UserResponse"
+ *               $ref: '#/components/schemas/UserResponse'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */

@@ -112,10 +112,10 @@
  *       oneOf:
  *         - type: array
  *           items:
- *             $ref: '#/components/schemas/EvolutionMensuelleData"
+ *             $ref: '#/components/schemas/EvolutionMensuelleData'
  *         - type: array
  *           items:
- *             $ref: '#/components/schemas/EvolutionMensuelleDataCouple"
+ *             $ref: '#/components/schemas/EvolutionMensuelleDataCouple'
  *
  *     SyntheseMensuelleBase:
  *       type: object
@@ -143,7 +143,7 @@
  *
  *     SyntheseMensuelleMoiResponse:
  *       allOf:
- *         - $ref: '#/components/schemas/SyntheseMensuelleBase"
+ *         - $ref: '#/components/schemas/SyntheseMensuelleBase'
  *         - type: object
  *           properties:
  *             totaux:
@@ -158,7 +158,7 @@
  *
  *     SyntheseMensuelleCoupleResponse:
  *       allOf:
- *         - $ref: '#/components/schemas/SyntheseMensuelleBase"
+ *         - $ref: '#/components/schemas/SyntheseMensuelleBase'
  *         - type: object
  *           properties:
  *             totaux:
@@ -219,13 +219,13 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/StatistiquesResponse"
+ *               $ref: '#/components/schemas/StatistiquesResponse'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -254,19 +254,19 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/StatistiquesResponse"
+ *               $ref: '#/components/schemas/StatistiquesResponse'
  *       404:
  *         description: "Budget non trouvé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -307,19 +307,19 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/StatistiquesResponse"
+ *               $ref: '#/components/schemas/StatistiquesResponse'
  *       404:
  *         description: "Catégorie non trouvée"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -385,7 +385,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -429,13 +429,13 @@
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/RepartitionCategorie"
+ *                 $ref: '#/components/schemas/RepartitionCategorie'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -517,7 +517,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -572,19 +572,19 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé."
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: "Erreur serveur."
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -635,19 +635,19 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: "Erreur serveur"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -710,19 +710,19 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: "Erreur serveur"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -761,26 +761,26 @@
  *           application/json:
  *             schema:
  *               oneOf:
- *                 - $ref: '#/components/schemas/SyntheseMensuelleMoiResponse"
- *                 - $ref: '#/components/schemas/SyntheseMensuelleCoupleResponse"
+ *                 - $ref: '#/components/schemas/SyntheseMensuelleMoiResponse'
+ *                 - $ref: '#/components/schemas/SyntheseMensuelleCoupleResponse'
  *       400:
  *         description: "Paramètres invalides."
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé."
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: "Erreur serveur."
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -838,19 +838,19 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: "Erreur serveur"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -893,7 +893,7 @@
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/RepartitionRevenusCategorie"
+ *                 $ref: '#/components/schemas/RepartitionRevenusCategorie'
  *       401:
  *         description: "Non autorisé"
  *       400:

@@ -64,13 +64,13 @@
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/CategorieResponse"
+ *                 $ref: '#/components/schemas/CategorieResponse'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -86,26 +86,26 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CategorieInput"
+ *             $ref: '#/components/schemas/CategorieInput'
  *     responses:
  *       201:
  *         description: "Catégorie créée avec succès"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/CategorieResponse"
+ *               $ref: '#/components/schemas/CategorieResponse'
  *       400:
  *         description: "Données invalides"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -129,19 +129,19 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/CategorieResponse"
+ *               $ref: '#/components/schemas/CategorieResponse'
  *       404:
  *         description: "Catégorie non trouvée"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -164,32 +164,32 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CategorieInput"
+ *             $ref: '#/components/schemas/CategorieInput'
  *     responses:
  *       200:
  *         description: "Catégorie mise à jour avec succès"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/CategorieResponse"
+ *               $ref: '#/components/schemas/CategorieResponse'
  *       400:
  *         description: "Données invalides"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: "Catégorie non trouvée"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
 
 /**
@@ -215,11 +215,11 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: "Non autorisé"
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error"
+ *               $ref: '#/components/schemas/Error'
  */
