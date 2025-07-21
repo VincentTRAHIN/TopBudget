@@ -41,7 +41,8 @@ app.use(
   }),
 );
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Temporarily disable Swagger due to YAML syntax errors
+// app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/api/health", (_req, res) => {
   try {
