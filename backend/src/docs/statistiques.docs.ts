@@ -867,15 +867,15 @@
  *     parameters:
  *       - in: query
  *         name: mois
- *         required: true
  *         schema:
  *           type: string
+ *         required: true
  *         description: Mois au format MM (ex: 05)
  *       - in: query
  *         name: annee
- *         required: true
  *         schema:
  *           type: string
+ *         required: true
  *         description: Année au format YYYY (ex: 2025)
  *       - in: query
  *         name: contexte

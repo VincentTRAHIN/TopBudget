@@ -29,24 +29,24 @@ type UserIdsType =
  *     parameters:
  *       - in: query
  *         name: type
- *         required: true
  *         schema:
  *           type: string
  *           enum: [depense, revenu]
+ *         required: true
  *         description: Type de flux à analyser
  *       - in: query
  *         name: dateDebut
- *         required: true
  *         schema:
  *           type: string
  *           format: date
+ *         required: true
  *         description: Date de début de la période
  *       - in: query
  *         name: dateFin
- *         required: true
  *         schema:
  *           type: string
  *           format: date
+ *         required: true
  *         description: Date de fin de la période
  *     responses:
  *       200:
