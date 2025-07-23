@@ -11,8 +11,10 @@
     "dev": "ts-node-dev --respawn --transpile-only --poll src/app.ts",
     "seed": "ts-node scripts/seeding.script.ts",
     "test": "jest",
-    "test:watch": "jest --watch",
+    "test:watch": "jest --watch", 
     "test:cov": "jest --coverage",
+    "test:auth": "jest --testPathPattern=auth.integration.test.ts",
+    "test:integration": "jest --testPathPattern=integration.test.ts",
     "test:ci": "jest --maxWorkers=1 --detectOpenHandles --forceExit --coverage"
   },
   "keywords": [],

@@ -8,7 +8,6 @@ module.exports = {
   },
   // CI-friendly configuration
   testTimeout: 30000, // 30 seconds timeout for each test
-  setupTimeout: 60000, // 60 seconds for setup
   maxWorkers: process.env.CI ? 1 : '50%', // Use single worker in CI to avoid memory issues
   logHeapUsage: true,
   detectOpenHandles: true,

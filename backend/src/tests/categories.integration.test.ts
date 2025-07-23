@@ -48,7 +48,7 @@ describe('Categories Integration Tests', () => {
         motDePasse: testUser.motDePasse
       });
     
-    authToken = loginResponse.body.token;
+    authToken = loginResponse.body.data.token;
   });
 
   describe('POST /api/categories', () => {
@@ -263,7 +263,7 @@ describe('Categories Integration Tests', () => {
 
       const response = await request(app)
         .get('/api/categories')
-        .set('Authorization', `Bearer ${newLoginResponse.body.token}`)
+        .set('Authorization', `Bearer ${newLoginResponse.body.data.token}`)
         .expect(200);
 
       expect(response.body).toHaveProperty('categories');

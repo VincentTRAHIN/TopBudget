@@ -36,12 +36,11 @@ describe("Auth Integration Tests", () => {
         .expect(201);
 
       expect(response.body).toHaveProperty("message");
-      expect(response.body).toHaveProperty("user");
-      expect(response.body).toHaveProperty("token");
-      expect(response.body.user.email).toBe(testUser.email);
-      expect(response.body.user.nom).toBe(testUser.nom);
-      expect(response.body.user.role).toBe(testUser.role);
-      expect(response.body.user).not.toHaveProperty("motDePasse");
+      expect(response.body).toHaveProperty("data");
+      expect(response.body.data).toHaveProperty("token");
+      expect(response.body.data.email).toBe(testUser.email);
+      expect(response.body.data.nom).toBe(testUser.nom);
+      expect(response.body.data).not.toHaveProperty("motDePasse");
 
       const createdUser = await User.findOne({ email: testUser.email });
       expect(createdUser).toBeTruthy();
@@ -140,12 +139,12 @@ describe("Auth Integration Tests", () => {
         .expect(200);
 
       expect(response.body).toHaveProperty("message");
-      expect(response.body).toHaveProperty("user");
-      expect(response.body).toHaveProperty("token");
-      expect(response.body.user.email).toBe(testUser.email);
-      expect(response.body.user).not.toHaveProperty("motDePasse");
-      expect(typeof response.body.token).toBe("string");
-      expect(response.body.token.length).toBeGreaterThan(0);
+      expect(response.body).toHaveProperty("data");
+      expect(response.body.data).toHaveProperty("token");
+      expect(response.body.data.email).toBe(testUser.email);
+      expect(response.body.data).not.toHaveProperty("motDePasse");
+      expect(typeof response.body.data.token).toBe("string");
+      expect(response.body.data.token.length).toBeGreaterThan(0);
     });
 
     it("should return 401 for invalid email", async () => {
@@ -234,7 +233,7 @@ describe("Auth Integration Tests", () => {
           motDePasse: testUser.motDePasse,
         });
 
-      authToken = loginResponse.body.token;
+      authToken = loginResponse.body.data.token;
     });
 
     it("should return user info for authenticated user", async () => {
@@ -243,11 +242,11 @@ describe("Auth Integration Tests", () => {
         .set("Authorization", `Bearer ${authToken}`)
         .expect(200);
 
-      expect(response.body).toHaveProperty("user");
-      expect(response.body.user.email).toBe(testUser.email);
-      expect(response.body.user.nom).toBe(testUser.nom);
-      expect(response.body.user).not.toHaveProperty("motDePasse");
-      expect(response.body.user._id).toBe(userId.toString());
+      expect(response.body).toHaveProperty("data");
+      expect(response.body.data.email).toBe(testUser.email);
+      expect(response.body.data.nom).toBe(testUser.nom);
+      expect(response.body.data).not.toHaveProperty("motDePasse");
+      expect(response.body.data._id).toBe(userId.toString());
     });
 
     it("should return 401 for missing authorization header", async () => {
@@ -304,15 +303,15 @@ describe("Auth Integration Tests", () => {
         .send(testUser)
         .expect(201);
 
-      expect(registrationResponse.body).toHaveProperty("token");
-      const registrationToken = registrationResponse.body.token;
+      expect(registrationResponse.body.data).toHaveProperty("token");
+      const registrationToken = registrationResponse.body.data.token;
 
       const meResponse1 = await request(app)
         .get("/api/auth/me")
         .set("Authorization", `Bearer ${registrationToken}`)
         .expect(200);
 
-      expect(meResponse1.body.user.email).toBe(testUser.email);
+      expect(meResponse1.body.data.email).toBe(testUser.email);
 
       const loginResponse = await request(app)
         .post("/api/auth/connexion")
@@ -322,15 +321,15 @@ describe("Auth Integration Tests", () => {
         })
         .expect(200);
 
-      expect(loginResponse.body).toHaveProperty("token");
-      const loginToken = loginResponse.body.token;
+      expect(loginResponse.body.data).toHaveProperty("token");
+      const loginToken = loginResponse.body.data.token;
 
       const meResponse2 = await request(app)
         .get("/api/auth/me")
         .set("Authorization", `Bearer ${loginToken}`)
         .expect(200);
 
-      expect(meResponse2.body.user.email).toBe(testUser.email);
+      expect(meResponse2.body.data.email).toBe(testUser.email);
 
       expect(registrationToken).not.toBe(loginToken);
     });
