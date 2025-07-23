@@ -7,8 +7,14 @@ on:
 
 jobs:
   build-and-test:
+    name: "Build & Test Backend"
     runs-on: ubuntu-latest
     
+
+    defaults:
+      run:
+        working-directory: ./backend
+
     env:
       NODE_ENV: test
       JWT_SECRET: test-jwt-secret-key-for-testing-purposes-only-minimum-32-chars-long
@@ -17,90 +23,39 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
       
       - name: Install dependencies
-        working-directory: backend
         run: npm ci
       
       - name: Build application
-        working-directory: backend
         run: npm run build
       
       - name: Run tests
-        working-directory: backend
         run: npm test
 
   deploy:
+    name: "Deploy to Heroku"
     runs-on: ubuntu-latest
     needs: build-and-test
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+        uses: actions/checkout@v4
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-        
-      - name: Install Heroku CLI
-        run: |
-          curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-          
-      - name: Verify Heroku CLI installation
-        run: |
-          which heroku || echo "Heroku CLI not in PATH"
-          ls -la $HOME/.local/bin/ || echo "No .local/bin directory"
-          # Add Heroku CLI to PATH manually
-          export PATH="$HOME/.local/bin:$PATH"
-          heroku --version
-          
-      - name: Debug secrets
-        run: |
-          echo "HEROKU_API_KEY length: ${#HEROKU_API_KEY}"
-          echo "HEROKU_APP_NAME: $HEROKU_APP_NAME"
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
-          
-      - name: Login to Heroku
-        run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          # Use HEROKU_API_KEY env var directly
-          heroku auth:token
-          heroku apps --json
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-          
-      - name: Set Heroku remote
-        run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          cd backend
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
-          heroku git:remote -a ${{ secrets.HEROKU_APP_NAME }}
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-          
       - name: Deploy to Heroku
-        run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          cd backend
-          # Create a new git repo for deployment
-          git init
-          git add .
-          git commit -m "Deploy to Heroku"
-          git push heroku HEAD:main --force
+        uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          appdir: "backend"
         env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }} 
+          NODE_ENV: production
