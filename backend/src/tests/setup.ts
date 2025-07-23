@@ -9,9 +9,6 @@ import Revenu from '../models/revenu.model';
 
 let mongoServer: MongoMemoryServer;
 
-// Increase timeout for CI environments
-const SETUP_TIMEOUT = process.env.CI ? 60000 : 30000;
-
 beforeAll(async () => {
   try {
     // Set up required environment variables for testing
@@ -19,27 +16,20 @@ beforeAll(async () => {
     process.env.NODE_ENV = 'test';
     process.env.API_BASE_URL = 'http://localhost:5001';
     
-    // Configure MongoDB Memory Server for CI
-    const mongoServerOptions = {
-      binary: {
-        skipMD5: true,
-      },
-      autoStart: false,
+    console.log('🚀 Starting in-memory MongoDB server...');
+    
+    // Simplified MongoDB Memory Server configuration for v10.x
+    mongoServer = await MongoMemoryServer.create({
       instance: {
-        port: undefined, // Let MongoDB Memory Server choose a port
-        ip: '127.0.0.1',
         dbName: 'topbudget_test',
       },
-    };
-
-    console.log('🚀 Starting in-memory MongoDB server...');
-    mongoServer = await MongoMemoryServer.create(mongoServerOptions);
+    });
+    
     const mongoUri = mongoServer.getUri();
     
-    // Configure Mongoose for testing
+    // Simplified Mongoose connection for current version
     await mongoose.connect(mongoUri, {
       bufferCommands: false,
-      bufferMaxEntries: 0,
     });
     
     console.log('✅ In-memory MongoDB server started for tests');
@@ -47,7 +37,7 @@ beforeAll(async () => {
     console.error('❌ Error starting in-memory MongoDB server:', error);
     throw error;
   }
-}, SETUP_TIMEOUT);
+}, 60000); // 60 seconds timeout for setup
 
 afterAll(async () => {
   try {
@@ -62,7 +52,7 @@ afterAll(async () => {
     console.error('❌ Error stopping in-memory MongoDB server:', error);
     // Don't throw error in cleanup to avoid masking real test failures
   }
-}, SETUP_TIMEOUT);
+}, 30000); // 30 seconds timeout for cleanup
 
 beforeEach(async () => {
   try {
