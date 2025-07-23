@@ -5,13 +5,26 @@ import User from '../models/user.model';
 import { AppError } from '../middlewares/error.middleware';
 import { AUTH } from '../constants';
 
+// Mock JWT
+const mockJwtSign = jest.fn();
 jest.mock('jsonwebtoken', () => ({
-  sign: jest.fn()
+  sign: mockJwtSign
 }));
-jest.mock('../models/user.model');
 
-const mockJwt = jwt as jest.Mocked<typeof jwt>;
+// Mock User Model
+const mockUserFindOne = jest.fn();
+const mockUserFindById = jest.fn();
+const mockUserSave = jest.fn();
+
+jest.mock('../models/user.model', () => {
+  return jest.fn().mockImplementation(() => ({
+    save: mockUserSave
+  }));
+});
+
 const MockUser = User as jest.MockedClass<typeof User>;
+MockUser.findOne = mockUserFindOne as any;
+MockUser.findById = mockUserFindById as any;
 
 describe.skip('AuthService', () => {
   let mockUser: any;
@@ -19,6 +32,10 @@ describe.skip('AuthService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockJwtSign.mockClear();
+    mockUserFindOne.mockClear();
+    mockUserFindById.mockClear();
+    mockUserSave.mockClear();
     
     userId = new mongoose.Types.ObjectId();
     mockUser = {
@@ -26,7 +43,8 @@ describe.skip('AuthService', () => {
       nom: 'Test User',
       email: 'test@example.com',
       motDePasse: 'hashedPassword123',
-      role: 'Perso'
+      role: 'Perso',
+      save: mockUserSave
     };
 
     process.env.JWT_SECRET = 'test-secret';
@@ -39,7 +57,7 @@ describe.skip('AuthService', () => {
   describe('generateToken', () => {
     it('should generate a JWT token with correct payload', async () => {
       const expectedToken = 'generated-jwt-token';
-      mockJwt.sign.mockReturnValue(expectedToken);
+      mockJwtSign.mockReturnValue(expectedToken);
       
       const userData = {
         nom: 'Test User',
@@ -48,8 +66,8 @@ describe.skip('AuthService', () => {
         role: 'Perso'
       };
 
-      (MockUser.findOne as jest.Mock).mockResolvedValue(null);
-      MockUser.prototype.save = jest.fn().mockResolvedValue(mockUser);
+      mockUserFindOne.mockResolvedValue(null);
+      mockUserSave.mockResolvedValue(mockUser);
 
       const result = await AuthService.inscription(userData);
 
@@ -87,10 +105,10 @@ describe.skip('AuthService', () => {
       };
 
       const expectedToken = 'generated-jwt-token';
-      mockJwt.sign.mockReturnValue(expectedToken);
+      mockJwtSign.mockReturnValue(expectedToken);
       
-      (MockUser.findOne as jest.Mock).mockResolvedValue(null);
-      MockUser.prototype.save = jest.fn().mockResolvedValue(mockUser);
+      mockUserFindOne.mockResolvedValue(null);
+      mockUserSave.mockResolvedValue(mockUser);
 
       const result = await AuthService.inscription(userData);
 
@@ -111,7 +129,7 @@ describe.skip('AuthService', () => {
         role: 'Perso'
       };
 
-      MockUser.findOne.mockResolvedValue({ _id: userId });
+      mockUserFindOne.mockResolvedValue({ _id: userId });
 
       await expect(AuthService.inscription(userData)).rejects.toThrow(
         new AppError(AUTH.ERRORS.ALREADY_EXISTS, 409)
@@ -128,8 +146,8 @@ describe.skip('AuthService', () => {
         role: 'Perso'
       };
 
-      MockUser.findOne.mockResolvedValue(null);
-      MockUser.prototype.save = jest.fn().mockRejectedValue(new Error('Database error'));
+      mockUserFindOne.mockResolvedValue(null);
+      mockUserSave.mockRejectedValue(new Error('Database error'));
 
       await expect(AuthService.inscription(userData)).rejects.toThrow('Database error');
     });
@@ -147,9 +165,9 @@ describe.skip('AuthService', () => {
         lean: jest.fn().mockResolvedValue(null)
       };
 
-      MockUser.findOne.mockReturnValue(mockQuery);
-      MockUser.prototype.save = jest.fn().mockResolvedValue(mockUser);
-      mockJwt.sign.mockReturnValue('token');
+      mockUserFindOne.mockReturnValue(mockQuery);
+      mockUserSave.mockResolvedValue(mockUser);
+      mockJwtSign.mockReturnValue('token');
 
       await AuthService.inscription(userData);
 
@@ -166,14 +184,14 @@ describe.skip('AuthService', () => {
       };
 
       const expectedToken = 'generated-jwt-token';
-      mockJwt.sign.mockReturnValue(expectedToken);
+      mockJwtSign.mockReturnValue(expectedToken);
 
       const mockQuery = {
         select: jest.fn().mockReturnThis(),
         lean: jest.fn().mockResolvedValue(mockUser)
       };
 
-      MockUser.findOne.mockReturnValue(mockQuery);
+      mockUserFindOne.mockReturnValue(mockQuery);
       MockUser.prototype.comparerMotDePasse = jest.fn().mockResolvedValue(true);
 
       const result = await AuthService.connexion(loginData);
