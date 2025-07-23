@@ -12,7 +12,8 @@
     "seed": "ts-node scripts/seeding.script.ts",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage"
+    "test:cov": "jest --coverage",
+    "test:ci": "jest --maxWorkers=1 --detectOpenHandles --forceExit --coverage"
   },
   "keywords": [],
   "author": "",

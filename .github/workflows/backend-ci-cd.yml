@@ -3,47 +3,55 @@ name: "Backend CI/CD"
 on:
   push:
     branches: [main]
-    paths: ['backend/**']
+    paths: ["backend/**"]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    
+
+    # Add environment variables for tests
+    env:
+      NODE_ENV: test
+      JWT_SECRET: test-jwt-secret-key-for-testing-purposes-only-minimum-32-chars-long
+      CI: true
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
           cache-dependency-path: backend/package-lock.json
-      
+
       - name: Install dependencies
         working-directory: backend
         run: npm ci
-      
+
       - name: Build application
         working-directory: backend
         run: npm run build
-      
-      - name: Run tests
+
+      - name: Run tests with increased memory
         working-directory: backend
-        run: npm test
+        run: npm test -- --maxWorkers=1 --detectOpenHandles --forceExit
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
 
   deploy:
     runs-on: ubuntu-latest
     needs: build-and-test
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+
       - name: Deploy to Heroku
         uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
-          appdir: "backend" 
+          appdir: "backend"
