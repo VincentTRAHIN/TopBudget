@@ -150,7 +150,11 @@ Les logs sont gérés avec Winston et sauvegardés dans le dossier `logs/`. Les 
 - `info` : Informations générales
 - `http` : Requêtes HTTP
 - `debug` : Informations de débogage
+
 # Testing deployment workflow
+
 # Deployment test Mer 23 jul 2025 16:23:02 CEST
+
 # Test manual Heroku deployment Mer 23 jul 2025 16:28:03 CEST
+
 # Test debug secrets Mer 23 jul 2025 16:32:47 CEST

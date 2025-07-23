@@ -68,14 +68,11 @@ jobs:
           
       - name: Debug secrets
         run: |
-          echo "Checking if secrets are available..."
           echo "HEROKU_API_KEY length: ${#HEROKU_API_KEY}"
           echo "HEROKU_APP_NAME: $HEROKU_APP_NAME"
-          echo "HEROKU_EMAIL: $HEROKU_EMAIL"
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
           HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
-          HEROKU_EMAIL: ${{ secrets.HEROKU_EMAIL }}
           
       - name: Login to Heroku
         run: |
