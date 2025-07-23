@@ -215,3 +215,5 @@ L'application peut être déployée sur différentes plateformes :
 - **Serveur statique** : Export statique possible
 
 Pour plus de détails sur le déploiement, consultez la [documentation Next.js](https://nextjs.org/docs/app/building-your-application/deploying).
+
+# Test de déploiement Vercel Mer 23 jul 2025 17:00:00 CEST
