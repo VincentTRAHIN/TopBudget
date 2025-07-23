@@ -51,6 +51,7 @@ npm run watch
 Le serveur démarre par défaut sur le port **5001** : `http://localhost:5001`
 
 Le mode développement offre :
+
 - Rechargement automatique avec `ts-node-dev`
 - Transpilation TypeScript à la volée
 - Logs détaillés pour le débogage
@@ -80,8 +81,9 @@ npm start
 Les variables d'environnement sont essentielles pour le fonctionnement de l'application. Consultez le fichier `.env.example` pour voir toutes les variables requises et leurs valeurs par défaut.
 
 Les principales variables incluent :
+
 - `MONGO_URI` : URI de connexion à MongoDB
-- `JWT_SECRET` : Secret pour la signature des tokens JWT  
+- `JWT_SECRET` : Secret pour la signature des tokens JWT
 - `PORT` : Port d'écoute du serveur
 - `NODE_ENV` : Environnement d'exécution
 - `API_BASE_URL` : URL de base de l'API
@@ -97,7 +99,7 @@ http://localhost:5001/api-docs
 ## Scripts disponibles
 
 - `npm run dev` : Démarre le serveur en mode développement
-- `npm run watch` : Alias pour le mode développement  
+- `npm run watch` : Alias pour le mode développement
 - `npm run build` : Compile l'application TypeScript
 - `npm start` : Démarre le serveur depuis les fichiers compilés
 - `npm run seed` : Exécute le script de peuplement de la base de données
@@ -120,7 +122,7 @@ backend/
 │   ├── routes/         # Définition des routes
 │   ├── services/       # Logique métier
 │   ├── middlewares/    # Middlewares Express
-│   ├── types/          # Types TypeScript  
+│   ├── types/          # Types TypeScript
 │   ├── utils/          # Fonctions utilitaires
 │   ├── docs/           # Configuration Swagger
 │   └── app.ts          # Point d'entrée de l'application
@@ -142,8 +144,9 @@ npm run lint
 ### Logs
 
 Les logs sont gérés avec Winston et sauvegardés dans le dossier `logs/`. Les niveaux de logs incluent :
+
 - `error` : Erreurs critiques
-- `warn` : Avertissements  
+- `warn` : Avertissements
 - `info` : Informations générales
 - `http` : Requêtes HTTP
-- `debug` : Informations de débogage 
+- `debug` : Informations de débogage

@@ -49,6 +49,7 @@ npm run dev
 Le serveur démarre par défaut sur le port **3000** : `http://localhost:3000`
 
 Le mode développement offre :
+
 - Rechargement à chaud (Hot Reload)
 - Turbopack pour une compilation ultra-rapide
 - Optimisations automatiques Next.js
@@ -65,6 +66,7 @@ npm run build
 ```
 
 Cette commande :
+
 - Compile et optimise l'application
 - Génère les fichiers statiques
 - Effectue l'analyse des bundles
@@ -99,29 +101,34 @@ L'application frontend utilise des variables d'environnement préfixées par `NE
 ## Fonctionnalités
 
 ### 🏠 Dashboard
+
 - Vue d'ensemble des finances personnelles
 - Graphiques interactifs avec Chart.js
 - KPI et métriques importantes
 - Historique des dépenses récentes
 
 ### 💰 Gestion des Dépenses
+
 - Ajout, modification et suppression de dépenses
 - Catégorisation des dépenses
 - Import CSV pour les relevés bancaires
 - Filtrage et recherche avancés
 
 ### 📈 Gestion des Revenus
+
 - Suivi des revenus par catégorie
 - Import et export de données
 - Analyse des tendances
 
 ### 📊 Statistiques et Analyses
+
 - Graphiques de répartition par catégorie
 - Évolution mensuelle des dépenses
 - Comparaisons inter-périodes
 - Synthèse financière mensuelle
 
 ### 👤 Profil Utilisateur
+
 - Gestion du profil personnel
 - Upload d'avatar
 - Changement de mot de passe
@@ -192,6 +199,7 @@ npm run lint
 ### Performance
 
 L'application est optimisée pour les performances :
+
 - Code splitting automatique
 - Lazy loading des composants
 - Optimisation des images Next.js
