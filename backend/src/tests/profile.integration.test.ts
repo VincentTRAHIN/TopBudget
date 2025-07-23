@@ -19,7 +19,6 @@ describe('Profile Integration Tests', () => {
   }
 
   beforeEach(async () => {
-    // Create test users
     const userAData: TestUser = {
       nom: 'User A',
       email: 'usera@example.com',
@@ -38,7 +37,6 @@ describe('Profile Integration Tests', () => {
       motDePasse: 'Password123!'
     };
 
-    // Register users and get tokens
     const userAResponse = await request(app)
       .post('/api/auth/inscription')
       .send(userAData);
@@ -51,8 +49,6 @@ describe('Profile Integration Tests', () => {
       .post('/api/auth/inscription')
       .send(userCData);
 
-    // Extract user IDs and tokens from registration responses
-    // Expected response structure: { success: true, message: string, data: { _id, nom, email, token } }
     userAId = userAResponse.body.data._id;
     userBId = userBResponse.body.data._id;
     userCId = userCResponse.body.data._id;
@@ -64,7 +60,6 @@ describe('Profile Integration Tests', () => {
   describe('Profile Partner Linking', () => {
     describe('Test Case 1: Link two users', () => {
       it('should successfully link User A to User B', async () => {
-        // Link User A to User B
         const linkResponse = await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
@@ -79,13 +74,11 @@ describe('Profile Integration Tests', () => {
       });
 
       it('should verify bidirectional connection after linking', async () => {
-        // Link User A to User B
         await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
           .send({ partenaireId: userBId });
 
-        // Verify User A has User B as partner
         const userAResponse = await request(app)
           .get('/api/auth/me')
           .set('Authorization', `Bearer ${userAToken}`);
@@ -95,7 +88,6 @@ describe('Profile Integration Tests', () => {
         expect(userAResponse.body.data.partenaireId._id).toBe(userBId);
         expect(userAResponse.body.data.partenaireId.nom).toBe('User B');
 
-        // Verify User B has User A as partner
         const userBResponse = await request(app)
           .get('/api/auth/me')
           .set('Authorization', `Bearer ${userBToken}`);
@@ -109,13 +101,11 @@ describe('Profile Integration Tests', () => {
 
     describe('Test Case 2: Attempt to link to already linked user', () => {
       it('should reject linking to a user who is already linked to another user', async () => {
-        // First, link User A to User B
         await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
           .send({ partenaireId: userBId });
 
-        // Now try to link User C to User A (who is already linked to B)
         const linkResponse = await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userCToken}`)
@@ -126,13 +116,11 @@ describe('Profile Integration Tests', () => {
       });
 
       it('should reject linking to a user who is already linked to someone else', async () => {
-        // First, link User A to User B
         await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
           .send({ partenaireId: userBId });
 
-        // Now try to link User C to User B (who is already linked to A)
         const linkResponse = await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userCToken}`)
@@ -145,20 +133,17 @@ describe('Profile Integration Tests', () => {
 
     describe('Test Case 3: Unlink users', () => {
       it('should successfully unlink User A from User B', async () => {
-        // First, link User A to User B
         await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
           .send({ partenaireId: userBId });
 
-        // Verify they are linked
         const linkCheck = await request(app)
           .get('/api/auth/me')
           .set('Authorization', `Bearer ${userAToken}`);
         
         expect(linkCheck.body.data.partenaireId).toBeTruthy();
 
-        // Now unlink User A from User B
         const unlinkResponse = await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
@@ -170,19 +155,16 @@ describe('Profile Integration Tests', () => {
       });
 
       it('should verify bidirectional unlinking after unlink request', async () => {
-        // First, link User A to User B
         await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
           .send({ partenaireId: userBId });
 
-        // Unlink User A from User B
         await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
           .send({ partenaireId: null });
 
-        // Verify User A no longer has a partner
         const userAResponse = await request(app)
           .get('/api/auth/me')
           .set('Authorization', `Bearer ${userAToken}`);
@@ -190,7 +172,6 @@ describe('Profile Integration Tests', () => {
         expect(userAResponse.status).toBe(200);
         expect(userAResponse.body.data.partenaireId).toBeFalsy();
 
-        // Verify User B no longer has a partner
         const userBResponse = await request(app)
           .get('/api/auth/me')
           .set('Authorization', `Bearer ${userBToken}`);
@@ -200,13 +181,11 @@ describe('Profile Integration Tests', () => {
       });
 
       it('should allow unlinking using empty string', async () => {
-        // First, link User A to User B
         await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
           .send({ partenaireId: userBId });
 
-        // Unlink using empty string
         const unlinkResponse = await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
@@ -252,7 +231,6 @@ describe('Profile Integration Tests', () => {
       });
 
       it('should handle unlinking when no partner exists', async () => {
-        // Try to unlink when no partner is set
         const unlinkResponse = await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
@@ -285,13 +263,11 @@ describe('Profile Integration Tests', () => {
 
     describe('Complex Scenarios', () => {
       it('should handle relinking to different partner', async () => {
-        // Link User A to User B
         await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
           .send({ partenaireId: userBId });
 
-        // Now link User A to User C (should unlink from B and link to C)
         const relinkResponse = await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
@@ -301,21 +277,18 @@ describe('Profile Integration Tests', () => {
         expect(relinkResponse.body.success).toBe(true);
         expect(relinkResponse.body.data.partenaireId._id).toBe(userCId);
 
-        // Verify User A is now linked to User C
         const userAResponse = await request(app)
           .get('/api/auth/me')
           .set('Authorization', `Bearer ${userAToken}`);
 
         expect(userAResponse.body.data.partenaireId._id).toBe(userCId);
 
-        // Verify User B is no longer linked to User A
         const userBResponse = await request(app)
           .get('/api/auth/me')
           .set('Authorization', `Bearer ${userBToken}`);
 
         expect(userBResponse.body.data.partenaireId).toBeFalsy();
 
-        // Verify User C is linked to User A
         const userCResponse = await request(app)
           .get('/api/auth/me')
           .set('Authorization', `Bearer ${userCToken}`);
@@ -324,7 +297,6 @@ describe('Profile Integration Tests', () => {
       });
 
       it('should handle multiple simultaneous link requests gracefully', async () => {
-        // Simulate race condition: both users try to link to each other simultaneously
         const linkPromises = [
           request(app)
             .put('/api/profile')
@@ -338,11 +310,9 @@ describe('Profile Integration Tests', () => {
 
         const results = await Promise.all(linkPromises);
         
-        // Both requests should succeed (or at least one should)
         const successCount = results.filter(r => r.status === 200).length;
         expect(successCount).toBeGreaterThan(0);
 
-        // Verify final state: they should be linked
         const userAResponse = await request(app)
           .get('/api/auth/me')
           .set('Authorization', `Bearer ${userAToken}`);
@@ -358,13 +328,11 @@ describe('Profile Integration Tests', () => {
 
     describe('Data Integrity Tests', () => {
       it('should maintain data integrity during linking operations', async () => {
-        // Link User A to User B
         await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
           .send({ partenaireId: userBId });
 
-        // Verify database state directly
         const userAFromDB = await User.findById(userAId);
         const userBFromDB = await User.findById(userBId);
 
@@ -373,19 +341,16 @@ describe('Profile Integration Tests', () => {
       });
 
       it('should maintain data integrity during unlinking operations', async () => {
-        // Link User A to User B
         await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
           .send({ partenaireId: userBId });
 
-        // Unlink them
         await request(app)
           .put('/api/profile')
           .set('Authorization', `Bearer ${userAToken}`)
           .send({ partenaireId: null });
 
-        // Verify database state directly
         const userAFromDB = await User.findById(userAId);
         const userBFromDB = await User.findById(userBId);
 

@@ -77,13 +77,13 @@ describe('ImportService', () => {
 
       expect(result).toEqual({
         message: 'Import terminé. 2 TestEntitys importés. 0 erreurs.',
-        totalLignesLues: 3, // Header + 2 data rows
+        totalLignesLues: 3,
         importedCount: 2,
         errorCount: 0,
         erreurs: []
       });
 
-      expect(mockProcessRowFn).toHaveBeenCalledTimes(3); // Header is processed too
+      expect(mockProcessRowFn).toHaveBeenCalledTimes(3);
       expect(mockModel.create).toHaveBeenCalledWith([
         { name: 'Test Item', amount: 100 },
         { name: 'Test Item 2', amount: 200 }
@@ -113,7 +113,7 @@ describe('ImportService', () => {
 
       expect(result).toEqual({
         message: 'Import terminé. 1 TestEntitys importés. 1 erreurs.',
-        totalLignesLues: 3, // Header + 2 data rows
+        totalLignesLues: 3,
         importedCount: 1,
         errorCount: 1,
         erreurs: [{
@@ -169,13 +169,13 @@ describe('ImportService', () => {
 
       expect(result).toEqual({
         message: 'Import terminé. 0 TestEntitys importés. 0 erreurs.',
-        totalLignesLues: 1, // Header row only
+        totalLignesLues: 1,
         importedCount: 0,
         errorCount: 0,
         erreurs: []
       });
 
-      expect(mockProcessRowFn).toHaveBeenCalledTimes(1); // Header is processed
+      expect(mockProcessRowFn).toHaveBeenCalledTimes(1);
       expect(mockModel.create).not.toHaveBeenCalled();
     });
 
@@ -202,7 +202,7 @@ describe('ImportService', () => {
 
       expect(result).toEqual({
         message: 'Import terminé. 1 TestEntitys importés. 0 erreurs.',
-        totalLignesLues: 3, // Header + 2 data rows
+        totalLignesLues: 3,
         importedCount: 1,
         errorCount: 0,
         erreurs: []
@@ -229,8 +229,8 @@ describe('ImportService', () => {
       const result = await ImportService.importDepensesCsv(csvBuffer, testUserId);
 
       expect(result.importedCount).toBe(1);
-      expect(result.errorCount).toBe(1); // Actual behavior
-      expect(result.totalLignesLues).toBe(2); // Header + 1 data row
+      expect(result.errorCount).toBe(1);
+      expect(result.totalLignesLues).toBe(2);
 
       const createdExpense = await DepenseModel.findOne({ 
         utilisateur: testUserObjectId 
@@ -251,7 +251,7 @@ describe('ImportService', () => {
       const result = await ImportService.importDepensesCsv(csvBuffer, testUserId);
 
       expect(result.importedCount).toBe(1);
-      expect(result.errorCount).toBe(1); // Actual behavior
+      expect(result.errorCount).toBe(1);
 
       const categoriesCountAfter = await Categorie.countDocuments();
       expect(categoriesCountAfter).toBe(categoriesCountBefore + 1);
@@ -268,7 +268,7 @@ describe('ImportService', () => {
       const result = await ImportService.importDepensesCsv(csvBuffer, testUserId);
 
       expect(result.importedCount).toBe(0);
-      expect(result.errorCount).toBe(2); // Actual behavior
+      expect(result.errorCount).toBe(2);
       expect(result.erreurs[0].erreur).toContain('Date invalide');
     });
 
@@ -279,7 +279,7 @@ describe('ImportService', () => {
       const result = await ImportService.importDepensesCsv(csvBuffer, testUserId);
 
       expect(result.importedCount).toBe(0);
-      expect(result.errorCount).toBe(2); // Actual behavior
+      expect(result.errorCount).toBe(2);
       expect(result.erreurs[0].erreur).toContain('Date invalide');
     });
 
@@ -290,7 +290,7 @@ describe('ImportService', () => {
       const result = await ImportService.importDepensesCsv(csvBuffer, testUserId);
 
       expect(result.importedCount).toBe(0);
-      expect(result.errorCount).toBe(2); // Actual behavior
+      expect(result.errorCount).toBe(2);
       expect(result.erreurs[0].erreur).toContain('Date invalide');
     });
 
@@ -301,7 +301,7 @@ describe('ImportService', () => {
       const result = await ImportService.importDepensesCsv(csvBuffer, testUserId);
 
       expect(result.importedCount).toBe(0);
-      expect(result.errorCount).toBe(2); // Actual behavior
+      expect(result.errorCount).toBe(2);
       expect(result.erreurs[0].erreur).toContain('Date invalide');
     });
 
@@ -312,7 +312,7 @@ describe('ImportService', () => {
       const result = await ImportService.importDepensesCsv(csvBuffer, testUserId);
 
       expect(result.importedCount).toBe(0);
-      expect(result.errorCount).toBe(2); // Actual behavior
+      expect(result.errorCount).toBe(2);
       expect(result.erreurs[0].erreur).toContain('Date invalide');
     });
 
@@ -323,7 +323,7 @@ describe('ImportService', () => {
       const result = await ImportService.importDepensesCsv(csvBuffer, testUserId);
 
       expect(result.importedCount).toBe(1);
-      expect(result.errorCount).toBe(1); // Actual behavior
+      expect(result.errorCount).toBe(1);
 
       const createdExpense = await DepenseModel.findOne({ 
         utilisateur: testUserObjectId 
@@ -332,7 +332,6 @@ describe('ImportService', () => {
       expect(createdExpense?.montant).toBe(100.5);
     });
 
-    // EDGE CASE: Mixed valid and invalid rows
     it.skip('should handle CSV files with mixed valid and invalid rows', async () => {
       const csvData = `date,montant,categorie,description
 15/01/2024,100.50,Existing Category,Valid expense 1
@@ -346,21 +345,18 @@ invalid-date,200.75,Test Category,Invalid date row
 
       const result = await ImportService.importDepensesCsv(csvBuffer, testUserId);
 
-      // Should import only the 3 valid rows
       expect(result.importedCount).toBe(3);
-      expect(result.errorCount).toBe(4); // Actual behavior
-      expect(result.totalLignesLues).toBe(7); // Header + 6 data rows
+      expect(result.errorCount).toBe(4);
+      expect(result.totalLignesLues).toBe(7);
 
-      // Check that errors are reported with correct line numbers
-      expect(result.erreurs).toHaveLength(4); // Actual behavior
-      expect(result.erreurs[0].ligne).toBe(1); // invalid-date row
+      expect(result.erreurs).toHaveLength(4);
+      expect(result.erreurs[0].ligne).toBe(1);
       expect(result.erreurs[0].erreur).toContain('Date invalide');
-      expect(result.erreurs[1].ligne).toBe(3); // invalid-amount row
+      expect(result.erreurs[1].ligne).toBe(3);
       expect(result.erreurs[1].erreur).toContain('Date invalide');
-      expect(result.erreurs[2].ligne).toBe(4); // missing date row
+      expect(result.erreurs[2].ligne).toBe(4);
       expect(result.erreurs[2].erreur).toContain('Données manquantes');
 
-      // Verify that valid expenses were actually created
       const createdExpenses = await DepenseModel.find({ 
         utilisateur: testUserObjectId 
       }).sort({ montant: 1 });
@@ -371,21 +367,17 @@ invalid-date,200.75,Test Category,Invalid date row
       expect(createdExpenses[2].montant).toBe(400);
     });
 
-    // EDGE CASE: Different delimiters/encoding issues
     it('should handle semicolon-separated CSV and fail gracefully', async () => {
       const csvData = 'date;montant;categorie;description\n15/01/2024;100.50;Test Category;Test expense';
       const csvBuffer = Buffer.from(csvData, 'utf8');
 
       const result = await ImportService.importDepensesCsv(csvBuffer, testUserId);
 
-      // With semicolon delimiter, the parser should treat entire row as one field
-      // This should result in parsing errors
       expect(result.importedCount).toBe(0);
-      expect(result.errorCount).toBe(2); // Actual behavior
+      expect(result.errorCount).toBe(2);
       expect(result.erreurs[0].erreur).toContain('Données manquantes');
     });
 
-    // EDGE CASE: Completely empty CSV file
     it('should handle completely empty CSV file', async () => {
       const csvData = '';
       const csvBuffer = Buffer.from(csvData, 'utf8');
@@ -399,7 +391,6 @@ invalid-date,200.75,Test Category,Invalid date row
       expect(result.message).toContain('0 dépenses importés');
     });
 
-    // EDGE CASE: CSV with only headers (no data rows)
     it('should handle CSV with only headers and no data rows', async () => {
       const csvData = 'date,montant,categorie,description';
       const csvBuffer = Buffer.from(csvData, 'utf8');
@@ -407,9 +398,9 @@ invalid-date,200.75,Test Category,Invalid date row
       const result = await ImportService.importDepensesCsv(csvBuffer, testUserId);
 
       expect(result.importedCount).toBe(0);
-      expect(result.errorCount).toBe(1); // Actual behavior  
-      expect(result.totalLignesLues).toBe(1); // Actual behavior
-      expect(result.erreurs).toHaveLength(1); // Actual behavior
+      expect(result.errorCount).toBe(1);
+      expect(result.totalLignesLues).toBe(1);
+      expect(result.erreurs).toHaveLength(1);
       expect(result.message).toContain('0 dépenses importés');
     });
 
@@ -423,15 +414,14 @@ invalid-date,200.75,Test Category,Invalid date row
       const result = await ImportService.importDepensesCsv(csvBuffer, testUserId);
 
       expect(result.importedCount).toBe(3);
-      expect(result.errorCount).toBe(1); // Actual behavior
-      expect(result.totalLignesLues).toBe(4); // Header + 3 data rows
+      expect(result.errorCount).toBe(1);
+      expect(result.totalLignesLues).toBe(4);
 
       const createdExpenses = await DepenseModel.find({ 
         utilisateur: testUserObjectId 
       }).populate('categorie');
       
       expect(createdExpenses).toHaveLength(3);
-      // Check all amounts are present (order may vary)
       const amounts = createdExpenses.map(e => e.montant);
       expect(amounts).toContain(100.5);
       expect(amounts).toContain(200.75);
@@ -553,7 +543,6 @@ invalid-date,200.75,Test Category,Invalid date row
       expect(result.erreurs[0].erreur).toContain('Le montant du revenu doit être positif');
     });
 
-    // EDGE CASE: Mixed valid and invalid rows for revenues
     it.skip('should handle CSV files with mixed valid and invalid rows', async () => {
       const csvData = `date,montant,description,categorie,type de compte,récurrent
 15/01/2024,2000.00,Valid Salary,Existing Revenue Category,Perso,non
@@ -567,21 +556,18 @@ invalid-date,1500.00,Invalid Date Revenue,Test Category,Perso,non
 
       const result = await ImportService.importRevenusCsv(csvBuffer, testUserId);
 
-      // Should import only the 3 valid rows
       expect(result.importedCount).toBe(3);
       expect(result.errorCount).toBe(3);
       expect(result.totalLignesLues).toBe(6);
 
-      // Check that errors are reported with correct line numbers
       expect(result.erreurs).toHaveLength(3);
-      expect(result.erreurs[0].ligne).toBe(5); // Actual behavior
+      expect(result.erreurs[0].ligne).toBe(5);
       expect(result.erreurs[0].erreur).toContain('Champs requis manquants');
-      expect(result.erreurs[1].ligne).toBe(2); // invalid-amount row
+      expect(result.erreurs[1].ligne).toBe(2);
       expect(result.erreurs[1].erreur).toContain('Format de date invalide');
-      expect(result.erreurs[2].ligne).toBe(2); // missing date row
+      expect(result.erreurs[2].ligne).toBe(2);
       expect(result.erreurs[2].erreur).toContain('Champs requis manquants');
 
-      // Verify that valid revenues were actually created
       const createdRevenues = await RevenuModel.find({ 
         utilisateur: testUserObjectId 
       }).sort({ montant: 1 });
@@ -592,7 +578,6 @@ invalid-date,1500.00,Invalid Date Revenue,Test Category,Perso,non
       expect(createdRevenues[2].montant).toBe(4000);
     });
 
-    // EDGE CASE: Completely empty CSV file for revenues
     it('should handle completely empty CSV file', async () => {
       const csvData = '';
       const csvBuffer = Buffer.from(csvData, 'utf8');
@@ -606,7 +591,6 @@ invalid-date,1500.00,Invalid Date Revenue,Test Category,Perso,non
       expect(result.message).toContain('0 Revenus importés');
     });
 
-    // EDGE CASE: CSV with only headers (no data rows) for revenues
     it('should handle CSV with only headers and no data rows', async () => {
       const csvData = 'date,montant,description,categorie,type de compte,récurrent';
       const csvBuffer = Buffer.from(csvData, 'utf8');

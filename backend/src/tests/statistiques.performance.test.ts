@@ -91,8 +91,8 @@ describe("StatistiquesService Performance Tests", () => {
 
       const startTime = Date.now();
 
-      const dateDebut = new Date(2023, 11, 1); // December 1, 2023
-      const dateFin = new Date(2023, 11, 31); // December 31, 2023
+      const dateDebut = new Date(2023, 11, 1);
+      const dateFin = new Date(2023, 11, 31);
       
       const result = await StatistiquesService.getTotalFluxMensuel(
         userId,

@@ -1,25 +1,23 @@
 module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts'],
-  testMatch: ['**/tests/**/*.test.ts'],
+  preset: "ts-jest",
+  testEnvironment: "node",
+  setupFilesAfterEnv: ["<rootDir>/src/tests/setup.ts"],
+  testMatch: ["**/tests/**/*.test.ts"],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+    "^@/(.*)$": "<rootDir>/src/$1",
   },
-  // CI-friendly configuration
-  testTimeout: 30000, // 30 seconds timeout for each test
-  maxWorkers: process.env.CI ? 1 : '50%', // Use single worker in CI to avoid memory issues
+  testTimeout: 30000,
+  maxWorkers: process.env.CI ? 1 : "50%",
   logHeapUsage: true,
   detectOpenHandles: true,
   forceExit: true,
-  // Coverage settings
-  collectCoverage: process.env.CI === 'true',
+  collectCoverage: process.env.CI === "true",
   collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/tests/**',
-    '!src/**/*.d.ts',
-    '!src/**/index.ts'
+    "src/**/*.ts",
+    "!src/tests/**",
+    "!src/**/*.d.ts",
+    "!src/**/index.ts",
   ],
-  coverageReporters: ['text', 'lcov', 'html'],
-  coverageDirectory: 'coverage'
-}; 
+  coverageReporters: ["text", "lcov", "html"],
+  coverageDirectory: "coverage",
+};

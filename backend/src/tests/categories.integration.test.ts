@@ -127,7 +127,6 @@ describe.skip('Categories Integration Tests', () => {
         .send(invalidColorCategory)
         .expect(201);
 
-      // Color validation is not enforced, just check success
       expect(response.body).toHaveProperty('message');
       expect(response.body.errors).toEqual(
         expect.arrayContaining([

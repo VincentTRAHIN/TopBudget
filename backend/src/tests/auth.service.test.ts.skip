@@ -5,13 +5,11 @@ import User from '../models/user.model';
 import { AppError } from '../middlewares/error.middleware';
 import { AUTH } from '../constants';
 
-// Mock JWT
 const mockJwtSign = jest.fn();
 jest.mock('jsonwebtoken', () => ({
   sign: mockJwtSign
 }));
 
-// Mock User Model
 const mockUserFindOne = jest.fn();
 const mockUserFindById = jest.fn();
 const mockUserSave = jest.fn();

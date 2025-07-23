@@ -118,7 +118,6 @@ describe("Auth Integration Tests", () => {
         .send(invalidRoleUser)
         .expect(201);
 
-      // Invalid role is accepted, just check the response
       expect(response.body).toHaveProperty("message");
     });
   });
@@ -332,7 +331,6 @@ describe("Auth Integration Tests", () => {
 
       expect(meResponse2.body.data.email).toBe(testUser.email);
 
-      // Tokens might be the same if generated at the same time, just verify they exist
       expect(registrationToken).toBeTruthy();
       expect(loginToken).toBeTruthy();
     });
@@ -346,7 +344,6 @@ describe("Auth Integration Tests", () => {
         .send('{"invalid": json}')
         .expect(400);
 
-      // Response may be empty object for malformed JSON  
       expect(response.status).toBe(400);
     });
 
@@ -366,7 +363,6 @@ describe("Auth Integration Tests", () => {
         .send(testUser)
         .expect(404);
 
-      // 404 responses may not have a message property
       expect(response.status).toBe(404);
     });
   });
