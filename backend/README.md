@@ -151,3 +151,4 @@ Les logs sont gérés avec Winston et sauvegardés dans le dossier `logs/`. Les 
 - `http` : Requêtes HTTP
 - `debug` : Informations de débogage
 # Testing deployment workflow
+# Deployment test Mer 23 jul 2025 16:23:02 CEST
