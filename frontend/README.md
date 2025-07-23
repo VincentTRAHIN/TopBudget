@@ -216,4 +216,4 @@ L'application peut être déployée sur différentes plateformes :
 
 Pour plus de détails sur le déploiement, consultez la [documentation Next.js](https://nextjs.org/docs/app/building-your-application/deploying).
 
-# Test de déploiement Vercel Mer 23 jul 2025 17:00:00 CEST
+# Test de déploiement Vercel Mer 23 jul 2025 17:80:00 CEST
