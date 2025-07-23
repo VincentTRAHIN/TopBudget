@@ -37,8 +37,6 @@ jobs:
       - name: Run tests
         working-directory: backend
         run: npm test
-        env:
-          NODE_OPTIONS: '--max-old-space-size=4096 --unhandled-rejections=strict'
 
   deploy:
     runs-on: ubuntu-latest
@@ -47,12 +45,53 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
-      - name: Deploy to Heroku
-        uses: akhileshns/heroku-deploy@v3.13.15
         with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
-          heroku_email: ${{ secrets.HEROKU_EMAIL }}
-          appdir: "backend"
-          buildpack: "https://github.com/heroku/heroku-buildpack-nodejs.git" 
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+        
+      - name: Install Heroku CLI
+        run: |
+          curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          
+      - name: Verify Heroku CLI installation
+        run: |
+          which heroku || echo "Heroku CLI not in PATH"
+          ls -la $HOME/.local/bin/ || echo "No .local/bin directory"
+          # Add Heroku CLI to PATH manually
+          export PATH="$HOME/.local/bin:$PATH"
+          heroku --version
+          
+      - name: Login to Heroku
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          echo ${{ secrets.HEROKU_API_KEY }} | heroku auth:token
+          heroku apps --json
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          
+      - name: Set Heroku remote
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          cd backend
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          heroku git:remote -a ${{ secrets.HEROKU_APP_NAME }}
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          
+      - name: Deploy to Heroku
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          cd backend
+          # Create a new git repo for deployment
+          git init
+          git add .
+          git commit -m "Deploy to Heroku"
+          git push heroku HEAD:main --force
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }} 
