@@ -66,10 +66,22 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           heroku --version
           
+      - name: Debug secrets
+        run: |
+          echo "Checking if secrets are available..."
+          echo "HEROKU_API_KEY length: ${#HEROKU_API_KEY}"
+          echo "HEROKU_APP_NAME: $HEROKU_APP_NAME"
+          echo "HEROKU_EMAIL: $HEROKU_EMAIL"
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+          HEROKU_EMAIL: ${{ secrets.HEROKU_EMAIL }}
+          
       - name: Login to Heroku
         run: |
           export PATH="$HOME/.local/bin:$PATH"
-          echo ${{ secrets.HEROKU_API_KEY }} | heroku auth:token
+          # Use HEROKU_API_KEY env var directly
+          heroku auth:token
           heroku apps --json
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
