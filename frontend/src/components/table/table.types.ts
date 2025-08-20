@@ -24,7 +24,7 @@ export type TableCustomFilter =
     }>)
   | undefined;
 
-export interface TableColumn<T, D = any> {
+export interface TableColumn<T> {
   /**
    * Permet d'afficher un filtre personnalisé dans l'en-tête de la colonne (ex: range, datepicker, etc.)
    * Peut être un ReactNode ou une fonction qui reçoit { value, onChange, data }

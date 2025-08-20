@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import RequireAuth from '@/components/auth/requireAuth.component';
-import CategoriesRevenuList from '@/components/categories-revenu/CategoriesRevenuList.component';
-import FormCategorieRevenu from '@/components/categories-revenu/FormCategorieRevenu.component';
 import { useCategoriesRevenu } from '@/hooks/useCategoriesRevenu.hook';
 import { ICategorieRevenu } from '@/types/categorieRevenu.type';
+import CategoriesList from '@/components/categories/CategoriesList.component';
+import FormCategorie from '@/components/categories/formCategorie.component';
 
 export default function CategoriesRevenuPage() {
   const { categoriesRevenu, isLoading, isError, refreshCategoriesRevenu } = useCategoriesRevenu();
@@ -43,14 +43,14 @@ export default function CategoriesRevenuPage() {
           </div>
 
           {showAddForm && (
-            <FormCategorieRevenu
-              existingCategorieRevenu={selectedCategorieRevenu ?? undefined}
+            <FormCategorie
+              existingCategorie={selectedCategorieRevenu ?? undefined}
               onClose={handleCloseForm}
             />
           )}
 
-          <CategoriesRevenuList
-            categoriesRevenu={categoriesRevenu}
+          <CategoriesList
+            categories={categoriesRevenu}
             isLoading={isLoading}
             isError={isError}
             onEdit={handleEdit}

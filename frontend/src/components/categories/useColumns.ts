@@ -2,27 +2,25 @@ import { useCallback, useState } from 'react';
 import toast from 'react-hot-toast';
 import { KeyedMutator } from 'swr';
 import debug from 'debug';
-import { DataType, DisplayType, TableColumn, TableAction } from '../table/table.types';
-import { ICategorie } from '@/types/categorie.type';
-import { categoriesEndpoint, depensesEndpoint } from '@/services/api.service';
+import { DataType, TableColumn, TableAction } from '../table/table.types';
 import fetcher from '@/utils/fetcher.utils';
-import { DepensesResponse } from '@/hooks/useDepenses.hook';
+import { ICategorieRevenu } from '@/types/categorieRevenu.type';
+import { ICategorie } from '@/types/categorie.type';
 
 
-interface UseColumnsProps {
-  categories: ICategorie[];
-  currentUserId?: string;
-  onEdit: (depense: ICategorie) => void;
+interface UseColumnsProps<T> {
+  onEdit: (editValue: T) => void;
   onDelete: () => void;
-  refreshCategories: KeyedMutator<ICategorie[]>;
+  refresh: KeyedMutator<T[]>;
+  endpoint: string;
 }
 
-export function useColumns({
-  categories,
+export function useColumns<T>({
   onEdit,
   onDelete,
-  refreshCategories,
-}: UseColumnsProps) {
+  refresh,
+  endpoint
+}: UseColumnsProps<ICategorie | ICategorieRevenu>) {
   const log = debug('app:frontend:useColumnTableCategorie');
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
   
@@ -30,11 +28,11 @@ export function useColumns({
   const handleDelete = useCallback(async (id: string) => {
     setIsDeleting(id);
     try {
-      await fetcher(`${categoriesEndpoint}/${id}`, {
+      await fetcher(`${endpoint}/${id}`, {
         method: 'DELETE',
       });
       toast.success('Catégorie supprimée avec succès');
-      refreshCategories();
+      refresh();
       onDelete();
     } catch (error: unknown) {
       const errorMessage =
@@ -47,9 +45,9 @@ export function useColumns({
     } finally {
       setIsDeleting(null);
     }
-  }, [refreshCategories, onDelete]);
+  }, [refresh, onDelete]);
 
-  const columns: TableColumn<ICategorie>[] = [
+  const columns: TableColumn<ICategorie | ICategorieRevenu>[] = [
     {
       accessor: 'nom',
       dataType: DataType.STRING,
@@ -64,7 +62,7 @@ export function useColumns({
   ];
 
   // Actions
-  const actions: TableAction<ICategorie>[] = [
+  const actions: TableAction<ICategorie | ICategorieRevenu>[] = [
     {
       header: 'Modifier',
       accessor: (row) => row,

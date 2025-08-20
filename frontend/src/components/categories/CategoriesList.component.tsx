@@ -1,12 +1,14 @@
 'use client';
 
-import React, { ReactNode, useState } from 'react';
+import React, { useState } from 'react';
 import { ICategorie } from '@/types/categorie.type';
 import { RefreshCw } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories.hook';
 import { Table } from '../table';
 import { useColumns } from './useColumns';
 import { EmptyComponent } from './empty.component';
+import { categoriesEndpoint } from '@/services/api.service';
+import { ICategorieRevenu } from '@/types/categorieRevenu.type';
 
 interface CategoriesListProps {
   categories: ICategorie[];
@@ -28,11 +30,11 @@ export default function CategoriesList({
   const [search, setSearch] = useState('');
   const { refreshCategories } = useCategories();
 
-  const { columns, actions } = useColumns({
-    categories,
+  const { columns, actions } = useColumns<ICategorie | ICategorieRevenu>({
     onEdit,
     onDelete,
-    refreshCategories,
+    refresh : refreshCategories,
+    endpoint: categoriesEndpoint,
   });
 
   const handleRetry = () => {
