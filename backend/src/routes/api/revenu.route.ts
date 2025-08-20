@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { proteger } from "../middlewares/auth.middleware";
+import { proteger } from "../../middlewares/auth.middleware";
 import {
   ajouterRevenu,
   obtenirRevenus,
@@ -7,10 +7,10 @@ import {
   modifierRevenu,
   supprimerRevenu,
   importerRevenus,
-} from "../controllers/revenu.controller";
-import uploadCSV from "../middlewares/upload.middleware";
-import { asyncHandler } from "../utils/async.utils";
-import { creerRevenuValidator, modifierRevenuValidator } from "../middlewares/validators/revenu.validator";
+} from "../../controllers/revenu.controller";
+import uploadCSV from "../../middlewares/upload.middleware";
+import { asyncHandler } from "../../utils/async.utils";
+import { creerRevenuValidator, modifierRevenuValidator } from "../../middlewares/validators/revenu.validator";
 
 const router = Router();
 

@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IDepense, TypeCompte, TypeDepense } from "../types/depense.types";
+import { IDepense, TypeCompteEnum, TypeDepense } from "../types/depense.types";
 
 const DepenseSchema = new Schema<IDepense>(
   {
@@ -9,7 +9,7 @@ const DepenseSchema = new Schema<IDepense>(
     commentaire: { type: String },
     typeCompte: {
       type: String,
-      enum: ["Perso", "Conjoint"] as TypeCompte[],
+      enum: ["Perso", "Conjoint"] as TypeCompteEnum[],
       default: "Perso",
     },
     typeDepense: {

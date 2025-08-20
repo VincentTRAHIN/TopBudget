@@ -68,7 +68,7 @@ export class ImportService {
         .pipe(
           csvParser({
             ...parsingOptions,
-
+            separator:";",
             ...(!parsingOptions.headers && {
               mapHeaders: mapHeadersConfig
                 ? ({ header }: { header: string }) => {
@@ -90,6 +90,8 @@ export class ImportService {
             try {
               const item = await processRowFn(row, userId, additionalContext);
               if (item) {
+                              console.table(`--> [DEBUG] ImportService: ${item} à importer.`);
+
                 itemsAImporter.push(item);
               }
             } catch (err) {
@@ -110,6 +112,7 @@ export class ImportService {
             await Promise.allSettled(lineProcessingPromises);
 
             if (itemsAImporter.length > 0) {
+              
               try {
                 await model.create(itemsAImporter);
                 return resolveStream();
@@ -257,12 +260,23 @@ export class ImportService {
         estChargeFixe: false,
       };
     };
+    // Mapping des en-têtes pour accepter les colonnes du CSV bancaire
+    const mapHeadersConfig = [
+      { header: "date", newHeader: "date" },
+      { header: "montant", newHeader: "montant" },
+      { header: "Categorie", newHeader: "categorie" },
+      { header: "Categorie ", newHeader: "categorie" }, // gestion espace éventuel
+      { header: "libellé", newHeader: "description" },
+      { header: "libelle", newHeader: "description" },
+      { header: "description", newHeader: "description" },
+    ];
     return this.processCsvImport({
       csvBuffer,
       userId,
       model: DepenseModel as unknown as mongoose.Model<Record<string, unknown>>,
       entityName: "dépense",
       csvHeaders: ["date", "montant", "categorie", "description"],
+      mapHeadersConfig,
       processRowFn: processDepenseRow,
     });
   }

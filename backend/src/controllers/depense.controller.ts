@@ -3,7 +3,6 @@ import { validationResult } from "express-validator";
 import logger from "../utils/logger.utils";
 import { AppError } from "../middlewares/error.middleware";
 import { AUTH, DEPENSE, COMMON } from "../constants";
-import { ImportService } from "../services/import.service";
 import { sendSuccess, sendErrorClient } from "../utils/response.utils";
 import {
   DepenseCreateBody,
@@ -13,6 +12,7 @@ import {
 import { createAsyncHandler } from "../utils/async.utils";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import { DepenseService } from "../services/depense.service";
+import { importDepensesCsvOptimized } from "../services/importOptimized.service";
 
 /**
  * @swagger
@@ -349,8 +349,10 @@ export const importerDepenses = createAsyncHandler(
   async (req: MulterRequest, res, next): Promise<void> => {
     if (!req.file) return next(new AppError(COMMON.ERRORS.NO_CSV_FILE, 400));
     if (!req.user) return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    
     try {
-      const result = await ImportService.importDepensesCsv(
+      const result = await importDepensesCsvOptimized(
+      // const result = await ImportService.importDepensesCsv(
         req.file.buffer,
         req.user.id,
       );

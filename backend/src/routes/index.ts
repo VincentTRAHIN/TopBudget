@@ -1,22 +1,19 @@
+console.log("--> [DEBUG] app.ts: Loading route imports...");
 import { Router } from "express";
-import authRoutes from "./auth.route";
-import userRoutes from "./user.route";
-import profileRoutes from "./profile.route";
-import depenseRoutes from "./depense.route";
-import revenuRoutes from "./revenu.route";
-import categorieRoutes from "./categorie.route";
-import categorieRevenuRoutes from "./categorieRevenu.route";
-import statistiquesRoutes from "./statistiques.route";
+import apiRouter from "./api";
+import swaggerUi from "swagger-ui-express";
+import {swaggerSpec} from "../docs/swagger.config";
+import { AppError, errorHandler } from "../middlewares/error.middleware";
 
 const router = Router();
 
-router.use("/auth", authRoutes);
-router.use("/users", userRoutes);
-router.use("/profile", profileRoutes);
-router.use("/depenses", depenseRoutes);
-router.use("/revenus", revenuRoutes);
-router.use("/categories", categorieRoutes);
-router.use("/categories-revenu", categorieRevenuRoutes);
-router.use("/statistiques", statistiquesRoutes);
+router.use("/api", apiRouter);
+router.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+console.log("--> [DEBUG] app.ts: Setting up error handling...");
+router.use((_req, _res, next) => {
+  next(new AppError("Route non trouvée", 404));
+});
 
+router.use(errorHandler);
+console.log("--> [DEBUG] app.ts: Error handling configured.");
 export default router;

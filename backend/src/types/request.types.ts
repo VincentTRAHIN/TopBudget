@@ -8,7 +8,7 @@
 
 import { Request } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
-import { TypeCompte, TypeDepense } from "../types/depense.types";
+import { TypeCompteEnum, TypeDepense } from "../types/depense.types";
 import { TypeCompteRevenu } from "../types/revenu.types";
 import { ParsedQs } from "qs";
 
@@ -43,7 +43,7 @@ export namespace DepenseRequest {
     categorie?: string;
     dateDebut?: string;
     dateFin?: string;
-    typeCompte?: TypeCompte;
+    typeCompte?: TypeCompteEnum;
     typeDepense?: TypeDepense;
     search?: string;
     sortBy?: string;
@@ -59,7 +59,7 @@ export namespace DepenseRequest {
     montant: number;
     date: string | Date;
     commentaire?: string;
-    typeCompte: TypeCompte;
+    typeCompte: TypeCompteEnum;
     typeDepense: TypeDepense;
     recurrence?: boolean;
     categorie: string;
@@ -75,7 +75,7 @@ export namespace DepenseRequest {
     montant?: number;
     date?: string | Date;
     commentaire?: string;
-    typeCompte?: TypeCompte;
+    typeCompte?: TypeCompteEnum;
     typeDepense?: TypeDepense;
     recurrence?: boolean;
     categorie?: string;
