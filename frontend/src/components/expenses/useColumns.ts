@@ -67,50 +67,23 @@ export function useColumns({
       dataType: DataType.STRING,
       displayType: DisplayType.DATE,
       enableSort: true,
-      customFilter: () => (
-        [
-          {
-            label: "Du",
-            type: DisplayType.DATE,
-            onFilterChange: handleDateDebutChange,
-          },
-          {
-            label: "Au",
-            type: DisplayType.DATE,
-            onFilterChange: handleDateFinChange,
-          }
-        ]
-      )
     },
     {
       accessor: 'description',
       dataType: DataType.STRING,
       enableSort: true,
-      enableFilter: true,
-      onFilterChange: handleSearchChange,
     },
     {
       accessor: 'commentaire',
       dataType: DataType.STRING,
       enableSort: true,
-      enableFilter: true,
-      onFilterChange: handleSearchChange,
     },
     {
       header: 'Catégorie',
       accessor: 'categorie',
       dataType: DataType.STRING,
       displayType: DisplayType.ENUM,
-      enableFilter: true,
       getValue: (row) => row.categorie.nom || 'N/A',
-      filterOption: () => new DataEnum<ICategorie>({
-        data: categories,
-        getId: (row) => row._id,
-        getLabel: (row) => row.nom,
-        action: (value) => {
-          onFilterChange({ categorie: value });
-        },
-      }),
     },
     {
       header: 'Payé par',
@@ -134,33 +107,11 @@ export function useColumns({
       header: 'Compte',
       accessor: 'typeCompte',
       dataType: DataType.STRING,
-      filterOption: () => new DataEnum<{ _id: string; nom: string }>({
-        data: [
-          { _id: 'Perso', nom: 'Perso' },
-          { _id: 'Conjoint', nom: 'Conjoint' },
-        ],
-        getId: (item) => item._id,
-        getLabel: (item) => item.nom,
-        action: (value) => {
-          onFilterChange({ typeCompte: value });
-        },
-      }),
     },
     {
       header: 'Type de dépense',
       accessor: 'typeDepense',
       dataType: DataType.STRING,
-      filterOption: () => new DataEnum<{ _id: string; nom: string }>({
-        data: [
-          { _id: 'Perso', nom: 'Perso' },
-          { _id: 'Commune', nom: 'Commune' },
-        ],
-        getId: (row) => row._id,
-        getLabel: (row) => row.nom,
-        action: (value) => {
-          onFilterChange({ typeDepense: value });
-        },
-      }),
     },
     {
       header: 'Montant (€)',

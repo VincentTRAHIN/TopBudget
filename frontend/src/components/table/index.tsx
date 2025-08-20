@@ -11,12 +11,10 @@ export function Table<T extends Record<string, any>>({
   footer,
   rowAction,
   emptyRender,
-  onFilterChange
 }: TableProps<T>) {
   const { sortState, handleSort, sortedData } = useTableFeatures<T>({
     data,
     defaultSortKey: columns.find(col => col.enableSort)?.accessor as keyof T,
-    onFilterChange
   });
 
 

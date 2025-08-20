@@ -213,7 +213,6 @@ function TableDepenses({
         }
         columns={columns}
         rowAction={actions}
-        onFilterChange={onFilterChange}
       />
 
     </div>
