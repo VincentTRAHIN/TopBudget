@@ -1,45 +1,40 @@
-import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { KeyedMutator } from 'swr';
 import debug from 'debug';
 import { DataType, DisplayType, TableColumn, TableAction } from '../table/table.types';
-import { IDepense } from '@/types/depense.type';
-import { depensesEndpoint } from '@/services/api.service';
+import { revenusEndpoint } from '@/services/api.service';
 import fetcher from '@/utils/fetcher.utils';
-import { DepensesResponse } from '@/hooks/useDepenses.hook';
+import { IRevenu } from '@/types/revenu.type';
+import { RevenusResponse } from '@/hooks/useRevenus.hook';
 
 
 interface UseColumnsProps {
   currentUserId?: string;
-  onEdit: (depense: IDepense) => void;
-  onFilterChange: (filters: any) => void;
-  refreshDepenses: KeyedMutator<DepensesResponse>
+  onEdit: (depense: IRevenu) => void;
+  refreshRevenus: KeyedMutator<RevenusResponse>
 }
 
 export function useColumns({
   currentUserId,
   onEdit,
-  refreshDepenses,
+  refreshRevenus,
 }: UseColumnsProps) {
-  const log = debug('app:frontend:useColumnTableDepenses');
+  const log = debug('app:frontend:useColumnTableRevenus');
 
-  const handleDelete = useCallback(async (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Confirmer la suppression ?')) return;
     try {
-      log(`Tentative de suppression de la dépense ID: %s`, id);
-      await fetcher(`${depensesEndpoint}/${id}`, {
+      await fetcher(`${revenusEndpoint}/${id}`, {
         method: 'DELETE',
       });
-      toast.success('Dépense supprimée avec succès !');
-      log(`Dépense ID: %s supprimée avec succès. Rafraîchissement des dépenses.`, id);
-      refreshDepenses();
-    } catch (error) {
-      log(`Erreur lors de la suppression de la dépense ID: %s, Erreur: %O`, id, error);
-      toast.error('Erreur lors de la suppression de la dépense');
+      toast.success('Revenu supprimé avec succès !');
+      refreshRevenus();
+    } catch {
+      toast.error('Erreur lors de la suppression du revenu');
     }
-  }, [refreshDepenses]);
+  };
 
-  const columns: TableColumn<IDepense>[] = [
+  const columns: TableColumn<IRevenu>[] = [
     {
       accessor: 'date',
       dataType: DataType.STRING,
@@ -52,43 +47,40 @@ export function useColumns({
       enableSort: true,
     },
     {
-      accessor: 'commentaire',
-      dataType: DataType.STRING,
-      enableSort: true,
-    },
-    {
       header: 'Catégorie',
-      accessor: 'categorie',
+      accessor: 'categorieRevenu',
       dataType: DataType.STRING,
       displayType: DisplayType.ENUM,
-      getValue: (row) => row.categorie.nom || 'N/A',
+      getValue: (row) => row.categorieRevenu.nom || 'N/A',
     },
     {
-      header: 'Payé par',
-      accessor: 'utilisateur',
-      dataType: DataType.STRING,
-      getValue: (row) => row.utilisateur.nom,
-    },
-    {
-      header: 'Charge Fixe',
-      accessor: 'estChargeFixe',
+      header: 'Récurrent ?',
+      accessor: 'estRecurrent',
       className: 'text-center',
       dataType: DataType.BOOLEAN,
       displayType: DisplayType.ICON,
       getIcon: (row) => (
-        row.recurrence
-          ? { name: 'pin', size: 16, color: 'blue' }
-          : undefined
+        row.estRecurrent
+          ? { name: 'check', size: 16, color: 'green' }
+          : { name: 'x', size: 16, color: 'red' }
       ),
     },
     {
+      accessor: 'commentaire',
+      dataType: DataType.STRING,
+      enableSort: true,
+    },
+
+    {
+      header: 'Reçu par',
+      accessor: 'utilisateur',
+      dataType: DataType.STRING,
+      getValue: (row) => row.utilisateur.nom,
+    },
+
+    {
       header: 'Compte',
       accessor: 'typeCompte',
-      dataType: DataType.STRING,
-    },
-    {
-      header: 'Type de dépense',
-      accessor: 'typeDepense',
       dataType: DataType.STRING,
     },
     {
@@ -100,7 +92,7 @@ export function useColumns({
   ];
 
   // Actions
-  const actions: TableAction<IDepense>[] = [
+  const actions: TableAction<IRevenu>[] = [
     {
       header: 'Modifier',
       accessor: (row) => row,

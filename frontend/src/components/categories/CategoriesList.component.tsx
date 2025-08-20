@@ -9,6 +9,7 @@ import { useColumns } from './useColumns';
 import { EmptyComponent } from './empty.component';
 import { categoriesEndpoint } from '@/services/api.service';
 import { ICategorieRevenu } from '@/types/categorieRevenu.type';
+import { KeyedMutator } from 'swr';
 
 interface CategoriesListProps {
   categories: ICategorie[];
@@ -17,6 +18,8 @@ interface CategoriesListProps {
   onEdit: (categorie: ICategorie) => void;
   onDelete: () => void;
   onAdd: () => void;
+  endpoint: string;
+  refresh: KeyedMutator<ICategorie[]>
 }
 
 export default function CategoriesList({
@@ -26,6 +29,8 @@ export default function CategoriesList({
   onEdit,
   onDelete,
   onAdd,
+  endpoint,
+  refresh
 }: CategoriesListProps) {
   const [search, setSearch] = useState('');
   const { refreshCategories } = useCategories();
@@ -33,8 +38,8 @@ export default function CategoriesList({
   const { columns, actions } = useColumns<ICategorie | ICategorieRevenu>({
     onEdit,
     onDelete,
-    refresh : refreshCategories,
-    endpoint: categoriesEndpoint,
+    refresh,
+    endpoint,
   });
 
   const handleRetry = () => {

@@ -7,6 +7,7 @@ import CategoriesList from '@/components/categories/CategoriesList.component';
 import FormCategorie from '@/components/categories/formCategorie.component';
 import { useCategories } from '@/hooks/useCategories.hook';
 import { ICategorie } from '@/types/categorie.type';
+import { categoriesEndpoint } from '@/services/api.service';
 
 export default function CategoriesPage() {
   const { categories, isLoading, isError, refreshCategories } = useCategories();
@@ -47,6 +48,8 @@ export default function CategoriesPage() {
             <FormCategorie
               existingCategorie={selectedCategorie ?? undefined}
               onClose={handleFormClose}
+              endpoint={categoriesEndpoint}
+              refresh={refreshCategories}
             />
           )}
 
@@ -57,6 +60,8 @@ export default function CategoriesPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onAdd={handleAdd}
+            refresh={refreshCategories}
+            endpoint={categoriesEndpoint}
           />
         </div>
       </Layout>

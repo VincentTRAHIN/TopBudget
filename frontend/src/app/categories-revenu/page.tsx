@@ -7,6 +7,7 @@ import { useCategoriesRevenu } from '@/hooks/useCategoriesRevenu.hook';
 import { ICategorieRevenu } from '@/types/categorieRevenu.type';
 import CategoriesList from '@/components/categories/CategoriesList.component';
 import FormCategorie from '@/components/categories/formCategorie.component';
+import { categoriesRevenuEndpoint } from '@/services/api.service';
 
 export default function CategoriesRevenuPage() {
   const { categoriesRevenu, isLoading, isError, refreshCategoriesRevenu } = useCategoriesRevenu();
@@ -46,6 +47,8 @@ export default function CategoriesRevenuPage() {
             <FormCategorie
               existingCategorie={selectedCategorieRevenu ?? undefined}
               onClose={handleCloseForm}
+              endpoint={categoriesRevenuEndpoint}
+              refresh={refreshCategoriesRevenu}
             />
           )}
 
@@ -56,6 +59,8 @@ export default function CategoriesRevenuPage() {
             onEdit={handleEdit}
             onDelete={handleSuccess}
             onAdd={handleAdd}
+            endpoint={categoriesRevenuEndpoint}
+            refresh={refreshCategoriesRevenu}
           />
         </div>
       </Layout>
