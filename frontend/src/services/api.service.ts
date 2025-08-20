@@ -22,3 +22,4 @@ export const soldeMensuelEndpoint = `${API_BASE_URL}/statistiques/solde-mensuel`
 export const importRevenusEndpoint = `${API_BASE_URL}/revenus/import`;
 export const categoriesRevenuEndpoint = `${API_BASE_URL}/categories-revenu`;
 export const statistiquesRevenusParCategorieEndpoint = `${API_BASE_URL}/statistiques/revenus-par-categorie`;
+export const importEndpoint = `${API_BASE_URL}/import`;

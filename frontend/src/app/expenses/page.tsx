@@ -97,10 +97,6 @@ export default function ExpensesPage() {
     setCurrentPage(1);
   }, []);
 
-  const handleSortChange = useCallback((newSort: DepenseSort) => {
-    handleFilterOrSortChange(undefined, newSort);
-  }, [handleFilterOrSortChange]);
-
   const handleFilterChange = useCallback((newFilters: Partial<DepenseFilters>) => {
     handleFilterOrSortChange(newFilters, undefined);
   }, [handleFilterOrSortChange]);
@@ -273,10 +269,8 @@ export default function ExpensesPage() {
                 <TableDepenses
                   depenses={depenses}
                   categories={categories}
-                  currentSort={sort}
                   onEdit={handleEdit}
                   onFilterChange={handleFilterChange}
-                  onSortChange={handleSortChange}
                   currentUserId={user?._id}
                   partenaireId={partenaireId}
                 />
