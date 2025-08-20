@@ -1,17 +1,16 @@
 import { useCallback } from 'react';
+import toast from 'react-hot-toast';
+import { KeyedMutator } from 'swr';
+import debug from 'debug';
 import { DataType, DisplayType, TableColumn, TableAction } from '../table/table.types';
 import { IDepense } from '@/types/depense.type';
 import { ICategorie } from '@/types/categorie.type';
 import { depensesEndpoint } from '@/services/api.service';
 import fetcher from '@/utils/fetcher.utils';
-import toast from 'react-hot-toast';
 import { DepensesResponse } from '@/hooks/useDepenses.hook';
-import { KeyedMutator } from 'swr';
-import debug from 'debug';
-import { DataEnum } from '../table';
+
 
 interface UseColumnsProps {
-  categories: ICategorie[];
   currentUserId?: string;
   onEdit: (depense: IDepense) => void;
   onFilterChange: (filters: any) => void;
@@ -19,20 +18,11 @@ interface UseColumnsProps {
 }
 
 export function useColumns({
-  categories,
   currentUserId,
   onEdit,
-  onFilterChange,
   refreshDepenses,
 }: UseColumnsProps) {
   const log = debug('app:frontend:useColumnTableDepenses');
-  
-  // Colonnes
-  // Suppression des états locaux pour les filtres, tout est contrôlé par filters du parent
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const {value} = e.target;
-    onFilterChange({ search: value });
-  }, [onFilterChange]);
 
   const handleDelete = useCallback(async (id: string) => {
     if (!confirm('Confirmer la suppression ?')) return;
@@ -49,17 +39,6 @@ export function useColumns({
       toast.error('Erreur lors de la suppression de la dépense');
     }
   }, [refreshDepenses]);
-
-
-  const handleDateDebutChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const {value} = e.target;
-    onFilterChange({ dateDebut: value });
-  }, [onFilterChange]);
-
-  const handleDateFinChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const {value} = e.target;
-    onFilterChange({ dateFin: value });
-  }, [onFilterChange]);
 
   const columns: TableColumn<IDepense>[] = [
     {

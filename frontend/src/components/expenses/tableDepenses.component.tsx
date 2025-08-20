@@ -38,7 +38,6 @@ function TableDepenses({
     actions,
     columns,
   } = useColumns({
-    categories,
     currentUserId,
     onEdit,
     onFilterChange,
