@@ -16,7 +16,8 @@ export class ProfileService {
       email: emailInput,
       partenaireId: partenaireIdInput,
     } = data;
-    const currentUser = await User.findById(userId);
+    const currentUser = await User.findById(userId)
+      .select("nom email partenaireId _id");
     if (!currentUser) throw new AppError(USER.ERRORS.NOT_FOUND, 404);
 
     if (nomInput !== undefined && nomInput !== currentUser.nom) {
@@ -27,7 +28,9 @@ export class ProfileService {
       const emailExistant = await User.findOne({
         email: emailInput,
         _id: { $ne: currentUser._id },
-      });
+      })
+        .select("_id")
+        .lean();
       if (emailExistant) throw new AppError(USER.ERRORS.ALREADY_EXISTS, 400);
       currentUser.email = emailInput;
     }
@@ -51,7 +54,8 @@ export class ProfileService {
         if (partenaireIdInput === userId) {
           throw new AppError("Vous ne pouvez pas vous lier à vous-même", 400);
         }
-        const potentialPartner = await User.findById(partenaireIdInput);
+        const potentialPartner = await User.findById(partenaireIdInput)
+          .select("_id partenaireId");
         if (!potentialPartner) throw new AppError("Partenaire non trouvé", 404);
         if (
           potentialPartner.partenaireId &&
@@ -82,16 +86,23 @@ export class ProfileService {
       }
     }
     await currentUser.save();
-    await currentUser.populate<{
-      partenaireId: IUserPopulated["partenaireId"];
-    }>({
-      path: "partenaireId",
-      select: "nom email avatarUrl",
-    });
+    
+    const updatedUser = await User.findById(userId)
+      .select("-motDePasse -__v")
+      .populate<{
+        partenaireId: IUserPopulated["partenaireId"];
+      }>({
+        path: "partenaireId",
+        select: "nom email avatarUrl _id",
+      })
+      .lean<IUserPopulated>();
 
-    const userPopulated = currentUser as unknown as IUserPopulated;
+    if (!updatedUser) {
+      throw new AppError(USER.ERRORS.NOT_FOUND, 404);
+    }
+
     const { _id, nom, email, role, dateCreation, avatarUrl, partenaireId } =
-      userPopulated;
+      updatedUser;
 
     return {
       _id,
@@ -120,18 +131,27 @@ export class ProfileService {
     const apiBaseUrl = process.env.API_BASE_URL || "http://backend:5001";
     const fileUrl = `${apiBaseUrl}/uploads/avatars/${fileName}`;
     await fs.writeFile(filePath, file.buffer);
-    const user = await User.findById(userId);
+    
+    const user = await User.findById(userId)
+      .select("avatarUrl");
     if (!user) throw new AppError(USER.ERRORS.NOT_FOUND, 404);
     user.avatarUrl = fileUrl;
     await user.save();
-    await user.populate<{ partenaireId: IUserPopulated["partenaireId"] }>({
-      path: "partenaireId",
-      select: "nom email avatarUrl",
-    });
+    
+    const updatedUser = await User.findById(userId)
+      .select("-motDePasse -__v")
+      .populate<{ partenaireId: IUserPopulated["partenaireId"] }>({
+        path: "partenaireId",
+        select: "nom email avatarUrl _id",
+      })
+      .lean<IUserPopulated>();
 
-    const userPopulated = user as unknown as IUserPopulated;
+    if (!updatedUser) {
+      throw new AppError(USER.ERRORS.NOT_FOUND, 404);
+    }
+
     const { _id, nom, email, role, dateCreation, avatarUrl, partenaireId } =
-      userPopulated;
+      updatedUser;
 
     return {
       _id,
@@ -173,7 +193,8 @@ export class ProfileService {
         400,
       );
     }
-    const user = await User.findById(userId);
+    const user = await User.findById(userId)
+      .select("motDePasse");
     if (!user) throw new AppError(USER.ERRORS.NOT_FOUND, 404);
     const isMatch = await user.comparerMotDePasse(currentPassword);
     if (!isMatch) throw new AppError("Mot de passe actuel incorrect.", 401);

@@ -5,7 +5,7 @@ import CategorieModel from "../models/categorie.model";
 import { AppError } from "../middlewares/error.middleware";
 import { DEPENSE, AUTH } from "../constants";
 import {
-  TypeCompte,
+  TypeCompteEnum,
   TypeDepense,
   IDepensePopulated,
 } from "../types/depense.types";
@@ -56,7 +56,7 @@ export class DepenseService {
     if (
       typeof typeCompte === "string" &&
       typeCompte &&
-      Object.values(DEPENSE.TYPES_COMPTE).includes(typeCompte as TypeCompte)
+      Object.values(DEPENSE.TYPES_COMPTE).includes(typeCompte as TypeCompteEnum)
     ) {
       matchFilter.typeCompte = typeCompte;
     }
@@ -82,7 +82,9 @@ export class DepenseService {
       estChargeFixe,
     } = data;
 
-    const categorieExiste = await CategorieModel.findById(categorie);
+    const categorieExiste = await CategorieModel.findById(categorie)
+      .select("_id")
+      .lean();
     if (!categorieExiste) {
       throw new AppError(DEPENSE.ERRORS.CATEGORIE_NOT_FOUND, 404);
     }
@@ -103,12 +105,19 @@ export class DepenseService {
     await nouvelleDepense.save();
 
     return DepenseModel.findById(nouvelleDepense._id)
+      .select("montant date categorie description utilisateur typeCompte typeDepense estChargeFixe commentaire recurrence")
       .populate<{
         categorie: IDepensePopulated["categorie"];
-      }>("categorie", "nom description image")
+      }>({
+        path: "categorie",
+        select: "nom description image _id"
+      })
       .populate<{
         utilisateur: IDepensePopulated["utilisateur"];
-      }>("utilisateur", "nom _id")
+      }>({
+        path: "utilisateur",
+        select: "nom _id"
+      })
       .lean<IDepensePopulated>();
   }
 
@@ -124,8 +133,9 @@ export class DepenseService {
     if (vue === "moi") {
       userIdsToQuery.push(new mongoose.Types.ObjectId(userId));
     } else if (vue === "partenaire") {
-      const currentUser =
-        await UserModel.findById(userId).select("partenaireId");
+      const currentUser = await UserModel.findById(userId)
+        .select("partenaireId")
+        .lean();
       if (currentUser?.partenaireId) {
         const partenaireId =
           typeof currentUser.partenaireId === "string"
@@ -140,8 +150,9 @@ export class DepenseService {
       }
     } else if (vue === "couple_complet") {
       userIdsToQuery.push(new mongoose.Types.ObjectId(userId));
-      const currentUser =
-        await UserModel.findById(userId).select("partenaireId");
+      const currentUser = await UserModel.findById(userId)
+        .select("partenaireId")
+        .lean();
       if (currentUser?.partenaireId) {
         const partenaireId =
           typeof currentUser.partenaireId === "string"
@@ -162,13 +173,20 @@ export class DepenseService {
     sortOptions[sortBy as string] = order === "asc" ? 1 : -1;
 
     const depenses = await DepenseModel.find(queryFilters)
+      .select("montant date categorie description utilisateur typeCompte typeDepense estChargeFixe commentaire recurrence")
       .sort(sortOptions)
       .skip(skip)
       .limit(limit)
       .populate<{
         categorie: IDepensePopulated["categorie"];
-      }>("categorie", "nom description image")
-      .populate<{ utilisateur: Pick<IUser, "nom"> }>("utilisateur", "nom")
+      }>({
+        path: "categorie",
+        select: "nom description image _id"
+      })
+      .populate<{ utilisateur: Pick<IUser, "nom" | "_id"> }>({
+        path: "utilisateur",
+        select: "nom _id"
+      })
       .lean<IDepensePopulated[]>();
 
     return {
@@ -188,12 +206,19 @@ export class DepenseService {
     }
 
     const depense = await DepenseModel.findById(id)
+      .select("montant date categorie description utilisateur typeCompte typeDepense estChargeFixe commentaire recurrence")
       .populate<{
         categorie: IDepensePopulated["categorie"];
-      }>("categorie", "nom description image")
+      }>({
+        path: "categorie",
+        select: "nom description image _id"
+      })
       .populate<{
         utilisateur: IDepensePopulated["utilisateur"];
-      }>("utilisateur", "nom email")
+      }>({
+        path: "utilisateur",
+        select: "nom email _id"
+      })
       .lean<IDepensePopulated>();
 
     if (!depense) {
@@ -208,8 +233,9 @@ export class DepenseService {
     let hasAccess = utilisateurId === depenseUtilisateurId;
 
     if (!hasAccess) {
-      const currentUser =
-        await UserModel.findById(userId).select("partenaireId");
+      const currentUser = await UserModel.findById(userId)
+        .select("partenaireId")
+        .lean();
       if (currentUser?.partenaireId) {
         const partenaireId = currentUser.partenaireId.toString();
         hasAccess = partenaireId === depenseUtilisateurId;
@@ -237,7 +263,9 @@ export class DepenseService {
     }
 
     if (data.categorie) {
-      const categorieExiste = await CategorieModel.findById(data.categorie);
+      const categorieExiste = await CategorieModel.findById(data.categorie)
+        .select("_id")
+        .lean();
       if (!categorieExiste) {
         throw new AppError(DEPENSE.ERRORS.CATEGORIE_NOT_FOUND, 404);
       }
@@ -251,12 +279,19 @@ export class DepenseService {
     await depense.save();
 
     return DepenseModel.findById(id)
+      .select("montant date categorie description utilisateur typeCompte typeDepense estChargeFixe commentaire recurrence")
       .populate<{
         categorie: IDepensePopulated["categorie"];
-      }>("categorie", "nom description image")
+      }>({
+        path: "categorie",
+        select: "nom description image _id"
+      })
       .populate<{
         utilisateur: IDepensePopulated["utilisateur"];
-      }>("utilisateur", "nom email")
+      }>({
+        path: "utilisateur",
+        select: "nom email _id"
+      })
       .lean<IDepensePopulated>();
   }
 
@@ -268,11 +303,13 @@ export class DepenseService {
     const depense = await DepenseModel.findOne({
       _id: id,
       utilisateur: userId,
-    });
+    })
+      .select("_id")
+      .lean();
     if (!depense) {
       throw new AppError(DEPENSE.ERRORS.NOT_FOUND, 404);
     }
 
-    await depense.deleteOne();
+    await DepenseModel.findByIdAndDelete(id);
   }
 }

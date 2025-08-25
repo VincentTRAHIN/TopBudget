@@ -1,7 +1,7 @@
 import { AuthRequest } from "../middlewares/auth.middleware";
 import { Request, Response, NextFunction } from "express";
 import { Query, ParamsDictionary } from "express-serve-static-core";
-import { TypeCompte, TypeDepense } from "./depense.types";
+import { TypeCompteEnum, TypeDepense } from "./depense.types";
 import { TypeCompteRevenu } from "./revenu.types";
 import mongoose from "mongoose";
 
@@ -52,7 +52,7 @@ export interface DepenseQueryParams extends Query {
   categorie?: string;
   dateDebut?: string;
   dateFin?: string;
-  typeCompte?: TypeCompte;
+  typeCompte?: TypeCompteEnum;
   typeDepense?: TypeDepense;
   search?: string;
   sortBy?: string;
@@ -64,7 +64,7 @@ export interface DepenseCreateBody {
   montant: number;
   date: Date;
   commentaire?: string;
-  typeCompte: TypeCompte;
+  typeCompte: TypeCompteEnum;
   typeDepense: TypeDepense;
   recurrence?: boolean;
   categorie: mongoose.Types.ObjectId | string;
@@ -199,6 +199,20 @@ export interface ProfileUpdateBody {
   avatarUrl?: string;
   partenaireId?: string;
   sobriquetPartenaire?: string;
+}
+
+export interface DepenseQueryParams {
+  vue?: ViewType;
+  categorie?: string;
+  dateDebut?: string;
+  dateFin?: string;
+  typeCompte?: TypeCompteEnum;
+  typeDepense?: TypeDepense;
+  search?: string;
+  page?: string;
+  limit?: string;
+  sortBy?: string;
+  order?: "asc" | "desc";
 }
 
 

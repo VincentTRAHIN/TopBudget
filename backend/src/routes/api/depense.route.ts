@@ -1,15 +1,15 @@
 import { Router } from "express";
-import { proteger } from "../middlewares/auth.middleware";
+import { proteger } from "../../middlewares/auth.middleware";
 import {
   ajouterDepense,
   obtenirDepenses,
   modifierDepense,
   supprimerDepense,
   importerDepenses,
-} from "../controllers/depense.controller";
-import { creerDepenseValidator } from "../middlewares/validators/depense.validator";
-import uploadCSV from "../middlewares/upload.middleware";
-import { asyncHandler } from "../utils/async.utils";
+} from "../../controllers/depense.controller";
+import { creerDepenseValidator } from "../../middlewares/validators/depense.validator";
+import uploadCSV from "../../middlewares/upload.middleware";
+import { asyncHandler } from "../../utils/async.utils";
 
 const router = Router();
 

@@ -16,13 +16,11 @@ async function seedDatabase() {
 
     console.log("🔵 Connecté à MongoDB");
 
-    // Nettoyer d'abord
     await DepenseModel.deleteMany({});
     await CategorieModel.deleteMany({});
     await UserModel.deleteMany({});
     console.log("🧹 Base nettoyée");
 
-    // Créer un utilisateur fictif
     const user = (await UserModel.create({
       nom: "Test User",
       email: faker.internet.email(),
@@ -30,7 +28,6 @@ async function seedDatabase() {
       role: "Perso",
     })) as { _id: mongoose.Types.ObjectId };
 
-    // Créer 6-8 catégories aléatoires
     const categories: Array<typeof CategorieModel.prototype> = [];
     for (let i = 0; i < 6; i++) {
       const cat = await CategorieModel.create({
@@ -42,7 +39,6 @@ async function seedDatabase() {
 
     console.log(`🟢 ${categories.length} catégories créées`);
 
-    // Créer 50-100 dépenses aléatoires
     const depenses: Array<{
       montant: number;
       date: Date;

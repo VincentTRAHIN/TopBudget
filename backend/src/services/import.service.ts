@@ -68,7 +68,7 @@ export class ImportService {
         .pipe(
           csvParser({
             ...parsingOptions,
-
+            separator:";",
             ...(!parsingOptions.headers && {
               mapHeaders: mapHeadersConfig
                 ? ({ header }: { header: string }) => {
@@ -90,6 +90,8 @@ export class ImportService {
             try {
               const item = await processRowFn(row, userId, additionalContext);
               if (item) {
+                              console.table(`--> [DEBUG] ImportService: ${item} à importer.`);
+
                 itemsAImporter.push(item);
               }
             } catch (err) {
@@ -110,6 +112,7 @@ export class ImportService {
             await Promise.allSettled(lineProcessingPromises);
 
             if (itemsAImporter.length > 0) {
+              
               try {
                 await model.create(itemsAImporter);
                 return resolveStream();
@@ -148,7 +151,9 @@ export class ImportService {
     csvBuffer: Buffer,
     userId: string
   ): Promise<ImportResultType> {
-    const categorieDocs = await Categorie.find().lean();
+    const categorieDocs = await Categorie.find()
+      .select("nom _id")
+      .lean();
     const categorieMap = new Map(
       categorieDocs.map((cat) => [
         String(cat.nom).toLowerCase(),
@@ -166,7 +171,9 @@ export class ImportService {
       const escapedNom = nom.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
       const existingCat = await Categorie.findOne({
         nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
-      }).lean();
+      })
+        .select("_id")
+        .lean();
 
       if (existingCat && existingCat._id) {
         const idStr = String(existingCat._id);
@@ -174,7 +181,9 @@ export class ImportService {
         return new mongoose.Types.ObjectId(idStr);
       }
 
-      const exactMatch = await Categorie.findOne({ nom: nom }).lean();
+      const exactMatch = await Categorie.findOne({ nom: nom })
+        .select("_id")
+        .lean();
       if (exactMatch && exactMatch._id) {
         const idStr = String(exactMatch._id);
         categorieMap.set(nomLower, idStr);
@@ -251,12 +260,23 @@ export class ImportService {
         estChargeFixe: false,
       };
     };
+    // Mapping des en-têtes pour accepter les colonnes du CSV bancaire
+    const mapHeadersConfig = [
+      { header: "date", newHeader: "date" },
+      { header: "montant", newHeader: "montant" },
+      { header: "Categorie", newHeader: "categorie" },
+      { header: "Categorie ", newHeader: "categorie" }, // gestion espace éventuel
+      { header: "libellé", newHeader: "description" },
+      { header: "libelle", newHeader: "description" },
+      { header: "description", newHeader: "description" },
+    ];
     return this.processCsvImport({
       csvBuffer,
       userId,
       model: DepenseModel as unknown as mongoose.Model<Record<string, unknown>>,
       entityName: "dépense",
       csvHeaders: ["date", "montant", "categorie", "description"],
+      mapHeadersConfig,
       processRowFn: processDepenseRow,
     });
   }
@@ -267,7 +287,9 @@ export class ImportService {
   ): Promise<ImportResultType> {
     const categorieRevenuDocs = await CategorieRevenuModel.find({
       utilisateur: userId,
-    }).lean();
+    })
+      .select("nom _id")
+      .lean();
 
     const categorieRevenuMap = new Map(
       categorieRevenuDocs.map((cat) => [
@@ -288,7 +310,9 @@ export class ImportService {
       const existingCatRegex = await CategorieRevenuModel.findOne({
         $or: [{ utilisateur: userId }, { utilisateur: { $exists: false } }],
         nom: { $regex: new RegExp(`^${escapedNom}$`, "i") },
-      }).lean();
+      })
+        .select("_id")
+        .lean();
 
       if (existingCatRegex && existingCatRegex._id) {
         const idStr = String(existingCatRegex._id);
@@ -298,7 +322,9 @@ export class ImportService {
       const exactMatch = await CategorieRevenuModel.findOne({
         nom: nom,
         $or: [{ utilisateur: userId }, { utilisateur: { $exists: false } }],
-      }).lean();
+      })
+        .select("_id")
+        .lean();
 
       if (exactMatch && exactMatch._id) {
         const idStr = String(exactMatch._id);
@@ -336,7 +362,9 @@ export class ImportService {
                 { utilisateur: userId },
                 { utilisateur: { $exists: false } },
               ],
-            }).lean();
+            })
+              .select("_id")
+              .lean();
 
             if (duplicateCat && duplicateCat._id) {
               const idStr = String(duplicateCat._id);

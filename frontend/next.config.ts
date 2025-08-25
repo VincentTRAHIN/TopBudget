@@ -1,7 +1,6 @@
 import path from 'path';
 import { NextConfig } from 'next';
 
-// URL du backend pour les images
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001';
 
@@ -11,7 +10,6 @@ const nextConfig: NextConfig = {
     return config;
   },
   output: 'standalone',
-  // Configuration pour rediriger les requêtes d'images
   images: {
     domains: ['localhost', 'backend'],
     remotePatterns: [
@@ -29,7 +27,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Redirection des requêtes du dossier /uploads vers le backend
   async rewrites() {
     return [
       {

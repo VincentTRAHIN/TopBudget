@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useCategories } from '@/hooks/useCategories.hook';
 import { useDepenses } from '@/hooks/useDepenses.hook';
 import { useCategoryDistribution } from '@/hooks/useCategoryDistribution.hook';
@@ -12,6 +12,7 @@ import {
   Legend,
   ChartOptions,
 } from 'chart.js';
+import React from 'react';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -30,13 +31,15 @@ const BACKGROUND_COLORS = [
   'rgba(0, 128, 128, 0.6)',
 ];
 
-export default function PieChartCategories({
-  statsContext = 'moi',
-  customTitle,
-}: {
+interface PieChartCategoriesProps {
   statsContext?: 'moi' | 'couple';
   customTitle?: string;
-}) {
+}
+
+function PieChartCategories({
+  statsContext = 'moi',
+  customTitle,
+}: PieChartCategoriesProps) {
   const [selectedYear, setSelectedYear] = useState<number>(
     new Date().getFullYear(),
   );
@@ -52,125 +55,102 @@ export default function PieChartCategories({
     statsContext,
   );
 
-  const monthNames = [
+  const monthNames = useMemo(() => [
     "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
     "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
-  ];
-  const currentMonthName = monthNames[selectedMonth - 1] || "";
-  const contexteText = statsContext === 'couple' ? "du Couple " : (statsContext === 'moi' ? "Personnelles " : "");
+  ], []);
 
-  let baseTitlePart = "Répartition des Dépenses";
-  if (customTitle && !customTitle.includes(String(new Date().getFullYear())) && !customTitle.includes(monthNames[new Date().getMonth()])) {
-    baseTitlePart = customTitle.replace(/ - [A-Za-z]+ [0-9]{4}$/, ''); 
-  } else if (customTitle) {
-    baseTitlePart = customTitle.split(' - ')[0] || baseTitlePart;
-  }
+  const currentMonthName = useMemo(() => {
+    return monthNames[selectedMonth - 1] || "";
+  }, [monthNames, selectedMonth]);
 
-  const displayTitle = `${baseTitlePart} ${contexteText}par Catégorie - ${currentMonthName} ${selectedYear}`;
+  const contexteText = useMemo(() => {
+    return statsContext === 'couple' ? "du Couple " : (statsContext === 'moi' ? "Personnelles " : "");
+  }, [statsContext]);
 
-  let labels: string[] = [];
-  let dataValues: number[] = [];
-  let chartData: {
-    labels: string[];
-    datasets: {
-      label: string;
-      data: number[];
-      backgroundColor: string[];
-      borderColor?: string[];
-      borderWidth?: number;
-    }[];
-    options?: ChartOptions<'pie'>;
-  } = {
-    labels: [],
-    datasets: [
-      {
-        label: 'Dépenses par Catégorie',
-        data: [],
-        backgroundColor: BACKGROUND_COLORS,
-        borderColor: BACKGROUND_COLORS.map((color) =>
-          color.replace('0.6', '1'),
-        ),
-        borderWidth: 1,
+  const displayTitle = useMemo(() => {
+    let baseTitlePart = "Répartition des Dépenses";
+    if (customTitle && !customTitle.includes(String(new Date().getFullYear())) && !customTitle.includes(monthNames[new Date().getMonth()])) {
+      baseTitlePart = customTitle.replace(/ - [A-Za-z]+ [0-9]{4}$/, ''); 
+    } else if (customTitle) {
+      baseTitlePart = customTitle.split(' - ')[0] || baseTitlePart;
+    }
+
+    return `${baseTitlePart} ${contexteText}par Catégorie - ${currentMonthName} ${selectedYear}`;
+  }, [customTitle, contexteText, currentMonthName, selectedYear, monthNames]);
+
+  const borderColors = useMemo(() => {
+    return BACKGROUND_COLORS.map((color) => color.replace('0.6', '1'));
+  }, []);
+
+  const chartOptions = useMemo<ChartOptions<'pie'>>(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { 
+        position: 'right' as const,
+        align: 'center' as const
       },
-    ],
-  };
+      title: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context: {
+            dataset: { label?: string; data: number[] };
+            parsed: number;
+            label?: string;
+          }) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            if (context.parsed !== null && context.dataset.data.length > 0) {
+              const value = context.parsed;
+              const sum = context.dataset.data.reduce(
+                (a: number, b: number) => a + b,
+                0,
+              );
+              const percentage =
+                sum > 0 ? ((value / sum) * 100).toFixed(1) + '%' : '0%';
+              label +=
+                context.label +
+                ': ' +
+                value.toFixed(2) +
+                '€ (' +
+                percentage +
+                ')';
+            }
+            return label;
+          },
+        },
+      },
+    },
+  }), []);
 
-  if (
-    !isLoading &&
-    !isError &&
-    categoryDistribution &&
-    categoryDistribution.length > 0
-  ) {
-    labels = categoryDistribution.map((item) => item.nom);
-    dataValues = categoryDistribution.map((item) => item.total);
+  const apiChartData = useMemo(() => {
+    if (!categoryDistribution || categoryDistribution.length === 0) {
+      return null;
+    }
 
-    chartData = {
+    const labels = categoryDistribution.map((item) => item.nom);
+    const dataValues = categoryDistribution.map((item) => item.total);
+
+    return {
       labels,
       datasets: [
         {
           label: 'Dépenses par Catégorie',
           data: dataValues,
           backgroundColor: BACKGROUND_COLORS,
-          borderColor: BACKGROUND_COLORS.map((color) =>
-            color.replace('0.6', '1'),
-          ),
+          borderColor: borderColors,
           borderWidth: 1,
         },
       ],
     };
+  }, [categoryDistribution, borderColors]);
 
-    const chartOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { 
-          position: 'right' as const,
-          align: 'center' as const
-        },
-        title: {
-          display: false,
-        },
-        tooltip: {
-          callbacks: {
-            label: function (context: {
-              dataset: { label?: string; data: number[] };
-              parsed: number;
-              label?: string;
-            }) {
-              let label = context.dataset.label || '';
-              if (label) {
-                label += ': ';
-              }
-              if (context.parsed !== null && context.dataset.data.length > 0) {
-                const value = context.parsed;
-                const sum = context.dataset.data.reduce(
-                  (a: number, b: number) => a + b,
-                  0,
-                );
-                const percentage =
-                  sum > 0 ? ((value / sum) * 100).toFixed(1) + '%' : '0%';
-                label +=
-                  context.label +
-                  ': ' +
-                  value.toFixed(2) +
-                  '€ (' +
-                  percentage +
-                  ')';
-              }
-              return label;
-            },
-          },
-        },
-      },
-    };
-
-    chartData.options = chartOptions;
-  } else if (
-    !isLoading &&
-    !isError &&
-    (!categoryDistribution || categoryDistribution.length === 0)
-  ) {
-  } else {
+  const fallbackChartData = useMemo(() => {
     const dataParCategorie: { [key: string]: number } = {};
 
     depenses.forEach((depense) => {
@@ -182,113 +162,91 @@ export default function PieChartCategories({
         (dataParCategorie[catId] || 0) + depense.montant;
     });
 
-    labels = categories.map((cat) => cat.nom);
-    dataValues = categories.map((cat) => dataParCategorie[cat._id] || 0);
+    const labels = categories.map((cat) => cat.nom);
+    const dataValues = categories.map((cat) => dataParCategorie[cat._id] || 0);
 
-    chartData = {
+    return {
       labels,
       datasets: [
         {
           label: 'Dépenses par Catégorie',
           data: dataValues,
           backgroundColor: BACKGROUND_COLORS,
-          borderColor: BACKGROUND_COLORS.map((color) =>
-            color.replace('0.6', '1'),
-          ),
+          borderColor: borderColors,
           borderWidth: 1,
         },
       ],
     };
-  }
+  }, [depenses, categories, borderColors]);
+
+  const chartData = useMemo(() => {
+    if (!isLoading && !isError && apiChartData) {
+      return apiChartData;
+    }
+    return fallbackChartData;
+  }, [isLoading, isError, apiChartData, fallbackChartData]);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-      <h3 className="text-lg font-semibold mb-4 text-gray-800">{displayTitle}</h3>
-
-      <div className="flex justify-center mb-6">
-        <div className="flex flex-wrap items-center gap-4">
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          {displayTitle}
+        </h3>
+        
+        <div className="flex flex-wrap gap-4 items-center mb-4">
           <div className="flex items-center gap-2">
-            <label htmlFor="year-select" className="text-sm font-medium text-gray-700">Année:</label>
+            <label htmlFor="year-select" className="text-sm font-medium text-gray-700">
+              Année:
+            </label>
             <select
               id="year-select"
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="block w-auto min-w-[80px] rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-1 px-2"
+              className="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value={2023}>2023</option>
-              <option value={2024}>2024</option>
-              <option value={2025}>2025</option>
-              <option value={2026}>2026</option>
+              {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
             </select>
           </div>
+          
           <div className="flex items-center gap-2">
-            <label htmlFor="month-select" className="text-sm font-medium text-gray-700">Mois:</label>
+            <label htmlFor="month-select" className="text-sm font-medium text-gray-700">
+              Mois:
+            </label>
             <select
               id="month-select"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(Number(e.target.value))}
-              className="block w-auto min-w-[100px] rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-1 px-2"
+              className="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value={1}>Janvier</option>
-              <option value={2}>Février</option>
-              <option value={3}>Mars</option>
-              <option value={4}>Avril</option>
-              <option value={5}>Mai</option>
-              <option value={6}>Juin</option>
-              <option value={7}>Juillet</option>
-              <option value={8}>Août</option>
-              <option value={9}>Septembre</option>
-              <option value={10}>Octobre</option>
-              <option value={11}>Novembre</option>
-              <option value={12}>Décembre</option>
+              {monthNames.map((month, index) => (
+                <option key={index + 1} value={index + 1}>
+                  {month}
+                </option>
+              ))}
             </select>
           </div>
         </div>
       </div>
 
-      {isLoading && (
-        <div className="h-80 md:h-96 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
-            <p className="text-gray-500">Chargement des données...</p>
+      <div className="relative" style={{ height: '400px' }}>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
-        </div>
-      )}
-      {isError && (
-        <div className="h-80 md:h-96 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-red-500 mb-2">
-              <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <p className="text-red-500 font-medium">
-              Erreur lors du chargement des données.
-            </p>
+        ) : isError ? (
+          <div className="flex items-center justify-center h-full text-red-500">
+            <p>Erreur lors du chargement des données</p>
           </div>
-        </div>
-      )}
-      {!isLoading &&
-        !isError &&
-        categoryDistribution &&
-        categoryDistribution.length === 0 && (
-          <div className="h-80 md:h-96 flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-gray-400 mb-2">
-                <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <p className="text-gray-500">Aucune dépense pour cette période.</p>
-            </div>
-          </div>
-        )}
-
-      <div className="h-80 md:h-96 flex justify-center">
-        {!isLoading && !isError && (
-          <Pie data={chartData} options={chartData.options} />
+        ) : (
+          <Pie data={chartData} options={chartOptions} />
         )}
       </div>
     </div>
   );
 }
+
+export default React.memo(PieChartCategories);

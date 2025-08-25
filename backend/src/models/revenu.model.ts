@@ -35,7 +35,17 @@ const RevenuSchema: Schema<IRevenuDocument> = new Schema(
     },
     estRecurrent: { type: Boolean, default: false, required: true },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
+
+RevenuSchema.index({ utilisateur: 1, date: -1 });
+
+RevenuSchema.index({ utilisateur: 1, categorieRevenu: 1, date: -1 });
+
+RevenuSchema.index({ utilisateur: 1, estRecurrent: 1, date: -1 });
+
+RevenuSchema.index({ utilisateur: 1, typeCompte: 1, date: -1 });
+
+RevenuSchema.index({ description: "text", commentaire: "text" });
 
 export default mongoose.model<IRevenuDocument>("Revenu", RevenuSchema);

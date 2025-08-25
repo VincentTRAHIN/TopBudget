@@ -32,7 +32,9 @@ export class CategorieService {
       });
     }
 
-    const existingCategorie = await CategorieModel.findOne(query);
+    const existingCategorie = await CategorieModel.findOne(query)
+      .select("_id")
+      .lean();
     if (existingCategorie) {
       throw new AppError(CATEGORIE.ERRORS.ALREADY_EXISTS, 409);
     }
@@ -48,11 +50,16 @@ export class CategorieService {
     const nouvelleCategorie = new CategorieModel(data);
     await nouvelleCategorie.save();
 
-    return CategorieModel.findById(nouvelleCategorie._id).lean();
+    return CategorieModel.findById(nouvelleCategorie._id)
+      .select("nom description image")
+      .lean();
   }
 
   static async getAll() {
-    return CategorieModel.find().sort({ nom: 1 }).lean();
+    return CategorieModel.find()
+      .select("nom description image")
+      .sort({ nom: 1 })
+      .lean();
   }
 
   static async getById(id: string) {
@@ -60,7 +67,9 @@ export class CategorieService {
       throw new AppError(CATEGORIE.ERRORS.INVALID_ID, 400);
     }
 
-    const categorie = await CategorieModel.findById(id).lean();
+    const categorie = await CategorieModel.findById(id)
+      .select("nom description image")
+      .lean();
     if (!categorie) {
       throw new AppError(CATEGORIE.ERRORS.NOT_FOUND, 404);
     }
@@ -90,7 +99,9 @@ export class CategorieService {
     Object.assign(categorie, data);
     await categorie.save();
 
-    return CategorieModel.findById(id).lean();
+    return CategorieModel.findById(id)
+      .select("nom description image")
+      .lean();
   }
 
   static async delete(id: string) {
@@ -98,7 +109,9 @@ export class CategorieService {
       throw new AppError(CATEGORIE.ERRORS.INVALID_ID, 400);
     }
 
-    const categorie = await CategorieModel.findById(id);
+    const categorie = await CategorieModel.findById(id)
+      .select("_id")
+      .lean();
     if (!categorie) {
       throw new AppError(CATEGORIE.ERRORS.NOT_FOUND, 404);
     }
@@ -108,6 +121,6 @@ export class CategorieService {
       throw new AppError(CATEGORIE.ERRORS.IN_USE, 400);
     }
 
-    await categorie.deleteOne();
+    await CategorieModel.findByIdAndDelete(id);
   }
 }

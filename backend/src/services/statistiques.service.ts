@@ -433,8 +433,8 @@ export class StatistiquesService {
     categoriesEnHausse: CategorieEnHausse[];
   }> {
     const [utilisateurPrincipal, partenaire] = await Promise.all([
-      User.findById(userIdPrincipal).lean<IUserPopulated>(),
-      User.findById(partenaireId).lean<IUserPopulated>(),
+      User.findById(userIdPrincipal).select("nom _id").lean<IUserPopulated>(),
+      User.findById(partenaireId).select("nom _id").lean<IUserPopulated>(),
     ]);
 
     if (!utilisateurPrincipal || !partenaire) {
@@ -528,7 +528,9 @@ export class StatistiquesService {
     };
     categoriesEnHausse: CategorieEnHausse[];
   }> {
-    const utilisateur = await User.findById(userId).lean<IUserPopulated>();
+    const utilisateur = await User.findById(userId)
+      .select("nom _id")
+      .lean<IUserPopulated>();
 
     if (!utilisateur) {
       throw new Error("Utilisateur non trouvé");
@@ -569,8 +571,8 @@ export class StatistiquesService {
     soldeCouple: number;
   }> {
     const [utilisateurPrincipal, partenaire] = await Promise.all([
-      User.findById(userIdPrincipal).lean<IUserPopulated>(),
-      User.findById(partenaireId).lean<IUserPopulated>(),
+      User.findById(userIdPrincipal).select("nom _id").lean<IUserPopulated>(),
+      User.findById(partenaireId).select("nom _id").lean<IUserPopulated>(),
     ]);
 
     if (!utilisateurPrincipal || !partenaire) {
@@ -660,7 +662,11 @@ export class StatistiquesService {
         date: { $gte: dateDebut, $lte: dateFin },
         estChargeFixe: true,
       })
-        .populate("categorie", "nom")
+        .select("montant date categorie description typeCompte typeDepense estChargeFixe commentaire utilisateur")
+        .populate({
+          path: "categorie",
+          select: "nom _id"
+        })
         .sort({ date: -1 })
         .lean<IDepensePopulated[]>(),
 
@@ -669,7 +675,11 @@ export class StatistiquesService {
         date: { $gte: dateDebut, $lte: dateFin },
         estChargeFixe: true,
       })
-        .populate("categorie", "nom")
+        .select("montant date categorie description typeCompte typeDepense estChargeFixe commentaire utilisateur")
+        .populate({
+          path: "categorie",
+          select: "nom _id"
+        })
         .sort({ date: -1 })
         .lean<IDepensePopulated[]>(),
     ]);

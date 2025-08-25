@@ -1,0 +1,426 @@
+import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
+import { AuthService } from '../services/auth.service';
+import User from '../models/user.model';
+import { AppError } from '../middlewares/error.middleware';
+import { AUTH } from '../constants';
+
+const mockJwtSign = jest.fn();
+jest.mock('jsonwebtoken', () => ({
+  sign: mockJwtSign
+}));
+
+const mockUserFindOne = jest.fn();
+const mockUserFindById = jest.fn();
+const mockUserSave = jest.fn();
+
+jest.mock('../models/user.model', () => {
+  return jest.fn().mockImplementation(() => ({
+    save: mockUserSave
+  }));
+});
+
+const MockUser = User as jest.MockedClass<typeof User>;
+MockUser.findOne = mockUserFindOne as any;
+MockUser.findById = mockUserFindById as any;
+
+describe.skip('AuthService', () => {
+  let mockUser: any;
+  let userId: mongoose.Types.ObjectId;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockJwtSign.mockClear();
+    mockUserFindOne.mockClear();
+    mockUserFindById.mockClear();
+    mockUserSave.mockClear();
+    
+    userId = new mongoose.Types.ObjectId();
+    mockUser = {
+      _id: userId,
+      nom: 'Test User',
+      email: 'test@example.com',
+      motDePasse: 'hashedPassword123',
+      role: 'Perso',
+      save: mockUserSave
+    };
+
+    process.env.JWT_SECRET = 'test-secret';
+  });
+
+  afterEach(() => {
+    delete process.env.JWT_SECRET;
+  });
+
+  describe('generateToken', () => {
+    it('should generate a JWT token with correct payload', async () => {
+      const expectedToken = 'generated-jwt-token';
+      mockJwtSign.mockReturnValue(expectedToken);
+      
+      const userData = {
+        nom: 'Test User',
+        email: 'test@example.com',
+        motDePasse: 'password123',
+        role: 'Perso'
+      };
+
+      mockUserFindOne.mockResolvedValue(null);
+      mockUserSave.mockResolvedValue(mockUser);
+
+      const result = await AuthService.inscription(userData);
+
+      expect(mockJwt.sign).toHaveBeenCalledWith(
+        { id: userId },
+        'test-secret',
+        { expiresIn: AUTH.JWT_EXPIRES_IN }
+      );
+      expect(result.token).toBe(expectedToken);
+    });
+
+    it('should throw error when JWT_SECRET is not defined', async () => {
+      delete process.env.JWT_SECRET;
+      
+      const userData = {
+        nom: 'Test User',
+        email: 'test@example.com',
+        motDePasse: 'password123',
+        role: 'Perso'
+      };
+
+      (MockUser.findOne as jest.Mock).mockResolvedValue(null);
+
+      await expect(AuthService.inscription(userData)).rejects.toThrow('JWT_SECRET non défini');
+    });
+  });
+
+  describe('inscription', () => {
+    it('should successfully register a new user', async () => {
+      const userData = {
+        nom: 'Test User',
+        email: 'test@example.com',
+        motDePasse: 'password123',
+        role: 'Perso'
+      };
+
+      const expectedToken = 'generated-jwt-token';
+      mockJwtSign.mockReturnValue(expectedToken);
+      
+      mockUserFindOne.mockResolvedValue(null);
+      mockUserSave.mockResolvedValue(mockUser);
+
+      const result = await AuthService.inscription(userData);
+
+      expect(MockUser.findOne).toHaveBeenCalledWith({ email: userData.email });
+      expect(result).toEqual({
+        _id: userId,
+        nom: userData.nom,
+        email: userData.email,
+        token: expectedToken
+      });
+    });
+
+    it('should throw error if user already exists', async () => {
+      const userData = {
+        nom: 'Test User',
+        email: 'test@example.com',
+        motDePasse: 'password123',
+        role: 'Perso'
+      };
+
+      mockUserFindOne.mockResolvedValue({ _id: userId });
+
+      await expect(AuthService.inscription(userData)).rejects.toThrow(
+        new AppError(AUTH.ERRORS.ALREADY_EXISTS, 409)
+      );
+
+      expect(MockUser.findOne).toHaveBeenCalledWith({ email: userData.email });
+    });
+
+    it('should handle database errors during user creation', async () => {
+      const userData = {
+        nom: 'Test User',
+        email: 'test@example.com',
+        motDePasse: 'password123',
+        role: 'Perso'
+      };
+
+      mockUserFindOne.mockResolvedValue(null);
+      mockUserSave.mockRejectedValue(new Error('Database error'));
+
+      await expect(AuthService.inscription(userData)).rejects.toThrow('Database error');
+    });
+
+    it('should call User.findOne with correct lean query', async () => {
+      const userData = {
+        nom: 'Test User',
+        email: 'test@example.com',
+        motDePasse: 'password123',
+        role: 'Perso'
+      };
+
+      const mockQuery = {
+        select: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue(null)
+      };
+
+      mockUserFindOne.mockReturnValue(mockQuery);
+      mockUserSave.mockResolvedValue(mockUser);
+      mockJwtSign.mockReturnValue('token');
+
+      await AuthService.inscription(userData);
+
+      expect(mockQuery.select).toHaveBeenCalledWith('_id');
+      expect(mockQuery.lean).toHaveBeenCalled();
+    });
+  });
+
+  describe('connexion', () => {
+    it('should successfully login with valid credentials', async () => {
+      const loginData = {
+        email: 'test@example.com',
+        motDePasse: 'password123'
+      };
+
+      const expectedToken = 'generated-jwt-token';
+      mockJwtSign.mockReturnValue(expectedToken);
+
+      const mockQuery = {
+        select: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue(mockUser)
+      };
+
+      mockUserFindOne.mockReturnValue(mockQuery);
+      MockUser.prototype.comparerMotDePasse = jest.fn().mockResolvedValue(true);
+
+      const result = await AuthService.connexion(loginData);
+
+      expect(MockUser.findOne).toHaveBeenCalledWith({ email: loginData.email });
+      expect(mockQuery.select).toHaveBeenCalledWith('_id nom email motDePasse');
+      expect(mockQuery.lean).toHaveBeenCalled();
+      expect(result).toEqual({
+        _id: userId,
+        nom: mockUser.nom,
+        email: mockUser.email,
+        token: expectedToken
+      });
+    });
+
+    it('should throw error if user not found', async () => {
+      const loginData = {
+        email: 'nonexistent@example.com',
+        motDePasse: 'password123'
+      };
+
+      const mockQuery = {
+        select: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue(null)
+      };
+
+      MockUser.findOne.mockReturnValue(mockQuery);
+
+      await expect(AuthService.connexion(loginData)).rejects.toThrow(
+        new AppError(AUTH.ERRORS.INVALID_CREDENTIALS, 401)
+      );
+    });
+
+    it('should throw error if password is incorrect', async () => {
+      const loginData = {
+        email: 'test@example.com',
+        motDePasse: 'wrongpassword'
+      };
+
+      const mockQuery = {
+        select: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue(mockUser)
+      };
+
+      MockUser.findOne.mockReturnValue(mockQuery);
+      MockUser.prototype.comparerMotDePasse = jest.fn().mockResolvedValue(false);
+
+      await expect(AuthService.connexion(loginData)).rejects.toThrow(
+        new AppError(AUTH.ERRORS.INVALID_CREDENTIALS, 401)
+      );
+    });
+
+    it('should handle database errors during login', async () => {
+      const loginData = {
+        email: 'test@example.com',
+        motDePasse: 'password123'
+      };
+
+      const mockQuery = {
+        select: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockRejectedValue(new Error('Database connection failed'))
+      };
+
+      MockUser.findOne.mockReturnValue(mockQuery);
+
+      await expect(AuthService.connexion(loginData)).rejects.toThrow('Database connection failed');
+    });
+
+    it('should handle password comparison errors', async () => {
+      const loginData = {
+        email: 'test@example.com',
+        motDePasse: 'password123'
+      };
+
+      const mockQuery = {
+        select: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue(mockUser)
+      };
+
+      MockUser.findOne.mockReturnValue(mockQuery);
+      MockUser.prototype.comparerMotDePasse = jest.fn().mockRejectedValue(new Error('Bcrypt error'));
+
+      await expect(AuthService.connexion(loginData)).rejects.toThrow('Bcrypt error');
+    });
+  });
+
+  describe('getMe', () => {
+    it('should return user information without password', async () => {
+      const userIdString = userId.toString();
+      const mockPopulatedUser = {
+        _id: userId,
+        nom: 'Test User',
+        email: 'test@example.com',
+        role: 'Perso',
+        partenaireId: {
+          _id: new mongoose.Types.ObjectId(),
+          nom: 'Partner',
+          email: 'partner@example.com'
+        }
+      };
+
+      const mockQuery = {
+        select: jest.fn().mockReturnThis(),
+        populate: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue(mockPopulatedUser)
+      };
+
+      MockUser.findById.mockReturnValue(mockQuery);
+
+      const result = await AuthService.getMe(userIdString);
+
+      expect(MockUser.findById).toHaveBeenCalledWith(userIdString);
+      expect(mockQuery.select).toHaveBeenCalledWith('-motDePasse -__v');
+      expect(mockQuery.populate).toHaveBeenCalledWith({
+        path: 'partenaireId',
+        select: 'nom email avatarUrl _id'
+      });
+      expect(mockQuery.lean).toHaveBeenCalled();
+      expect(result).toEqual(mockPopulatedUser);
+    });
+
+    it('should throw error if user not found', async () => {
+      const userIdString = userId.toString();
+
+      const mockQuery = {
+        select: jest.fn().mockReturnThis(),
+        populate: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue(null)
+      };
+
+      MockUser.findById.mockReturnValue(mockQuery);
+
+      await expect(AuthService.getMe(userIdString)).rejects.toThrow(
+        new AppError(AUTH.ERRORS.NOT_FOUND, 404)
+      );
+    });
+
+    it('should handle database errors during getMe', async () => {
+      const userIdString = userId.toString();
+
+      const mockQuery = {
+        select: jest.fn().mockReturnThis(),
+        populate: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockRejectedValue(new Error('Database query failed'))
+      };
+
+      MockUser.findById.mockReturnValue(mockQuery);
+
+      await expect(AuthService.getMe(userIdString)).rejects.toThrow('Database query failed');
+    });
+
+    it('should return user without partner when no partenaireId', async () => {
+      const userIdString = userId.toString();
+      const mockUserWithoutPartner = {
+        _id: userId,
+        nom: 'Test User',
+        email: 'test@example.com',
+        role: 'Perso',
+        partenaireId: null
+      };
+
+      const mockQuery = {
+        select: jest.fn().mockReturnThis(),
+        populate: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue(mockUserWithoutPartner)
+      };
+
+      MockUser.findById.mockReturnValue(mockQuery);
+
+      const result = await AuthService.getMe(userIdString);
+
+      expect(result).toEqual(mockUserWithoutPartner);
+      expect(result.partenaireId).toBeNull();
+    });
+
+    it('should handle invalid user ID format', async () => {
+      const invalidUserId = 'invalid-id';
+
+      const mockQuery = {
+        select: jest.fn().mockReturnThis(),
+        populate: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockRejectedValue(new Error('Cast to ObjectId failed'))
+      };
+
+      MockUser.findById.mockReturnValue(mockQuery);
+
+      await expect(AuthService.getMe(invalidUserId)).rejects.toThrow('Cast to ObjectId failed');
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should preserve error types when throwing AppError', async () => {
+      const userData = {
+        nom: 'Test User',
+        email: 'test@example.com',
+        motDePasse: 'password123',
+        role: 'Perso'
+      };
+
+      MockUser.findOne.mockResolvedValue({ _id: userId });
+
+      try {
+        await AuthService.inscription(userData);
+        fail('Should have thrown an error');
+      } catch (error) {
+        expect(error).toBeInstanceOf(AppError);
+        expect(error.message).toBe(AUTH.ERRORS.ALREADY_EXISTS);
+        expect(error.statusCode).toBe(409);
+      }
+    });
+
+    it('should handle missing environment variables gracefully', async () => {
+      delete process.env.JWT_SECRET;
+
+      const userData = {
+        nom: 'Test User',
+        email: 'test@example.com',
+        motDePasse: 'password123',
+        role: 'Perso'
+      };
+
+      MockUser.findOne.mockResolvedValue(null);
+
+      try {
+        await AuthService.inscription(userData);
+        fail('Should have thrown an error');
+      } catch (error) {
+        expect(error).toBeInstanceOf(AppError);
+        expect(error.message).toBe('JWT_SECRET non défini');
+        expect(error.statusCode).toBe(500);
+      }
+    });
+  });
+}); 
