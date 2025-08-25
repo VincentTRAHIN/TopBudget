@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { check } from "express-validator";
-import { proteger } from "../middlewares/auth.middleware";
+import { proteger } from "../../middlewares/auth.middleware";
 import {
   ajouterCategorieRevenu,
   obtenirCategoriesRevenu,
   obtenirCategorieRevenuParId,
   modifierCategorieRevenu,
   supprimerCategorieRevenu,
-} from "../controllers/categorieRevenu.controller";
-import { asyncHandler } from "../utils/async.utils";
+} from "../../controllers/categorieRevenu.controller";
+import { asyncHandler } from "../../utils/async.utils";
 
 const router = Router();
 

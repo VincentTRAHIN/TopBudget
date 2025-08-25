@@ -1,6 +1,9 @@
-export interface ICategorie {
+export interface CategorieBase {
   _id: string;
   nom: string;
+}
+
+export interface ICategorie extends CategorieBase {
   description?: string;
   image?: string;
   createdAt?: string;

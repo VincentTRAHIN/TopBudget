@@ -1,15 +1,21 @@
 import { Document, Types } from "mongoose";
 
-export type TypeCompte = "Perso" | "Conjoint";
-export type TypeDepense = "Perso" | "Commune";
-
+export enum TypeCompteEnum {
+  PERSO = "Perso",
+  CONJOINT = "Conjoint",
+  COMMUN = "Commun",
+};
+export enum TypeDepenseEnum {
+  PERSO = "Perso",
+  COMMUNE = "Commune"
+}
 export interface IDepense extends Document {
   montant: number;
   description?: string;
   date: Date;
   commentaire?: string;
-  typeCompte: TypeCompte;
-  typeDepense: TypeDepense;
+  typeCompte: TypeCompteEnum;
+  typeDepense: TypeDepenseEnum;
   recurrence: boolean;
   categorie: Types.ObjectId;
   utilisateur: Types.ObjectId;
@@ -37,8 +43,8 @@ export interface IDepenseInput {
   montant: number;
   date: Date;
   commentaire?: string;
-  typeCompte: TypeCompte;
-  typeDepense: TypeDepense;
+  typeCompte: TypeCompteEnum;
+  typeDepense: TypeDepenseEnum;
   recurrence?: boolean;
   categorie: Types.ObjectId;
   description?: string;
@@ -52,8 +58,8 @@ export interface IDepenseResponse {
   readonly description?: string;
   readonly date: Date;
   readonly commentaire?: string;
-  readonly typeCompte: TypeCompte;
-  readonly typeDepense: TypeDepense;
+  readonly typeCompte: TypeCompteEnum;
+  readonly typeDepense: TypeDepenseEnum;
   readonly recurrence: boolean;
   readonly categorie: {
     readonly id: string;

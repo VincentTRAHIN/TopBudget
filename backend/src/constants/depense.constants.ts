@@ -1,15 +1,9 @@
-import { TypeCompte, TypeDepense } from "../types/depense.types";
+import { TypeCompteEnum, TypeDepenseEnum } from "../types/depense.types";
 
 export const DEPENSE = {
-  TYPES_COMPTE: {
-    PERSO: "Perso" as TypeCompte,
-    CONJOINT: "Conjoint" as TypeCompte,
-  },
-
-  TYPES_DEPENSE: {
-    PERSO: "Perso" as TypeDepense,
-    COMMUNE: "Commune" as TypeDepense,
-  },
+  ALLOWED_HEADER : ["débit", "debit", "Débit", "Debit"] as string[],
+  TYPES_COMPTE: TypeCompteEnum,
+  TYPES_DEPENSE: TypeDepenseEnum,
 
   SUCCESS: {
     CREATED: "Dépense créée avec succès",
@@ -21,7 +15,7 @@ export const DEPENSE = {
 
   ERRORS: {
     NOT_FOUND: "Dépense non trouvée",
-    INVALID_MONTANT: "Le montant doit être positif",
+    INVALID_MONTANT: "Le montant doit être négatif",
     INVALID_DATE: "La date est invalide",
     INVALID_TYPE_COMPTE: "Type de compte invalide",
     INVALID_TYPE_DEPENSE: "Type de dépense invalide",
