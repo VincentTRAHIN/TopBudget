@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { ICategorie } from '@/types/categorie.type';
-import { Edit, Trash2, RefreshCw } from 'lucide-react';
-import { toast } from 'react-hot-toast';
-import fetcher from '@/utils/fetcher.utils';
-import { categoriesEndpoint } from '@/services/api.service';
+import { RefreshCw } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories.hook';
+import { Table } from '../table';
+import { useColumns } from './useColumns';
+import { EmptyComponent } from './empty.component';
+import { categoriesEndpoint } from '@/services/api.service';
+import { ICategorieRevenu } from '@/types/categorieRevenu.type';
+import { KeyedMutator } from 'swr';
 
 interface CategoriesListProps {
   categories: ICategorie[];
@@ -15,6 +18,8 @@ interface CategoriesListProps {
   onEdit: (categorie: ICategorie) => void;
   onDelete: () => void;
   onAdd: () => void;
+  endpoint: string;
+  refresh: KeyedMutator<ICategorie[]>
 }
 
 export default function CategoriesList({
@@ -24,32 +29,18 @@ export default function CategoriesList({
   onEdit,
   onDelete,
   onAdd,
+  endpoint,
+  refresh
 }: CategoriesListProps) {
   const [search, setSearch] = useState('');
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const { refreshCategories } = useCategories();
 
-  const handleDelete = async (id: string) => {
-    setIsDeleting(id);
-    try {
-      await fetcher(`${categoriesEndpoint}/${id}`, {
-        method: 'DELETE',
-      });
-      toast.success('Catégorie supprimée avec succès');
-      refreshCategories();
-      onDelete();
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Erreur inconnue';
-      if (errorMessage.includes('utilisée')) {
-        toast.error('Cette catégorie est utilisée et ne peut être supprimée.');
-      } else {
-        toast.error('Erreur lors de la suppression de la catégorie');
-      }
-    } finally {
-      setIsDeleting(null);
-    }
-  };
+  const { columns, actions } = useColumns<ICategorie | ICategorieRevenu>({
+    onEdit,
+    onDelete,
+    refresh,
+    endpoint,
+  });
 
   const handleRetry = () => {
     refreshCategories();
@@ -171,87 +162,19 @@ export default function CategoriesList({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="table w-full">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="px-4 py-2 text-left">Nom</th>
-              <th className="px-4 py-2 text-left">Description</th>
-              <th className="px-4 py-2 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredCategories.length === 0 ? (
-              <tr>
-                <td colSpan={3} className="px-4 py-8 text-center">
-                  {search ? (
-                    <div className="text-gray-500">
-                      <p className="mb-2">
-                        Aucune catégorie trouvée pour &quot;{search}&quot;
-                      </p>
-                      <button
-                        onClick={() => setSearch('')}
-                        className="text-indigo-600 hover:text-indigo-800 text-sm"
-                      >
-                        Effacer la recherche
-                      </button>
-                    </div>
-                  ) : categories.length === 0 ? (
-                    <div className="text-gray-500">
-                      <p className="mb-4">
-                        Aucune catégorie de dépense trouvée.
-                      </p>
-                      <p className="text-sm mb-4">
-                        Commencez par créer votre première catégorie pour
-                        organiser vos dépenses.
-                      </p>
-                      <button
-                        onClick={onAdd}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Créer ma première catégorie
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">
-                      Aucune catégorie ne correspond à votre recherche.
-                    </p>
-                  )}
-                </td>
-              </tr>
-            ) : (
-              filteredCategories.map((categorie) => (
-                <tr key={categorie._id} className="hover:bg-gray-50">
-                  <td className="px-4 py-2">{categorie.nom}</td>
-                  <td className="px-4 py-2">{categorie.description}</td>
-                  <td className="px-4 py-2">
-                    <div className="flex gap-2 justify-center">
-                      <button
-                        onClick={() => onEdit(categorie)}
-                        className="p-1 text-blue-600 hover:text-blue-800"
-                        aria-label="Modifier"
-                        disabled={isDeleting === categorie._id}
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(categorie._id)}
-                        className="p-1 text-red-600 hover:text-red-800 disabled:opacity-50"
-                        aria-label="Supprimer"
-                        disabled={isDeleting === categorie._id}
-                      >
-                        {isDeleting === categorie._id ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-                        ) : (
-                          <Trash2 size={16} />
-                        )}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <Table
+          columns={columns}
+          data={filteredCategories}
+          rowAction={actions}
+          emptyRender={
+            <EmptyComponent
+              search={search}
+              setSearch={setSearch}
+              onAdd={onAdd}
+              categories={categories}
+            />
+          }
+        />
       </div>
     </div>
   );

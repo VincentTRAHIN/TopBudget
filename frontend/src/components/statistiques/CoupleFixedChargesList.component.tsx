@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useCoupleFixedCharges } from '@/hooks/useCoupleFixedCharges.hook';
+import { Table } from '../table';
 
 export default function CoupleFixedChargesList() {
   const today = new Date();
@@ -185,50 +186,18 @@ export default function CoupleFixedChargesList() {
           </select>
         </div>
       </div>
-      <table className="min-w-full divide-y divide-gray-200 mb-4">
-        <thead>
+      <Table
+        data={data.listeChargesFixes}
+        columns={[]}
+        emptyRender={
           <tr>
-            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-              Description
-            </th>
-            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-              Montant
-            </th>
-            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-              Catégorie
-            </th>
-            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-              Payé par
-            </th>
+            <td colSpan={4} className="px-4 py-2 text-center text-gray-400">
+              Aucune charge fixe commune pour cette période.
+            </td>
           </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {data.listeChargesFixes.length === 0 && (
-            <tr>
-              <td colSpan={4} className="px-4 py-2 text-center text-gray-400">
-                Aucune charge fixe commune pour cette période.
-              </td>
-            </tr>
-          )}
-          {data.listeChargesFixes.map((charge) => (
-            <tr
-              key={
-                charge._id ||
-                `${charge.description}-${charge.montant}-${charge.payePar}`
-              }
-            >
-              <td className="px-4 py-2">{charge.description}</td>
-              <td className="px-4 py-2">{charge.montant.toFixed(2)}€</td>
-              <td className="px-4 py-2">
-                {typeof charge.categorie === 'string'
-                  ? charge.categorie
-                  : charge.categorie?.nom || 'N/A'}
-              </td>
-              <td className="px-4 py-2">{charge.payePar}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+
+        }
+      />
       <div className="font-semibold text-right">
         Total des charges fixes communes :{' '}
         {data.totalChargesFixesCommunes.toFixed(2)}€

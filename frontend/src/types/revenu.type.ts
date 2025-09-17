@@ -1,4 +1,6 @@
+import { CategorieBase } from './categorie.type';
 import { ICategorieRevenu } from './categorieRevenu.type';
+import { UserElementChild } from './user.type';
 
 export type TypeCompteRevenu = 'Perso' | 'Conjoint';
 
@@ -8,9 +10,9 @@ export interface IRevenu {
   description: string;
   date: string;
   typeCompte: TypeCompteRevenu;
-  utilisateur: { _id: string; nom: string } | string;
+  utilisateur: UserElementChild;
   commentaire?: string;
-  categorieRevenu: ICategorieRevenu | string;
+  categorieRevenu: CategorieBase;
   estRecurrent: boolean;
   createdAt?: string;
   updatedAt?: string;

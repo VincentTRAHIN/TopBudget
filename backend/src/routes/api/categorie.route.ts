@@ -1,13 +1,13 @@
 import { Router } from "express";
-import { proteger } from "../middlewares/auth.middleware";
+import { proteger } from "../../middlewares/auth.middleware";
 import {
   ajouterCategorie,
   obtenirCategories,
   modifierCategorie,
   supprimerCategorie,
-} from "../controllers/categorie.controller";
-import { creerCategorieValidator } from "../middlewares/validators/categorie.validator";
-import { asyncHandler } from "../utils/async.utils";
+} from "../../controllers/categorie.controller";
+import { creerCategorieValidator } from "../../middlewares/validators/categorie.validator";
+import { asyncHandler } from "../../utils/async.utils";
 
 const router = Router();
 

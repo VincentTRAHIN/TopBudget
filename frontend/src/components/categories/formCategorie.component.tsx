@@ -5,10 +5,10 @@ import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 import fetcher from '@/utils/fetcher.utils';
-import { categoriesEndpoint } from '@/services/api.service';
 import { ICategorie } from '@/types/categorie.type';
 import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { KeyedMutator } from 'swr';
 
 const CategorieSchema = Yup.object().shape({
   nom: Yup.string().required('Nom requis'),
@@ -18,6 +18,8 @@ const CategorieSchema = Yup.object().shape({
 interface FormCategorieProps {
   existingCategorie?: ICategorie;
   onClose: () => void;
+  endpoint: string;
+  refresh: KeyedMutator<ICategorie[]>
 }
 
 interface CategorieFormValues {
@@ -28,8 +30,9 @@ interface CategorieFormValues {
 export default function FormCategorie({
   existingCategorie,
   onClose,
+  endpoint,
+  refresh
 }: FormCategorieProps) {
-  const { refreshCategories } = useCategories();
 
   const formRef = useRef<HTMLFormElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
@@ -61,19 +64,19 @@ export default function FormCategorie({
     };
     try {
       if (existingCategorie) {
-        await fetcher(`${categoriesEndpoint}/${existingCategorie._id}`, {
+        await fetcher(`${endpoint}/${existingCategorie._id}`, {
           method: 'PUT',
           body: JSON.stringify(payload),
         });
         toast.success('Catégorie modifiée !');
       } else {
-        await fetcher(categoriesEndpoint, {
+        await fetcher(endpoint, {
           method: 'POST',
           body: JSON.stringify(payload),
         });
         toast.success('Catégorie ajoutée !');
       }
-      refreshCategories();
+      refresh();
       resetForm();
       onClose();
     } catch (error: unknown) {

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { proteger } from "../middlewares/auth.middleware";
+import { proteger } from "../../middlewares/auth.middleware";
 import {
   getTotalFluxMensuel,
   getRepartitionParCategorie,
@@ -19,7 +19,7 @@ import {
   getEvolutionSoldesMensuels,
   repartitionParCategorie,
   repartitionRevenusParCategorie as ctrlRepartitionRevenusParCategorie,
-} from "../controllers/statistiques.controller";
+} from "../../controllers/statistiques.controller";
 import { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
 import {
@@ -27,9 +27,9 @@ import {
   validateType,
   validateEvolutionFlux,
   validateComparaisonMois,
-} from "../middlewares/validators/statistiques.validator";
-import { asyncHandler } from "../utils/async.utils";
-import { AuthRequest } from "../middlewares/auth.middleware";
+} from "../../middlewares/validators/statistiques.validator";
+import { asyncHandler } from "../../utils/async.utils";
+import { AuthRequest } from "../../middlewares/auth.middleware";
 
 const router = Router();
 

@@ -5,7 +5,7 @@ import CategorieModel from "../models/categorie.model";
 import { AppError } from "../middlewares/error.middleware";
 import { DEPENSE, AUTH } from "../constants";
 import {
-  TypeCompte,
+  TypeCompteEnum,
   TypeDepense,
   IDepensePopulated,
 } from "../types/depense.types";
@@ -56,7 +56,7 @@ export class DepenseService {
     if (
       typeof typeCompte === "string" &&
       typeCompte &&
-      Object.values(DEPENSE.TYPES_COMPTE).includes(typeCompte as TypeCompte)
+      Object.values(DEPENSE.TYPES_COMPTE).includes(typeCompte as TypeCompteEnum)
     ) {
       matchFilter.typeCompte = typeCompte;
     }

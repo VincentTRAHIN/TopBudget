@@ -29,3 +29,8 @@ export type UserLoginPayload = {
   email: string;
   motDePasse: string;
 };
+
+export type UserElementChild = {
+  _id: string;
+  nom: string;
+}

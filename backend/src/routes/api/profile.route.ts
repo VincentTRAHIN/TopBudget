@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { proteger } from "../middlewares/auth.middleware";
+import { proteger } from "../../middlewares/auth.middleware";
 import {
   updateUserProfile,
   uploadUserAvatar,
   changeUserPassword,
-} from "../controllers/profile.controller";
-import { uploadAvatar } from "../middlewares/upload.middleware";
-import { asyncHandler } from "../utils/async.utils";
+} from "../../controllers/profile.controller";
+import { uploadAvatar } from "../../middlewares/upload.middleware";
+import { asyncHandler } from "../../utils/async.utils";
 
 const router = Router();
 

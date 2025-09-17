@@ -1,6 +1,6 @@
 'use client';
 
-import { importRevenusEndpoint } from '@/services/api.service';
+import { importEndpoint } from '@/services/api.service';
 import { useRevenus } from '@/hooks/useRevenus.hook';
 import ImportCsvModalBase from '@/components/shared/ImportCsvModalBase';
 
@@ -14,7 +14,7 @@ const RevenusFormatInstructions = () => (
       <strong>Format attendu :</strong>
     </p>
     <ul className="list-disc list-inside ml-4">
-      <li>Séparateur : Virgule (,)</li>
+      <li>Séparateur : Point-Virgule (;)</li>
       <li>Encodage : UTF-8</li>
       <li>
         En-têtes (insensible à la casse, ordre indifférent) :
@@ -56,7 +56,7 @@ export default function ImportCsvModalRevenu({
     <ImportCsvModalBase
       onClose={onClose}
       modalTitle="Importer des Revenus (CSV)"
-      endpoint={importRevenusEndpoint}
+      endpoint={importEndpoint}
       onImportSuccess={refreshRevenus}
       formatInstructions={<RevenusFormatInstructions />}
       importedItemLabel="Revenus importés"

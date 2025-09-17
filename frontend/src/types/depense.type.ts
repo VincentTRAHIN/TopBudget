@@ -1,4 +1,5 @@
-import { ICategorie } from './categorie.type';
+import { CategorieBase } from './categorie.type';
+import { UserElementChild } from './user.type';
 
 export type TypeCompte = 'Perso' | 'Conjoint';
 export type TypeDepense = 'Perso' | 'Commune';
@@ -12,8 +13,8 @@ export interface IDepense {
   typeCompte: TypeCompte;
   typeDepense: TypeDepense;
   recurrence?: boolean;
-  categorie: ICategorie | string;
-  utilisateur: { _id: string; nom: string } | string;
+  categorie: CategorieBase;
+  utilisateur: UserElementChild;
   createdAt?: string;
   updatedAt?: string;
   estChargeFixe?: boolean;

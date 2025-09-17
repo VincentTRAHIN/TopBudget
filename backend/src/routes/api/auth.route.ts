@@ -3,13 +3,13 @@ import {
   inscription as inscriptionController,
   connexion as connexionController,
   getMe as getMeController,
-} from "../controllers/auth.controller";
+} from "../../controllers/auth.controller";
 import {
   loginValidator,
   registerValidator,
-} from "../middlewares/validators/user.validator";
-import { proteger } from "../middlewares/auth.middleware";
-import { asyncHandler } from "../utils/async.utils";
+} from "../../middlewares/validators/user.validator";
+import { proteger } from "../../middlewares/auth.middleware";
+import { asyncHandler } from "../../utils/async.utils";
 
 const router = Router();
 
