@@ -17,13 +17,13 @@ dotenv.config();
 const envSchema = z.object({
   // Environnement
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  PORT: z.string().transform(Number).pipe(z.number().min(1).max(65535)).default('5001'),
+  PORT: z.string().default('5001').transform(Number).pipe(z.number().min(1).max(65535)),
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
 
   // Base de données
   MONGO_URI: z.string().url().optional(),
   MONGO_HOST: z.string().default('localhost'),
-  MONGO_PORT: z.string().transform(Number).pipe(z.number().min(1).max(65535)).default('27017'),
+  MONGO_PORT: z.string().default('27017').transform(Number).pipe(z.number().min(1).max(65535)),
   MONGO_DATABASE: z.string().min(1).default('topbudget_dev'),
   MONGO_USERNAME: z.string().optional(),
   MONGO_PASSWORD: z.string().optional(),
@@ -36,23 +36,23 @@ const envSchema = z.object({
 
   // CORS
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
-  CORS_CREDENTIALS: z.string().transform((val: string) => val === 'true').default('true'),
+  CORS_CREDENTIALS: z.string().default('true').transform((val: string) => val === 'true'),
 
   // API
   API_PREFIX: z.string().default('/api'),
   BODY_LIMIT: z.string().default('10mb'),
-  RATE_LIMIT_WINDOW: z.string().transform(Number).pipe(z.number().min(1)).default('15'),
-  RATE_LIMIT_MAX: z.string().transform(Number).pipe(z.number().min(1)).default('100'),
+  RATE_LIMIT_WINDOW: z.string().default('15').transform(Number).pipe(z.number().min(1)),
+  RATE_LIMIT_MAX: z.string().default('100').transform(Number).pipe(z.number().min(1)),
 
   // Uploads
   UPLOAD_DIR: z.string().default('./public/uploads'),
-  MAX_FILE_SIZE: z.string().transform(Number).pipe(z.number().min(1)).default('5'),
+  MAX_FILE_SIZE: z.string().default('5').transform(Number).pipe(z.number().min(1)),
   ALLOWED_FILE_TYPES: z.string().default('jpg,jpeg,png,gif,pdf'),
 
   // Email (optionnel)
   SMTP_HOST: z.string().optional(),
-  SMTP_PORT: z.string().transform(Number).pipe(z.number().min(1).max(65535)).optional(),
-  SMTP_SECURE: z.string().transform((val: string) => val === 'true').optional(),
+  SMTP_PORT: z.string().optional().transform((val) => val ? Number(val) : undefined).pipe(z.number().min(1).max(65535).optional()),
+  SMTP_SECURE: z.string().optional().transform((val) => val ? val === 'true' : undefined),
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().email().optional(),
@@ -61,13 +61,13 @@ const envSchema = z.object({
   // Monitoring
   DEBUG: z.string().optional(),
   SENTRY_DSN: z.string().url().optional(),
-  HEALTH_CHECK_INTERVAL: z.string().transform(Number).pipe(z.number().min(1000)).default('30000'),
-  HEALTH_CHECK_TIMEOUT: z.string().transform(Number).pipe(z.number().min(1000)).default('5000'),
+  HEALTH_CHECK_INTERVAL: z.string().default('30000').transform(Number).pipe(z.number().min(1000)),
+  HEALTH_CHECK_TIMEOUT: z.string().default('5000').transform(Number).pipe(z.number().min(1000)),
 
   // Redis (optionnel)
   REDIS_URL: z.string().url().optional(),
   REDIS_PASSWORD: z.string().optional(),
-  REDIS_DB: z.string().transform(Number).pipe(z.number().min(0)).optional(),
+  REDIS_DB: z.string().optional().transform((val) => val ? Number(val) : undefined).pipe(z.number().min(0).optional()),
 });
 
 /**
@@ -155,7 +155,7 @@ function validateEnvironment() {
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error('❌ Erreurs de validation des variables d\'environnement:');
-      error.errors.forEach((err: z.ZodIssue) => {
+      error.issues.forEach((err: z.ZodIssue) => {
         console.error(`  - ${err.path.join('.')}: ${err.message}`);
       });
     } else {

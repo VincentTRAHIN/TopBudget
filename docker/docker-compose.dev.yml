@@ -20,9 +20,14 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # Hot reload: bind mount du code source
-      - ./frontend:/app
-      - /app/node_modules
+      # Hot reload: bind mount du code source pour le développement
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/package.json:/app/package.json
+      - ./frontend/next.config.ts:/app/next.config.ts
+      - ./frontend/tailwind.config.ts:/app/tailwind.config.ts
+      - ./frontend/postcss.config.mjs:/app/postcss.config.mjs
+      - ./frontend/tsconfig.json:/app/tsconfig.json
       # Volume anonyme pour .next pour éviter les problèmes de permissions
       - frontend-next-dev:/app/.next
     environment:
@@ -46,10 +51,14 @@ services:
       # Port debug Node.js (optionnel)
       - "9229:9229"
     volumes:
-      # Hot reload: bind mount du code source
-      - ./backend:/app
-      - /app/node_modules
-      - /app/dist
+      # Hot reload: bind mount du code source pour le développement
+      - ./backend/src:/app/src
+      - ./backend/package.json:/app/package.json
+      - ./backend/tsconfig.json:/app/tsconfig.json
+      - ./backend/jest.config.js:/app/jest.config.js
+      - ./backend/eslint.config.mjs:/app/eslint.config.mjs
+      # Volume pour les logs
+      - logs-data:/app/logs
     environment:
       - NODE_ENV=development
       - MONGO_URI=mongodb://mongo:27017/topbudget_dev

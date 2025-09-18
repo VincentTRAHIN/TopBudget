@@ -11,6 +11,9 @@ const connectDB = async () => {
   try {
     console.log("--> [DEBUG] connectDB: Starting MongoDB connection...");
     const mongoUri = config.MONGO_URI;
+    if (!mongoUri) {
+      throw new Error('MONGO_URI is not configured');
+    }
     await mongoose.connect(mongoUri);
     console.log("--> [SUCCESS] connectDB: MongoDB connection successful.");
     logger.info("📦 Connexion à MongoDB établie avec succès");

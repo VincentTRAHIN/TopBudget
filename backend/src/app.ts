@@ -29,13 +29,15 @@ app.use(morganOptions);
 console.log("--> [DEBUG] app.ts: Morgan middleware added.");
 
 
-// Route de santé pour vérifier que l'API fonctionne
+// Route de santé simple pour Docker health checks
 app.get("/health", (_req, res) => {
   res.status(200).json({
     status: "OK",
     message: "TopBudget API is running",
     timestamp: new Date().toISOString(),
-    version: "1.0.0"
+    uptime: process.uptime(),
+    version: process.env.npm_package_version || "1.0.0",
+    environment: process.env.NODE_ENV || "development"
   });
 });
 
