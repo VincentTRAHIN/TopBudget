@@ -1,0 +1,117 @@
+# ============================================
+# Docker Compose - Environnement DÉVELOPPEMENT
+# ============================================
+# Usage: docker-compose -f docker-compose.yml -f docker/docker-compose.dev.yml up
+# 
+# Fonctionnalités:
+# - Hot reload activé
+# - Ports exposés pour debugging
+# - Volumes bindés pour le développement 
+# - Tools de développement (mongo-express)
+# - Logs détaillés
+
+services:
+  # ============================================
+  # Frontend - Configuration développement
+  # ============================================
+  frontend:
+    build:
+      target: development
+    ports:
+      - "3000:3000"
+    volumes:
+      # Hot reload: bind mount du code source
+      - ./frontend:/app
+      - /app/node_modules
+      # Volume anonyme pour .next pour éviter les problèmes de permissions
+      - frontend-next-dev:/app/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:5001/api
+      - NEXT_TELEMETRY_DISABLED=1
+    restart: unless-stopped
+    # Utiliser root en dev pour éviter les problèmes de permissions
+    user: "0:0"
+    # Commande de développement avec hot reload
+    command: ["dumb-init", "--", "npm", "run", "dev"]
+
+  # ============================================
+  # Backend - Configuration développement  
+  # ============================================
+  backend:
+    build:
+      target: development
+    ports:
+      - "5001:5001"
+      # Port debug Node.js (optionnel)
+      - "9229:9229"
+    volumes:
+      # Hot reload: bind mount du code source
+      - ./backend:/app
+      - /app/node_modules
+      - /app/dist
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo:27017/topbudget_dev
+      - JWT_SECRET=${JWT_SECRET:-dev_jwt_secret_key_not_secure}
+      - PORT=5001
+      - DEBUG=app:*
+    restart: unless-stopped
+    # Commande de développement avec hot reload
+    command: ["dumb-init", "--", "npm", "run", "dev"]
+
+  # ============================================
+  # MongoDB - Configuration développement
+  # ============================================  
+  mongo:
+    container_name: mongodb_dev
+    ports:
+      # Exposition pour accès direct depuis l'host
+      - "27017:27017"
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=topbudget_dev
+    # Pas d'authentification en dev pour simplifier
+
+  # ============================================
+  # Mongo Express - Interface d'administration (DEV ONLY)
+  # ============================================
+  mongo-express:
+    image: mongo-express:1-20-alpine3.19
+    container_name: mongo_express_dev
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ""
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ""
+      ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD:-devpassword}
+    depends_on:
+      - mongo
+    networks:
+      - topbudget-network
+    # Profil optionnel pour démarrer mongo-express
+    profiles:
+      - tools
+
+# ============================================
+# Volumes développement
+# ============================================
+volumes:
+  mongo-data:
+    name: topbudget_mongo_data_dev
+  logs-data:
+    name: topbudget_logs_data_dev
+  frontend-next-dev:
+    name: topbudget_frontend_next_dev
+
+# ============================================
+# Réseau développement  
+# ============================================
+networks:
+  topbudget-network:
+    name: topbudget_network_dev
+    driver: bridge

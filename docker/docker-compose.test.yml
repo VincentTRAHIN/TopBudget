@@ -1,0 +1,102 @@
+# ============================================
+# Docker Compose - Environnement TEST
+# ============================================
+# Usage: docker-compose -f docker-compose.yml -f docker/docker-compose.test.yml up --abort-on-container-exit
+#
+# Fonctionnalités:
+# - Services éphémères (pas de volumes persistants)
+# - Base de données en mémoire
+# - Tests d'intégration
+# - CI/CD friendly
+# - Isolation complète
+
+services:
+  # ============================================
+  # Frontend - Configuration test
+  # ============================================
+  frontend:
+    build:
+      target: development
+    container_name: frontend_test
+    environment:
+      - NODE_ENV=test
+      - NEXT_PUBLIC_API_URL=http://backend:5001/api
+      - NEXT_TELEMETRY_DISABLED=1
+    # Pas de ports exposés (tests internes)
+    restart: "no"
+    command: ["dumb-init", "--", "npm", "run", "test"]
+
+  # ============================================
+  # Backend - Configuration test
+  # ============================================
+  backend:
+    build:
+      target: development
+    container_name: backend_test
+    environment:
+      - NODE_ENV=test
+      - MONGO_URI=mongodb://mongo:27017/topbudget_test
+      - JWT_SECRET=test_jwt_secret_not_secure
+      - PORT=5001
+    restart: "no" 
+    command: ["dumb-init", "--", "npm", "run", "test"]
+
+  # ============================================
+  # MongoDB - Configuration test (ephémère)
+  # ============================================
+  mongo:
+    container_name: mongodb_test
+    restart: "no"
+    environment:
+      - MONGO_INITDB_DATABASE=topbudget_test
+    # Pas de volumes persistants pour les tests
+    tmpfs:
+      - /data/db
+    command: ["mongod", "--noprealloc", "--smallfiles"]
+
+  # ============================================
+  # Test Runner - Exécution des tests E2E
+  # ============================================
+  test-runner:
+    build:
+      context: ./
+      dockerfile: Dockerfile.test
+    container_name: test_runner
+    environment:
+      - NODE_ENV=test
+      - FRONTEND_URL=http://frontend:3000
+      - BACKEND_URL=http://backend:5001
+    depends_on:
+      - frontend
+      - backend
+      - mongo
+    networks:
+      - topbudget-network
+    restart: "no"
+    # Script de tests d'intégration
+    command: ["npm", "run", "test:e2e"]
+    volumes:
+      - ./tests:/app/tests:ro
+      - ./test-reports:/app/reports
+
+# ============================================
+# Volumes test (éphémères)
+# ============================================
+volumes:
+  mongo-data:
+    driver: tmpfs
+    driver_opts:
+      size: 100m
+  logs-data:
+    driver: tmpfs
+    driver_opts:
+      size: 50m
+
+# ============================================
+# Réseau test (isolé)
+# ============================================
+networks:
+  topbudget-network:
+    name: topbudget_network_test
+    driver: bridge
+    internal: true

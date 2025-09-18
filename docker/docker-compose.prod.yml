@@ -1,0 +1,185 @@
+# ============================================
+# Docker Compose - Environnement PRODUCTION
+# ============================================
+# Usage: docker-compose -f docker-compose.yml -f docker/docker-compose.prod.yml up -d
+#
+# Fonctionnalités:
+# - Images optimisées (multi-stage production)
+# - Secrets management sécurisé
+# - Health checks complets
+# - Restart policies robustes
+# - Limites de ressources
+# - Pas de ports exposés (sauf via reverse proxy)
+# - Logs structurés
+
+services:
+  # ============================================
+  # Nginx - Reverse Proxy (PRODUCTION ONLY)
+  # ============================================
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: nginx_prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - logs-data:/var/log/nginx
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - topbudget-network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # Frontend - Configuration production
+  # ============================================
+  frontend:
+    build:
+      target: runner
+    container_name: frontend_prod
+    restart: always
+    # Pas de ports exposés (via nginx)
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=/api
+      - NEXT_TELEMETRY_DISABLED=1
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # Backend - Configuration production
+  # ============================================
+  backend:
+    build:
+      target: production
+    container_name: backend_prod
+    restart: always
+    # Pas de ports exposés (via nginx)
+    environment:
+      - NODE_ENV=production
+      - MONGO_URI_FILE=/run/secrets/mongo_uri
+      - JWT_SECRET_FILE=/run/secrets/jwt_secret
+      - PORT=5001
+    secrets:
+      - mongo_uri
+      - jwt_secret
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5001/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # MongoDB - Configuration production
+  # ============================================
+  mongo:
+    container_name: mongodb_prod
+    restart: always
+    # Pas de ports exposés
+    environment:
+      - MONGO_INITDB_DATABASE=topbudget_prod
+      - MONGO_INITDB_ROOT_USERNAME_FILE=/run/secrets/mongo_root_username
+      - MONGO_INITDB_ROOT_PASSWORD_FILE=/run/secrets/mongo_root_password
+    secrets:
+      - mongo_root_username
+      - mongo_root_password
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2048M
+        reservations:
+          cpus: '0.5'
+          memory: 1024M
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Configuration sécurisée MongoDB
+    command: ["mongod", "--auth", "--bind_ip_all"]
+
+# ============================================
+# Secrets Docker (PRODUCTION)
+# ============================================
+secrets:
+  mongo_uri:
+    external: true
+    name: topbudget_mongo_uri_v1
+  jwt_secret:
+    external: true  
+    name: topbudget_jwt_secret_v1
+  mongo_root_username:
+    external: true
+    name: topbudget_mongo_root_username_v1
+  mongo_root_password:
+    external: true
+    name: topbudget_mongo_root_password_v1
+
+# ============================================
+# Volumes production (persistants)
+# ============================================
+volumes:
+  mongo-data:
+    name: topbudget_mongo_data_prod
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/topbudget/data/mongo
+  logs-data:
+    name: topbudget_logs_data_prod
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/topbudget/logs
+
+# ============================================
+# Réseau production (isolé)
+# ============================================
+networks:
+  topbudget-network:
+    name: topbudget_network_prod
+    driver: bridge
+    internal: false
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24

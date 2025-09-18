@@ -1,0 +1,131 @@
+# ============================================
+# Docker Compose - Environnement PRODUCTION SIMPLE (sans secrets)
+# ============================================
+# Version simplifiée pour tester la production sans Docker Swarm
+# Usage: docker-compose -f docker-compose.yml -f docker/docker-compose.prod-simple.yml up -d
+
+services:
+  # ============================================
+  # Frontend - Configuration production
+  # ============================================
+  frontend:
+    build:
+      target: runner
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:5001/api
+      - NEXT_TELEMETRY_DISABLED=1
+    depends_on:
+      - backend
+    networks:
+      - topbudget-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # Backend - Configuration production
+  # ============================================
+  backend:
+    build:
+      target: production
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=production
+      - PORT=5001
+      - JWT_SECRET=gxIbInfAEG9Z24VXxx+MgriCWGzhQLJYQ/K1yBjZdUA=
+      - MONGO_URI=mongodb://admin:password123@mongodb_prod:27017/topbudget?authSource=admin
+      - CORS_ORIGIN=http://localhost:3000,http://127.0.0.1:3000
+      - LOG_LEVEL=info
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - topbudget-network
+    volumes:
+      - logs-data:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5001/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # MongoDB - Configuration production (override du service base)
+  # ============================================
+  mongo:
+    image: mongo:6-jammy
+    container_name: mongodb_prod
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+      - MONGO_INITDB_DATABASE=topbudget
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+    networks:
+      - topbudget-network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.runCommand('ping').ok", "--quiet"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+# ============================================
+# Configuration réseau
+# ============================================
+networks:
+  topbudget-network:
+    name: topbudget_network_prod
+    driver: bridge
+    internal: false
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ============================================
+# Volumes persistants
+# ============================================
+volumes:
+  mongo-data:
+    name: topbudget_mongo_data_prod
+    driver: local
+    
+  mongo-config:
+    name: topbudget_mongo_config_prod
+    driver: local
+    
+  logs-data:
+    name: topbudget_logs_data_prod
+    driver: local
