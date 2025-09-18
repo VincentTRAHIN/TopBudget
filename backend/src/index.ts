@@ -1,19 +1,16 @@
-import dotenv from "dotenv";
-dotenv.config();
+// Charger et valider les variables d'environnement en premier
+import { config } from "./config/env.config";
 
 import mongoose from "mongoose";
 import app from "./app";
 import logger from "./utils/logger.utils";
-import { checkEnvVars } from "./utils/envCheck.utils";
-// Vérification des variables d'environnement requises
-checkEnvVars();
 
-const PORT = process.env.PORT || 5001;
+const PORT = config.PORT;
 
 const connectDB = async () => {
   try {
     console.log("--> [DEBUG] connectDB: Starting MongoDB connection...");
-    const mongoUri = process.env.MONGO_URI as string;
+    const mongoUri = config.MONGO_URI;
     await mongoose.connect(mongoUri);
     console.log("--> [SUCCESS] connectDB: MongoDB connection successful.");
     logger.info("📦 Connexion à MongoDB établie avec succès");

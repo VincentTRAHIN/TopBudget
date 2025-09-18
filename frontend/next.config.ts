@@ -1,8 +1,11 @@
 import path from 'path';
 import { NextConfig } from 'next';
 
+// Valider les variables d'environnement dès le démarrage
+import './src/config/env.config';
+
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001';
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 
 const nextConfig: NextConfig = {
   webpack(config) {
