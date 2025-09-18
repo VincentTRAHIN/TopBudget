@@ -50,8 +50,10 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY . .
 
-# Configuration des permissions
-RUN chown -R appuser:appgroup /app
+# Créer le dossier logs avec les bonnes permissions et configurer les permissions
+RUN mkdir -p /app/logs && \
+    chown -R appuser:appgroup /app && \
+    chmod 755 /app/logs
 
 # Utiliser l'utilisateur non-root
 USER appuser
@@ -82,6 +84,10 @@ COPY --from=builder /app/package*.json ./
 # Installation des dépendances de production uniquement
 RUN npm ci --only=production \
     && npm cache clean --force
+
+# Créer le dossier logs avec les bonnes permissions
+RUN mkdir -p /app/logs && \
+    chmod 755 /app/logs
 
 # Configuration des permissions
 RUN chown -R appuser:appgroup /app

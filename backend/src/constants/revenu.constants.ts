@@ -1,10 +1,10 @@
-import { TypeCompteRevenu } from "../types/revenu.types";
+import { TypeCompteRevenu, TypeRevenuEnum } from "../types/common.types";
 
 export const REVENU = {
   ALLOWED_HEADER : ["credit", "crédit", "Crédit", "Credit"] as string[],
   TYPES_COMPTE: {
-    PERSO: "Perso" as TypeCompteRevenu,
-    CONJOINT: "Conjoint" as TypeCompteRevenu,
+    PERSO: TypeRevenuEnum.PERSO,
+    CONJOINT: TypeRevenuEnum.CONJOINT,
   },
 
   SUCCESS: {

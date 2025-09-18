@@ -28,7 +28,7 @@ export class DepenseService {
     if (
       typeof typeDepense === "string" &&
       typeDepense &&
-      Object.values(DEPENSE.TYPES_DEPENSE).includes(typeDepense as TypeDepense)
+      Object.values(DEPENSE.TYPES_DEPENSE).includes(typeDepense as any)
     ) {
       matchFilter.typeDepense = typeDepense;
     }

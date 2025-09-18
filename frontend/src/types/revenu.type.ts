@@ -1,8 +1,7 @@
 import { CategorieBase } from './categorie.type';
 import { ICategorieRevenu } from './categorieRevenu.type';
 import { UserElementChild } from './user.type';
-
-export type TypeCompteRevenu = 'Perso' | 'Conjoint';
+import { TypeCompteRevenu } from './common.type';
 
 export interface IRevenu {
   _id: string;

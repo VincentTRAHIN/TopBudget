@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { IRevenu } from '@/types/revenu.type';
 import { useRevenus, RevenuFilters, RevenuSort } from '@/hooks/useRevenus.hook';
 import { ICategorieRevenu } from '@/types/categorieRevenu.type';
 import { useCategoriesRevenu } from '@/hooks/useCategoriesRevenu.hook';
 import { Table } from '../table';
 import { useColumns } from './useColumn';
+import { TYPE_REVENU_OPTIONS } from '@/types/common.type';
+import { useRevenuFilters } from '@/hooks/useTableFilters.hook';
 
 interface TableRevenusProps {
   revenus: IRevenu[];
@@ -21,20 +23,73 @@ export default function TableRevenus({
   onFilterChange,
   currentUserId,
 }: TableRevenusProps) {
-  const [search, setSearch] = useState('');
-  const [dateDebut, setDateDebut] = useState('');
-  const [dateFin, setDateFin] = useState('');
-  const [typeCompte, setTypeCompte] = useState<string>('');
-  const [categorieRevenu, setCategorieRevenu] = useState('');
-  const [estRecurrent, setEstRecurrent] = useState('');
+  const { 
+    filters, 
+    setFilter, 
+    resetFilters, 
+    hasActiveFilters 
+  } = useRevenuFilters();
+  
   const { refreshRevenus } = useRevenus();
   const { categoriesRevenu } = useCategoriesRevenu();
+
+  // Extraire les valeurs des filtres
+  const {
+    search = '',
+    dateDebut = '',
+    dateFin = '',
+    typeCompte = '',
+    categorieRevenu = '',
+    estRecurrent = null
+  } = filters;
 
   const { actions, columns } = useColumns({
     currentUserId,
     onEdit,
     refreshRevenus,
   });
+
+  // Handlers pour les filtres
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilter('search', e.target.value);
+  }, [setFilter]);
+
+  const handleCategorieRevenuChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilter('categorieRevenu', e.target.value);
+  }, [setFilter]);
+
+  const handleTypeCompteChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilter('typeCompte', e.target.value);
+  }, [setFilter]);
+
+  const handleEstRecurrentChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value === '' ? null : e.target.value === 'true';
+    setFilter('estRecurrent', value);
+  }, [setFilter]);
+
+  const handleDateDebutChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilter('dateDebut', e.target.value);
+  }, [setFilter]);
+
+  const handleDateFinChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilter('dateFin', e.target.value);
+  }, [setFilter]);
+
+  // Synchroniser avec le parent quand les filtres changent
+  useEffect(() => {
+    const debounceTimeout = setTimeout(() => {
+      onFilterChange({
+        search: search || undefined,
+        categorieRevenu: categorieRevenu || undefined,
+        typeCompte: typeCompte || undefined,
+        estRecurrent: estRecurrent,
+        dateDebut: dateDebut || undefined,
+        dateFin: dateFin || undefined,
+      });
+    }, 300);
+
+    return () => clearTimeout(debounceTimeout);
+  }, [search, categorieRevenu, typeCompte, estRecurrent, dateDebut, dateFin, onFilterChange]);
 
   return (
     <div className="space-y-4">
@@ -52,12 +107,7 @@ export default function TableRevenus({
             type="text"
             placeholder="Description, commentaire..."
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setTimeout(() => {
-                onFilterChange({ search: e.target.value });
-              }, 300);
-            }}
+            onChange={handleSearchChange}
             className="input"
           />
         </div>
@@ -71,10 +121,7 @@ export default function TableRevenus({
           <select
             id="categorie-revenu-select"
             value={categorieRevenu}
-            onChange={(e) => {
-              setCategorieRevenu(e.target.value);
-              onFilterChange({ categorieRevenu: e.target.value });
-            }}
+            onChange={handleCategorieRevenuChange}
             className="input"
           >
             <option value="">Toutes</option>
@@ -97,10 +144,7 @@ export default function TableRevenus({
             id="date-debut"
             type="date"
             value={dateDebut}
-            onChange={(e) => {
-              setDateDebut(e.target.value);
-              onFilterChange({ dateDebut: e.target.value });
-            }}
+            onChange={handleDateDebutChange}
             className="input"
             aria-label="Date de début"
           />
@@ -116,10 +160,7 @@ export default function TableRevenus({
             id="date-fin"
             type="date"
             value={dateFin}
-            onChange={(e) => {
-              setDateFin(e.target.value);
-              onFilterChange({ dateFin: e.target.value });
-            }}
+            onChange={handleDateFinChange}
             className="input"
             aria-label="Date de fin"
           />
@@ -134,16 +175,15 @@ export default function TableRevenus({
           <select
             id="type-compte-select"
             value={typeCompte}
-            onChange={(e) => {
-              const value = e.target.value;
-              setTypeCompte(value);
-              onFilterChange({ typeCompte: value });
-            }}
+            onChange={handleTypeCompteChange}
             className="input"
           >
             <option value="">Tous</option>
-            <option value="Perso">Perso</option>
-            <option value="Conjoint">Conjoint</option>
+            {TYPE_REVENU_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
         <div className="flex-grow min-w-[120px]">
@@ -155,18 +195,30 @@ export default function TableRevenus({
           </label>
           <select
             id="est-recurrent-select"
-            value={estRecurrent}
-            onChange={(e) => {
-              const value = e.target.value as '' | 'true' | 'false';
-              setEstRecurrent(value);
-              onFilterChange({ estRecurrent: value });
-            }}
+            value={estRecurrent === null ? '' : String(estRecurrent)}
+            onChange={handleEstRecurrentChange}
             className="input"
           >
             <option value="">Tous</option>
             <option value="true">Oui</option>
             <option value="false">Non</option>
           </select>
+        </div>
+        
+        {/* Bouton de reset des filtres */}
+        <div className="flex items-end">
+          <button
+            onClick={resetFilters}
+            disabled={!hasActiveFilters}
+            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+              hasActiveFilters 
+                ? 'bg-red-500 text-white hover:bg-red-600' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+            title={hasActiveFilters ? 'Réinitialiser tous les filtres' : 'Aucun filtre actif'}
+          >
+            {hasActiveFilters ? '🗑️ Réinitialiser' : '🗑️ Pas de filtres'}
+          </button>
         </div>
       </div>
       {/* Tableau des Revenus */}

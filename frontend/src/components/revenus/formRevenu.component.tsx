@@ -8,6 +8,7 @@ import fetcher from '@/utils/fetcher.utils';
 import { X } from 'lucide-react';
 import { useRevenus } from '@/hooks/useRevenus.hook';
 import { IRevenu } from '@/types/revenu.type';
+import { TYPE_REVENU_OPTIONS } from '@/types/common.type';
 import { revenusEndpoint } from '@/services/api.service';
 import { useCategoriesRevenu } from '@/hooks/useCategoriesRevenu.hook';
 import { ICategorieRevenu } from '@/types/categorieRevenu.type';
@@ -199,8 +200,11 @@ export default function FormRevenu({
                 name="typeCompte"
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
-                <option value="Perso">Perso</option>
-                <option value="Conjoint">Conjoint</option>
+                {TYPE_REVENU_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </Field>
               <ErrorMessage
                 name="typeCompte"

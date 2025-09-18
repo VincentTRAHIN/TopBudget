@@ -29,10 +29,18 @@ app.use(morganOptions);
 console.log("--> [DEBUG] app.ts: Morgan middleware added.");
 
 
+// Route de santé pour vérifier que l'API fonctionne
+app.get("/health", (_req, res) => {
+  res.status(200).json({
+    status: "OK",
+    message: "TopBudget API is running",
+    timestamp: new Date().toISOString(),
+    version: "1.0.0"
+  });
+});
+
 console.log("--> [DEBUG] app.ts: Setting up API routes...");
 app.use(router);
 console.log("--> [DEBUG] app.ts: All API routes configured.");
-
-
 
 export default app;

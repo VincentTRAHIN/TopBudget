@@ -1,7 +1,9 @@
 import { Document, Types } from "mongoose";
 import { IUser } from "./user.types";
+import { TypeRevenuEnum, TypeCompteRevenu } from "./common.types";
 
-export type TypeCompteRevenu = "Perso" | "Conjoint";
+// Re-export des types pour compatibilité
+export { TypeRevenuEnum, TypeCompteRevenu };
 
 export interface ICategorieRevenu {
   _id: string | Types.ObjectId;

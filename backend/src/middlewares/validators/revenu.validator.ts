@@ -1,5 +1,5 @@
 import { body } from "express-validator";
-import { TypeCompteRevenu } from "../../types/revenu.types";
+import { TypeCompteRevenu, TYPE_REVENU_VALUES } from "../../types/common.types";
 
 export const creerRevenuValidator = [
   body("montant")
@@ -19,7 +19,7 @@ export const creerRevenuValidator = [
     .toDate()
     .withMessage("La date est invalide (format ISO8601 attendu)"),
   body("typeCompte")
-    .isIn(["Perso", "Conjoint"] as TypeCompteRevenu[])
+    .isIn(TYPE_REVENU_VALUES)
     .withMessage("Type de compte invalide pour le revenu"),
   body("commentaire")
     .optional()
@@ -60,7 +60,7 @@ export const modifierRevenuValidator = [
     .withMessage("La date est invalide (format ISO8601 attendu)"),
   body("typeCompte")
     .optional()
-    .isIn(["Perso", "Conjoint"] as TypeCompteRevenu[])
+    .isIn(TYPE_REVENU_VALUES)
     .withMessage("Type de compte invalide pour le revenu"),
   body("commentaire")
     .optional({ checkFalsy: true })

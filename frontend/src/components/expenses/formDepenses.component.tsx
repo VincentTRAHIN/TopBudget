@@ -8,6 +8,7 @@ import { ICategorie } from '@/types/categorie.type';
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
+import { TYPE_COMPTE_OPTIONS, TYPE_DEPENSE_OPTIONS } from '@/types/common.type';
 import fetcher from '@/utils/fetcher.utils';
 import { depensesEndpoint } from '@/services/api.service';
 import { X } from 'lucide-react';
@@ -218,9 +219,11 @@ export default function FormDepense({
                 name="typeCompte"
                 className="input"
               >
-                <option value="Perso">Perso</option>
-                <option value="Conjoint">Conjoint</option>
-                <option value="Commun">Commun</option>
+                {TYPE_COMPTE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </Field>
               <ErrorMessage
                 name="typeCompte"
@@ -242,8 +245,11 @@ export default function FormDepense({
                 name="typeDepense"
                 className="input"
               >
-                <option value="Perso">Perso</option>
-                <option value="Commune">Commune</option>
+                {TYPE_DEPENSE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </Field>
               <ErrorMessage
                 name="typeDepense"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { IDepense } from '@/types/depense.type';
 import { useDepenses, DepenseFilters } from '@/hooks/useDepenses.hook';
 import { ICategorie } from '@/types/categorie.type';
@@ -8,6 +8,8 @@ import debug from 'debug';
 import React from 'react';
 import { Table } from '../table';
 import { useColumns } from './useColumns';
+import { TYPE_COMPTE_OPTIONS, TYPE_DEPENSE_OPTIONS } from '@/types/common.type';
+import { useDepenseFilters } from '@/hooks/useTableFilters.hook';
 
 const log = debug('app:frontend:TableDepenses');
 
@@ -34,6 +36,13 @@ function TableDepenses({
   });
 
   const { refreshDepenses } = useDepenses();
+  const { 
+    filters, 
+    setFilter, 
+    resetFilters, 
+    hasActiveFilters 
+  } = useDepenseFilters();
+
   const {
     actions,
     columns,
@@ -43,52 +52,63 @@ function TableDepenses({
     onFilterChange,
     refreshDepenses
   })
-  const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
-  const [dateDebut, setDateDebut] = useState<string>('');
-  const [dateFin, setDateFin] = useState<string>('');
-  const [typeCompte, setTypeCompte] = useState<string>('');
-  const [typeDepense, setTypeDepense] = useState<string>('');
+  // Extraire les valeurs des filtres pour faciliter l'usage
+  const {
+    categorie: selectedCategory = '',
+    typeCompte = '',
+    typeDepense = '',
+    dateDebut = '',
+    dateFin = '',
+    search = ''
+  } = filters;
 
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setSearch(value);
-    setTimeout(() => {
-      onFilterChange({ search: value });
-    }, 300);
-  }, [onFilterChange]);
+    setFilter('search', value);
+  }, [setFilter]);
 
   const handleCategoryChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    setSelectedCategory(value);
-    onFilterChange({ categorie: value });
-  }, [onFilterChange]);
+    setFilter('categorie', value);
+  }, [setFilter]);
 
   const handleDateDebutChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setDateDebut(value);
-    onFilterChange({ dateDebut: value });
-  }, [onFilterChange]);
+    setFilter('dateDebut', value);
+  }, [setFilter]);
 
   const handleDateFinChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setDateFin(value);
-    onFilterChange({ dateFin: value });
-  }, [onFilterChange]);
+    setFilter('dateFin', value);
+  }, [setFilter]);
 
   const handleTypeCompteChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    setTypeCompte(value);
-    onFilterChange({ typeCompte: value });
-  }, [onFilterChange]);
+    setFilter('typeCompte', value);
+  }, [setFilter]);
 
   const handleTypeDepenseChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    setTypeDepense(value);
-    onFilterChange({ typeDepense: value });
-  }, [onFilterChange]);
+    setFilter('typeDepense', value);
+  }, [setFilter]);
+
+  // Synchroniser avec le parent quand les filtres changent
+  useEffect(() => {
+    const debounceTimeout = setTimeout(() => {
+      onFilterChange({
+        search: search || undefined,
+        categorie: selectedCategory || undefined,
+        typeCompte: typeCompte || undefined,
+        typeDepense: typeDepense || undefined,
+        dateDebut: dateDebut || undefined,
+        dateFin: dateFin || undefined,
+      });
+    }, 300); // Debounce pour éviter trop d'appels
+
+    return () => clearTimeout(debounceTimeout);
+  }, [search, selectedCategory, typeCompte, typeDepense, dateDebut, dateFin, onFilterChange]);
 
   return (
     <div className="space-y-4">
@@ -178,8 +198,11 @@ function TableDepenses({
             className="input"
           >
             <option value="">Tous</option>
-            <option value="Perso">Perso</option>
-            <option value="Conjoint">Conjoint</option>
+            {TYPE_COMPTE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
         <div className="flex-grow min-w-[150px]">
@@ -196,9 +219,28 @@ function TableDepenses({
             className="input"
           >
             <option value="">Tous</option>
-            <option value="Perso">Perso</option>
-            <option value="Commune">Commune</option>
+            {TYPE_DEPENSE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
+        </div>
+        
+        {/* Bouton de reset des filtres */}
+        <div className="flex items-end">
+          <button
+            onClick={resetFilters}
+            disabled={!hasActiveFilters}
+            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+              hasActiveFilters 
+                ? 'bg-red-500 text-white hover:bg-red-600' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+            title={hasActiveFilters ? 'Réinitialiser tous les filtres' : 'Aucun filtre actif'}
+          >
+            {hasActiveFilters ? '🗑️ Réinitialiser' : '🗑️ Pas de filtres'}
+          </button>
         </div>
       </div>
 

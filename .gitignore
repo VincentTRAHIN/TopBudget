@@ -40,7 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Documentation files
+# documentation files
 BDD-IDS.md
 backend.txt
 frontend.txt
@@ -48,6 +48,5 @@ structure.txt
 extract-code.js
 generate-structure.js
 
-# Cursor files
-.cursor/
-.cursorignore
+# github copilot instructions
+copilot-instructions.md

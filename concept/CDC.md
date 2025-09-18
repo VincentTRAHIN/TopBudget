@@ -4,7 +4,20 @@
 
 ### **Objectif principal**
 
-Créer une application simple et intuitive permettant de gérer :
+Créer une application simple et intuitive permett### **Déploiement : Docker + Cloud Provider**
+
+L'application est containerisée avec Docker pour assurer la portabilité et la facilité de déploiement :
+
+- **Environnement local** : Docker Compose pour le développement et les tests
+- **Production** : Déploiement via containers Docker sur le cloud provider de votre choix
+- **Configuration** : Variables d'environnement gérées via .env et Docker
+- **Scalabilité** : Possibilité de mise à l'échelle horizontale des containers
+
+### **Base de données : MongoDB**
+
+- **Développement** : Container Docker MongoDB local
+- **Production** : MongoDB Atlas ou instance cloud MongoDB
+- **Sécurité** : Connexions chiffrées et authentification configurée:
 
 - **Ton budget personnel**,
 - **Le budget personnel de ta femme**,
@@ -282,7 +295,7 @@ Heroku offre une solution clé en main pour héberger ton application Node.js av
    - Authentification par JWT.
    - Stockage des données avec MongoDB Atlas.
 6. **Hébergement :**
-   - Déploiement sur Heroku.
+   - Déploiement avec Docker containers.
 
 ### **Exclusions pour la V1 :**
 

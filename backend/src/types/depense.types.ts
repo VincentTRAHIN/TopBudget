@@ -1,14 +1,8 @@
 import { Document, Types } from "mongoose";
+import { TypeCompteEnum, TypeDepenseEnum, TypeCompte, TypeDepense } from "./common.types";
 
-export enum TypeCompteEnum {
-  PERSO = "Perso",
-  CONJOINT = "Conjoint",
-  COMMUN = "Commun",
-};
-export enum TypeDepenseEnum {
-  PERSO = "Perso",
-  COMMUNE = "Commune"
-}
+// Re-export des types pour compatibilité
+export { TypeCompteEnum, TypeDepenseEnum, TypeCompte, TypeDepense };
 export interface IDepense extends Document {
   montant: number;
   description?: string;

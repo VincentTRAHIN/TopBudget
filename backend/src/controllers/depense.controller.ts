@@ -12,7 +12,7 @@ import {
 import { createAsyncHandler } from "../utils/async.utils";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import { DepenseService } from "../services/depense.service";
-import { importDepensesCsvOptimized } from "../services/importOptimized.service";
+import { ImportServiceV2 } from "../services/importEnhanced.service";
 
 /**
  * @swagger
@@ -351,8 +351,7 @@ export const importerDepenses = createAsyncHandler(
     if (!req.user) return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
     
     try {
-      const result = await importDepensesCsvOptimized(
-      // const result = await ImportService.importDepensesCsv(
+      const result = await ImportServiceV2.importDepensesFromCSV(
         req.file.buffer,
         req.user.id,
       );

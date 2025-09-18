@@ -1,7 +1,6 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 import { IUser } from "../types/user.types";
-
-export type TypeCompteRevenu = "Perso" | "Conjoint";
+import { TypeCompteRevenu, TYPE_REVENU_VALUES } from "../types/common.types";
 
 export interface IRevenuDocument extends Document {
   montant: number;
@@ -23,7 +22,7 @@ const RevenuSchema: Schema<IRevenuDocument> = new Schema(
     date: { type: Date, required: true },
     typeCompte: {
       type: String,
-      enum: ["Perso", "Conjoint"] as TypeCompteRevenu[],
+      enum: TYPE_REVENU_VALUES,
       required: true,
     },
     utilisateur: { type: Schema.Types.ObjectId, ref: "User", required: true },

@@ -1,4 +1,4 @@
-import { TypeCompteEnum, TypeDepenseEnum } from "../types/depense.types";
+import { TypeCompteEnum, TypeDepenseEnum } from "../types/common.types";
 
 export const DEPENSE = {
   ALLOWED_HEADER : ["débit", "debit", "Débit", "Debit"] as string[],

@@ -3,7 +3,7 @@ import { validationResult } from "express-validator";
 import logger from "../utils/logger.utils";
 import { AppError } from "../middlewares/error.middleware";
 import { AUTH, REVENU, COMMON } from "../constants";
-import { ImportService } from "../services/import.service";
+import { ImportServiceV2 } from "../services/importEnhanced.service";
 import { sendSuccess, sendErrorClient } from "../utils/response.utils";
 import {
   RevenuCreateBody,
@@ -343,7 +343,7 @@ export const importerRevenus = createAsyncHandler(
     if (!req.user) return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
 
     try {
-      const result = await ImportService.importRevenusCsv(
+      const result = await ImportServiceV2.importRevenusFromCSV(
         req.file.buffer,
         req.user.id,
       );
