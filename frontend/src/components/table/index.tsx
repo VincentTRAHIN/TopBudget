@@ -114,8 +114,14 @@ export function Table<T extends Record<string, any>>({
                   </td>
                 )}
               </tr>
-            )))
-            : (emptyRender)}
+            ))
+          ) : (
+            <tr>
+              <td colSpan={columns.length + (rowAction ? 1 : 0)} className="px-4 py-8">
+                {emptyRender}
+              </td>
+            </tr>
+          )}
 
         </tbody>
         {footer && <tfoot className="table-footer">{footer}</tfoot>}

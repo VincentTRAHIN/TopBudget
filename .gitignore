@@ -47,6 +47,7 @@ frontend.txt
 structure.txt
 extract-code.js
 generate-structure.js
+DOCKER.md
 
 # github copilot instructions
 copilot-instructions.md

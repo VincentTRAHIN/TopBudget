@@ -40,7 +40,7 @@ export default function TableRevenus({
     dateFin = '',
     typeCompte = '',
     categorieRevenu = '',
-    estRecurrent = null
+    estRecurrent = ''
   } = filters;
 
   const { actions, columns } = useColumns({
@@ -82,7 +82,7 @@ export default function TableRevenus({
         search: search || undefined,
         categorieRevenu: categorieRevenu || undefined,
         typeCompte: typeCompte || undefined,
-        estRecurrent: estRecurrent,
+        estRecurrent: estRecurrent || undefined,
         dateDebut: dateDebut || undefined,
         dateFin: dateFin || undefined,
       });
@@ -228,11 +228,9 @@ export default function TableRevenus({
           columns={columns}
           rowAction={actions}
           emptyRender={
-            <tr>
-              <td colSpan={9} className="text-center py-4 text-gray-500">
-                Aucun revenu trouvé.
-              </td>
-            </tr>
+            <div className="text-center py-4 text-gray-500">
+              Aucun revenu trouvé.
+            </div>
           }
         />
       </div>

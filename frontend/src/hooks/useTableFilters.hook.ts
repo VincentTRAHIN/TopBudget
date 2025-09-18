@@ -127,10 +127,10 @@ export function useDepenseFilters() {
       categorie: '',
       typeCompte: '',
       typeDepense: '',
-      dateDebut: null,
-      dateFin: null,
-      montantMin: null,
-      montantMax: null
+      dateDebut: '',
+      dateFin: '',
+      montantMin: '',
+      montantMax: ''
     }
   });
 }
@@ -139,18 +139,30 @@ export function useDepenseFilters() {
  * Hook spécialisé pour les filtres de revenus
  */
 export function useRevenuFilters() {
-  return useTableFilters({
+  const baseFilters = useTableFilters({
     storageKey: 'revenus',
     initialFilters: {
+      search: '',
       categorieRevenu: '',
       typeCompte: '',
-      dateDebut: null,
-      dateFin: null,
-      montantMin: null,
-      montantMax: null,
-      estRecurrent: null
+      dateDebut: '',
+      dateFin: '',
+      montantMin: '',
+      montantMax: '',
+      estRecurrent: ''
     }
   });
+
+  // S'assurer que tous les valeurs sont des chaînes
+  const filters = Object.entries(baseFilters.filters).reduce((acc, [key, value]) => {
+    acc[key] = typeof value === 'string' ? value : '';
+    return acc;
+  }, {} as Record<string, string>);
+
+  return {
+    ...baseFilters,
+    filters
+  };
 }
 
 /**
@@ -161,7 +173,7 @@ export function useCategorieFilters() {
     storageKey: 'categories',
     initialFilters: {
       recherche: '',
-      actives: null
+      actives: ''
     }
   });
 }
