@@ -40,7 +40,7 @@ export default function ExpensesPage() {
     sort,
     selectedVue,
   );
-  const { categories } = useCategories();
+  const { categories, refreshCategories } = useCategories();
 
   const handleEdit = useCallback((depense: IDepense) => {
     setSelectedDepense(depense);
@@ -319,6 +319,8 @@ export default function ExpensesPage() {
           {showAddCategorieForm && (
             <FormCategorie
               onClose={handleCloseAddCategorieForm}
+              endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/categories`}
+              refresh={refreshCategories}
             />
           )}
           {showAddForm && (

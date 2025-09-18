@@ -1,71 +1,47 @@
+# ============================================
+# Docker Compose - Configuration de base
+# ============================================
+# Ce fichier contient la configuration commune à tous les environnements
+# Utilisé avec les overrides spécifiques : dev.yml, prod.yml, test.yml
+
 services:
+  # ============================================
+  # Frontend Next.js
+  # ============================================
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:5001/api
-    depends_on:
-      - backend
     networks:
       - topbudget-network
-    restart: unless-stopped
+    depends_on:
+      - backend
 
+  # ============================================  
+  # Backend Node.js + TypeScript
+  # ============================================
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      target: development
-    ports:
-      - "5001:5001"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-      - logs-data:/app/logs
-    environment:
-      - NODE_ENV=development
-      - MONGO_URI=mongodb://mongo:27017/topbudget
-      - JWT_SECRET=${JWT_SECRET:-your_super_secret_jwt_key_here}
-      - PORT=5001
-    depends_on:
-      - mongo
     networks:
       - topbudget-network
-    restart: unless-stopped
+    depends_on:
+      - mongo
+    volumes:
+      - logs-data:/app/logs
 
+  # ============================================
+  # Base de données MongoDB
+  # ============================================  
   mongo:
-    image: mongo:6
-    container_name: mongodb
-    restart: unless-stopped
-    environment:
-      - MONGO_INITDB_DATABASE=topbudget
-    ports:
-      - "27017:27017"
+    image: mongo:6-jammy
+    networks:
+      - topbudget-network
     volumes:
       - mongo-data:/data/db
-    networks:
-      - topbudget-network
-
-  mongo-express:
-    image: mongo-express
-    restart: unless-stopped
-    ports:
-      - "8081:8081"
     environment:
-      ME_CONFIG_MONGODB_SERVER: mongo
-      ME_CONFIG_MONGODB_PORT: 27017
-      ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME:-admin}
-      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD:-admin_password}
-    depends_on:
-      - mongo
-    networks:
-      - topbudget-network
+      - MONGO_INITDB_DATABASE=topbudget
 
 volumes:
   mongo-data:

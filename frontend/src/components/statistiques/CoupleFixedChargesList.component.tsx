@@ -190,12 +190,9 @@ export default function CoupleFixedChargesList() {
         data={data.listeChargesFixes}
         columns={[]}
         emptyRender={
-          <tr>
-            <td colSpan={4} className="px-4 py-2 text-center text-gray-400">
-              Aucune charge fixe commune pour cette période.
-            </td>
-          </tr>
-
+          <div className="px-4 py-2 text-center text-gray-400">
+            Aucune charge fixe commune pour cette période.
+          </div>
         }
       />
       <div className="font-semibold text-right">

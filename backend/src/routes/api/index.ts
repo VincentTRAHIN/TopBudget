@@ -9,6 +9,7 @@ import importRoutes from "./import.route";
 import categorieRoutes from "./categorie.route";
 import categorieRevenuRoutes from "./categorieRevenu.route";
 import statistiquesRoutes from "./statistiques.route";
+import healthRoutes from "../health.route";
 
 const router = Router();
 
@@ -21,14 +22,7 @@ router.use("/import", importRoutes);
 router.use("/categories", categorieRoutes);
 router.use("/categories-revenu", categorieRevenuRoutes);
 router.use("/statistiques", statistiquesRoutes);
-console.log("--> [DEBUG] app.ts: Setting up health check endpoint...");
-router.get("/health", (_req, res) => {
-  res.status(200).json({
-    status: "ok",
-    details: {
-      uptime: process.uptime(),
-    },
-  });
-});
-console.log("--> [DEBUG] app.ts: Health check endpoint configured.");
+console.log("--> [DEBUG] app.ts: Setting up advanced health check endpoints...");
+router.use("/health", healthRoutes);
+console.log("--> [DEBUG] app.ts: Health check endpoints configured.");
 export default router;

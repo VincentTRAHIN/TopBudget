@@ -1,0 +1,86 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Next.js build artifacts
+.next/
+out/
+build/
+
+# Production build
+dist/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation  
+README.md
+docs/
+*.md
+
+# Tests
+__tests__/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts  
+**/*.spec.tsx
+jest.config.*
+cypress/
+e2e/
+
+# Temporary files
+tmp/
+temp/
+
+# Vercel
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
