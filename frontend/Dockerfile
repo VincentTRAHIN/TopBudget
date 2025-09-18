@@ -83,7 +83,9 @@ RUN mkdir .next && \
 # Copier les artefacts de build
 COPY --from=builder --chown=nextuser:nextgroup /app/.next/standalone ./
 COPY --from=builder --chown=nextuser:nextgroup /app/.next/static ./.next/static
-COPY --from=builder --chown=nextuser:nextgroup /app/public ./public
+
+# Créer le dossier public (optionnel pour Next.js)
+RUN mkdir -p public
 
 USER nextuser
 
