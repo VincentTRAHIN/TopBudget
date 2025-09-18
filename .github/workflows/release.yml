@@ -1,0 +1,243 @@
+name: Release Management
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  # ===============================================
+  # Création automatique de release
+  # ===============================================
+  create-release:
+    name: 📦 Create Release
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      packages: write
+    
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      tag_name: ${{ steps.prepare.outputs.tag_name }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔧 Prepare release data
+        id: prepare
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG_NAME="v${{ github.event.inputs.version }}"
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          else
+            TAG_NAME="${{ github.ref_name }}"
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+
+      - name: 📝 Generate Changelog
+        id: changelog
+        run: |
+          # Générer le changelog depuis le dernier tag
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          
+          if [ -z "$LAST_TAG" ]; then
+            echo "## 🎉 First Release" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "### ✨ New Features" >> CHANGELOG.md
+            git log --pretty=format:"- %s (%h)" --grep="feat:" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          else
+            echo "## 🚀 Changes since $LAST_TAG" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            
+            # Nouvelles fonctionnalités
+            FEATURES=$(git log $LAST_TAG..HEAD --pretty=format:"- %s (%h)" --grep="feat:" || echo "")
+            if [ ! -z "$FEATURES" ]; then
+              echo "### ✨ New Features" >> CHANGELOG.md
+              echo "$FEATURES" >> CHANGELOG.md
+              echo "" >> CHANGELOG.md
+            fi
+            
+            # Corrections de bugs
+            FIXES=$(git log $LAST_TAG..HEAD --pretty=format:"- %s (%h)" --grep="fix:" || echo "")
+            if [ ! -z "$FIXES" ]; then
+              echo "### 🐛 Bug Fixes" >> CHANGELOG.md
+              echo "$FIXES" >> CHANGELOG.md
+              echo "" >> CHANGELOG.md
+            fi
+            
+            # Améliorations
+            IMPROVEMENTS=$(git log $LAST_TAG..HEAD --pretty=format:"- %s (%h)" --grep="refactor:\|perf:\|docs:" || echo "")
+            if [ ! -z "$IMPROVEMENTS" ]; then
+              echo "### 🔧 Improvements" >> CHANGELOG.md
+              echo "$IMPROVEMENTS" >> CHANGELOG.md
+              echo "" >> CHANGELOG.md
+            fi
+          fi
+          
+          # Docker images info
+          echo "### 🐳 Docker Images" >> CHANGELOG.md
+          echo "- Backend: \`ghcr.io/vincenttrahin/topbudget/backend:$TAG_NAME\`" >> CHANGELOG.md
+          echo "- Frontend: \`ghcr.io/vincenttrahin/topbudget/frontend:$TAG_NAME\`" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          
+          # Installation instructions
+          echo "### 📥 Installation" >> CHANGELOG.md
+          echo "\`\`\`bash" >> CHANGELOG.md
+          echo "# Clone repository" >> CHANGELOG.md
+          echo "git clone https://github.com/VincentTRAHIN/TopBudget.git" >> CHANGELOG.md
+          echo "cd TopBudget" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "# Checkout release" >> CHANGELOG.md
+          echo "git checkout $TAG_NAME" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "# Deploy with Docker" >> CHANGELOG.md
+          echo "chmod +x setup.sh" >> CHANGELOG.md
+          echo "./setup.sh prod" >> CHANGELOG.md
+          echo "\`\`\`" >> CHANGELOG.md
+
+      - name: 📦 Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          release_name: 🚀 TopBudget ${{ env.TAG_NAME }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: ${{ contains(env.TAG_NAME, '-') }}
+
+  # ===============================================
+  # Build et upload des assets
+  # ===============================================
+  build-assets:
+    name: 🏗️ Build Release Assets
+    runs-on: ubuntu-latest
+    needs: create-release
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Build Backend
+      - name: 🏗️ Build Backend
+        working-directory: ./backend
+        run: |
+          npm ci
+          npm run build
+          tar -czf ../topbudget-backend-${{ needs.create-release.outputs.tag_name }}.tar.gz dist package.json package-lock.json
+
+      # Build Frontend
+      - name: 🏗️ Build Frontend
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run build
+          tar -czf ../topbudget-frontend-${{ needs.create-release.outputs.tag_name }}.tar.gz .next package.json package-lock.json public
+
+      # Create deployment package
+      - name: 📦 Create Deployment Package
+        run: |
+          mkdir -p release-package
+          cp -r docker/ release-package/
+          cp docker-compose.yml release-package/
+          cp setup.sh release-package/
+          cp .env.example release-package/
+          cp README.md release-package/
+          
+          # Create deployment guide
+          cat > release-package/DEPLOYMENT.md << 'EOF'
+          # 🚀 TopBudget Deployment Guide
+          
+          ## Quick Start
+          
+          1. **Prerequisites**
+             - Docker & Docker Compose installed
+             - 2GB+ available RAM
+             - Ports 3000, 5001, 27017 available
+          
+          2. **Deploy**
+             ```bash
+             chmod +x setup.sh
+             ./setup.sh prod
+             ```
+          
+          3. **Access Application**
+             - Frontend: http://localhost:3000
+             - API: http://localhost:5001
+             - Health: http://localhost:5001/api/health
+          
+          ## Configuration
+          
+          Copy `.env.example` to `.env` and customize:
+          ```bash
+          cp .env.example .env
+          # Edit .env with your configuration
+          ```
+          
+          ## Monitoring
+          
+          Check application status:
+          ```bash
+          # Health checks
+          curl http://localhost:5001/api/health
+          
+          # Container status
+          docker-compose ps
+          
+          # Logs
+          docker-compose logs -f
+          ```
+          EOF
+          
+          tar -czf topbudget-deployment-${{ needs.create-release.outputs.tag_name }}.tar.gz release-package/
+
+      # Upload assets to release
+      - name: 📤 Upload Backend Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./topbudget-backend-${{ needs.create-release.outputs.tag_name }}.tar.gz
+          asset_name: topbudget-backend-${{ needs.create-release.outputs.tag_name }}.tar.gz
+          asset_content_type: application/gzip
+
+      - name: 📤 Upload Frontend Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./topbudget-frontend-${{ needs.create-release.outputs.tag_name }}.tar.gz
+          asset_name: topbudget-frontend-${{ needs.create-release.outputs.tag_name }}.tar.gz
+          asset_content_type: application/gzip
+
+      - name: 📤 Upload Deployment Package
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./topbudget-deployment-${{ needs.create-release.outputs.tag_name }}.tar.gz
+          asset_name: topbudget-deployment-${{ needs.create-release.outputs.tag_name }}.tar.gz
+          asset_content_type: application/gzip

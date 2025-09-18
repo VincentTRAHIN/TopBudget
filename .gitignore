@@ -49,8 +49,12 @@ frontend.txt
 structure.txt
 extract-code.js
 generate-structure.js
+/Documentation
 DOCKER.md
 DOCKER-PHASE2-REPORT.md
+PRODUCTION.md
+DEPLOYMENT.md
+PROJECT-FINAL-REPORT.md
 
 # github copilot instructions
 copilot-instructions.md
