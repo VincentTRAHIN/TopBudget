@@ -1,102 +1,109 @@
 # backend/Dockerfile
-# Stage de build
-FROM node:lts-alpine AS builder
+# ============================================
+# Stage de base - Configuration commune
+# ============================================
+FROM node:lts-alpine AS base
 
-# Définir les variables d'environnement pour npm
-ENV NODE_ENV=development
-ENV NPM_CONFIG_LOGLEVEL=warn
-
-# Utiliser /app comme répertoire de travail
-WORKDIR /app
-
-# Installation des dépendances de build
-RUN apk add --no-cache --virtual .build-deps \
+# Installer dépendances système une seule fois
+RUN apk add --no-cache \
+    dumb-init \
+    libc6-compat \
+    && apk add --no-cache --virtual .build-deps \
     python3 \
     make \
-    g++ \
-    && apk add --no-cache libc6-compat
+    g++
 
-# Copier uniquement les fichiers nécessaires pour npm install
+# Créer utilisateur non-root
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+WORKDIR /app
+
+# ============================================
+# Stage dependencies - Installation des deps
+# ============================================
+FROM base AS dependencies
+
+# Variables d'environnement pour npm
+ENV NPM_CONFIG_LOGLEVEL=warn
+ENV NPM_CONFIG_FUND=false
+ENV NPM_CONFIG_AUDIT=false
+
+# Copier les fichiers de dépendances
 COPY package*.json ./
 COPY tsconfig.json ./
 
-# Installation des dépendances avec cache optimisé
-RUN npm ci
+# Installation avec cache optimisé
+RUN npm ci --include=dev \
+    && npm cache clean --force
 
-# Copier le reste du code source
+# ============================================
+# Stage development - Environnement de dev
+# ============================================
+FROM dependencies AS development
+
+ENV NODE_ENV=development
+
+# Copier le code source
+COPY . .
+
+# Créer dossier logs avec permissions
+RUN mkdir -p logs && \
+    chown -R appuser:appgroup /app && \
+    chmod 755 logs
+
+USER appuser
+
+EXPOSE 5001
+
+# Utiliser dumb-init pour une gestion propre des signaux
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["npm", "run", "dev"]
+
+# ============================================
+# Stage build - Construction de l'app
+# ============================================
+FROM dependencies AS build
+
+ENV NODE_ENV=production
+
+# Copier le code source
 COPY . .
 
 # Build de l'application
 RUN npm run build
 
-# Nettoyage des dépendances de build
+# Nettoyage des dépendances de développement
+RUN npm prune --production
+
+# Nettoyer les dépendances de build
 RUN apk del .build-deps
 
-# Stage de développement
-FROM node:lts-alpine AS development
+# ============================================
+# Stage production - Image finale optimisée
+# ============================================
+FROM base AS production
 
-# Définir les variables d'environnement
-ENV NODE_ENV=development
-ENV NPM_CONFIG_LOGLEVEL=warn
-
-# Créer un utilisateur non-root
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
-# Définir le répertoire de travail
-WORKDIR /app
-
-# Copier les fichiers nécessaires
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY . .
-
-# Créer le dossier logs avec les bonnes permissions et configurer les permissions
-RUN mkdir -p /app/logs && \
-    chown -R appuser:appgroup /app && \
-    chmod 755 /app/logs
-
-# Utiliser l'utilisateur non-root
-USER appuser
-
-# Exposer le port
-EXPOSE 5001
-
-# Commande de démarrage pour le développement
-CMD ["npm", "run", "dev"]
-
-# Stage de production
-FROM node:lts-alpine AS production
-
-# Définir les variables d'environnement
 ENV NODE_ENV=production
 ENV NPM_CONFIG_LOGLEVEL=warn
 
-# Créer un utilisateur non-root
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# Copier les artefacts de build
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/package*.json ./
+COPY --from=build /app/node_modules ./node_modules
 
-# Définir le répertoire de travail
-WORKDIR /app
+# Créer dossier logs avec permissions
+RUN mkdir -p logs && \
+    chown -R appuser:appgroup /app && \
+    chmod 755 logs
 
-# Copier uniquement les fichiers nécessaires depuis le stage de build
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
-
-# Installation des dépendances de production uniquement
-RUN npm ci --only=production \
-    && npm cache clean --force
-
-# Créer le dossier logs avec les bonnes permissions
-RUN mkdir -p /app/logs && \
-    chmod 755 /app/logs
-
-# Configuration des permissions
-RUN chown -R appuser:appgroup /app
-
-# Utiliser l'utilisateur non-root
 USER appuser
 
-# Exposer le port
 EXPOSE 5001
 
-# Commande de démarrage
-CMD ["node", "dist/app.js"]
+# Health check pour la production
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD wget --quiet --tries=1 --spider http://localhost:5001/health || exit 1
+
+# Utiliser dumb-init pour une gestion propre des signaux
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/index.js"]
