@@ -4,21 +4,26 @@ import Layout from '@/components/layout/Layout';
 import RequireAuth from '@/components/auth/requireAuth.component';
 import TableRevenus from '@/components/revenus/tableRevenus.component';
 import FormRevenu from '@/components/revenus/formRevenu.component';
+import FormCategorie from '@/components/categories/formCategorie.component';
 import ImportCsvModalRevenu from '@/components/revenus/importCsvModalRevenu.component';
 import RevenusSummaryCard from '@/components/revenus/RevenusSummaryCard.component';
+import { DeleteAllRevenusButton } from '@/components/revenus/DeleteAllRevenusButton.component';
 import { useRevenus, RevenuFilters, RevenuSort } from '@/hooks/useRevenus.hook';
+import { useCategoriesRevenu } from '@/hooks/useCategoriesRevenu.hook';
 import { useAuth } from '@/hooks/useAuth.hook';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { IRevenu } from '@/types/revenu.type';
-import { ChevronLeft, ChevronRight, Plus, Upload, User, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Upload, User, Users, Settings } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 25;
 
 export default function RevenusPage() {
   const { user } = useAuth();
+  const { refreshCategoriesRevenu } = useCategoriesRevenu();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRevenu, setSelectedRevenu] = useState<IRevenu | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddCategorieForm, setShowAddCategorieForm] = useState(false);
   const [filters, setFilters] = useState<RevenuFilters>({});
   const [sort, setSort] = useState<RevenuSort>({});
   const [selectedVue, setSelectedVue] = useState<
@@ -39,15 +44,28 @@ export default function RevenusPage() {
     setShowAddForm(true);
   };
 
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     setSelectedRevenu(null);
     setShowAddForm(true);
-  };
+    setShowAddCategorieForm(false);
+    setShowImportModalRevenu(false);
+  }, []);
 
-  const handleOpenImportModalRevenu = () => {
+  const handleAddCategorie = useCallback(() => {
+    setShowAddCategorieForm(true);
+    setShowAddForm(false);
+    setShowImportModalRevenu(false);
+  }, []);
+
+  const handleCloseAddCategorieForm = useCallback(() => {
+    setShowAddCategorieForm(false);
+  }, []);
+
+  const handleOpenImportModalRevenu = useCallback(() => {
     setShowImportModalRevenu(true);
     setShowAddForm(false);
-  };
+    setShowAddCategorieForm(false);
+  }, []);
 
   const handleCloseImportModalRevenu = () => {
     setShowImportModalRevenu(false);
@@ -168,6 +186,16 @@ export default function RevenusPage() {
                   <Upload size={16} />
                   Importer CSV
                 </button>
+                
+                <button
+                  onClick={handleAddCategorie}
+                  className="border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+                >
+                  <Settings size={16} />
+                  Catégories
+                </button>
+
+                <DeleteAllRevenusButton />
               </div>
             </div>
           </div>
@@ -208,10 +236,8 @@ export default function RevenusPage() {
               <div className="bg-white rounded-lg shadow-md overflow-hidden">
                 <TableRevenus
                   revenus={revenus}
-                  currentSort={sort}
                   onEdit={handleEdit}
                   onFilterChange={handleFilterChange}
-                  onSortChange={handleSortChange}
                   currentUserId={user?._id}
                 />
               </div>
@@ -258,6 +284,13 @@ export default function RevenusPage() {
           )}
 
           {/* Modals */}
+          {showAddCategorieForm && (
+            <FormCategorie
+              onClose={handleCloseAddCategorieForm}
+              endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/categories-revenu`}
+              refresh={refreshCategoriesRevenu}
+            />
+          )}
           {showAddForm && (
             <FormRevenu
               existingRevenu={selectedRevenu ?? undefined}

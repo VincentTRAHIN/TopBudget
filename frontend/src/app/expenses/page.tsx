@@ -7,6 +7,7 @@ import FormDepense from '@/components/expenses/formDepenses.component';
 import FormCategorie from '@/components/categories/formCategorie.component';
 import ImportCsvModal from '@/components/expenses/importCsvModal.component';
 import ExpensesSummaryCard from '@/components/expenses/ExpensesSummaryCard.component';
+import DeleteAllExpensesButton from '@/components/expenses/DeleteAllExpensesButton.component';
 import {
   useDepenses,
   DepenseFilters,
@@ -230,6 +231,17 @@ export default function ExpensesPage() {
                   <Settings size={16} />
                   Catégories
                 </button>
+
+                {/* Bouton de suppression uniquement pour la vue "moi" */}
+                {selectedVue === 'moi' && (
+                  <DeleteAllExpensesButton 
+                    className="text-sm"
+                    onSuccess={(deletedCount) => {
+                      // Recharger les données après suppression réussie
+                      setCurrentPage(1);
+                    }}
+                  />
+                )}
               </div>
             </div>
           </div>
