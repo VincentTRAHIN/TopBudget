@@ -1,6 +1,6 @@
 'use client';
 
-import { importEndpoint } from '@/services/api.service';
+import { importRevenusEndpoint } from '@/services/api.service';
 import { useRevenus } from '@/hooks/useRevenus.hook';
 import ImportCsvModalBase from '@/components/shared/ImportCsvModalBase';
 
@@ -17,12 +17,10 @@ const RevenusFormatInstructions = () => (
       <li>Séparateur : Point-Virgule (;)</li>
       <li>Encodage : UTF-8</li>
       <li>
-        En-têtes (insensible à la casse, ordre indifférent) :
-        <code>Date</code>, <code>Montant</code>, <code>Description</code>,
-        <code>CategorieRevenu</code> (ID ou nom exact, requis),
-        <code>TypeCompte</code> (optionnel, défaut &quot;Perso&quot;),
-        <code>Commentaire</code> (optionnel),
-        <code>EstRecurrent</code> (optionnel, true/false ou 1/0)
+        En-têtes (insensible à la casse, ordre indifférent) :<br />
+        <strong>Requis :</strong> <code>Date</code>, <code>Montant</code>, <code>CategorieRevenu</code><br />
+        <strong>Optionnels :</strong> <code>Description</code>, <code>TypeCompte</code> (défaut &quot;Perso&quot;), 
+        <code>Commentaire</code>, <code>EstRecurrent</code> (défaut false)
       </li>
       <li>
         Format Date : <code>JJ/MM/AAAA</code> (ex: 31/12/2023)
@@ -36,12 +34,15 @@ const RevenusFormatInstructions = () => (
         (optionnel, défaut &quot;Perso&quot;)
       </li>
       <li>
-        CategorieRevenu : ID MongoDB de la catégorie de revenu (ou nom
-        exact si supporté par le backend)
+        CategorieRevenu : Nom de la catégorie de revenu (sera créée automatiquement si elle n'existe pas)
       </li>
       <li>
         EstRecurrent : <code>true</code>, <code>false</code>,{' '}
         <code>1</code> ou <code>0</code> (optionnel, défaut false)
+      </li>
+      <li>
+        <strong>Aliases acceptés :</strong> CategorieRevenu peut aussi être nommé 
+        <code>Categorie</code>, TypeCompte peut être <code>Compte</code>, etc.
       </li>
     </ul>
   </>
@@ -56,7 +57,7 @@ export default function ImportCsvModalRevenu({
     <ImportCsvModalBase
       onClose={onClose}
       modalTitle="Importer des Revenus (CSV)"
-      endpoint={importEndpoint}
+      endpoint={importRevenusEndpoint}
       onImportSuccess={refreshRevenus}
       formatInstructions={<RevenusFormatInstructions />}
       importedItemLabel="Revenus importés"
