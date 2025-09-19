@@ -329,6 +329,48 @@ export const supprimerRevenu = createAsyncHandler(
   },
 );
 
+/**
+ * @swagger
+ * /api/revenus:
+ *   delete:
+ *     tags: [Revenus]
+ *     summary: Supprimer tous les revenus de l'utilisateur
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Revenus supprimés avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     deletedCount:
+ *                       type: number
+ */
+export const supprimerTousRevenus = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
+    try {
+      const result = await RevenuService.deleteAll(req.user.id);
+      return sendSuccess(res, `${result.deletedCount} revenus supprimés avec succès`, result);
+    } catch (error) {
+      logger.error(REVENU.ERRORS.DELETE_ERROR, error);
+      next(error);
+    }
+  },
+);
+
 interface MulterRequest extends AuthRequest {
   file?: Express.Multer.File;
 }

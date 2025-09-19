@@ -312,4 +312,19 @@ export class DepenseService {
 
     await DepenseModel.findByIdAndDelete(id);
   }
+
+  /**
+   * Supprime toutes les dépenses d'un utilisateur
+   */
+  static async deleteAll(userId: string): Promise<{ deletedCount: number }> {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new AppError(AUTH.ERRORS.USER_NOT_FOUND, 400);
+    }
+
+    const result = await DepenseModel.deleteMany({
+      utilisateur: userId,
+    });
+
+    return { deletedCount: result.deletedCount || 0 };
+  }
 }

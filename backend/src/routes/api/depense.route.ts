@@ -5,6 +5,7 @@ import {
   obtenirDepenses,
   modifierDepense,
   supprimerDepense,
+  supprimerToutesDepenses,
   importerDepenses,
 } from "../../controllers/depense.controller";
 import { creerDepenseValidator } from "../../middlewares/validators/depense.validator";
@@ -18,6 +19,7 @@ router.get("/", proteger, asyncHandler(obtenirDepenses));
 router.put("/:id", proteger, asyncHandler(modifierDepense));
 
 router.delete("/:id", proteger, asyncHandler(supprimerDepense));
+router.delete("/", proteger, asyncHandler(supprimerToutesDepenses));
 
 router.post("/import", proteger, uploadCSV, asyncHandler(importerDepenses));
 
