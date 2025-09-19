@@ -13,7 +13,14 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: multer.FileFilterCallback,
 ) => {
-  const isMimeValid = file.mimetype === "text/csv";
+  // Accepter différents types MIME pour CSV
+  const validMimeTypes = [
+    "text/csv",
+    "application/csv",
+    "text/plain",
+    "application/vnd.ms-excel"
+  ];
+  const isMimeValid = validMimeTypes.includes(file.mimetype);
 
   const ext = path.extname(file.originalname).toLowerCase();
   const isExtensionValid = ALLOWED_CSV_EXTENSIONS.includes(ext);
@@ -23,7 +30,7 @@ const fileFilter = (
   } else {
     cb(
       new AppError(
-        "Type de fichier invalide. Seuls les fichiers CSV sont autorisés.",
+        `Type de fichier invalide. Seuls les fichiers CSV sont autorisés. Reçu: ${file.mimetype}`,
         400,
       ),
     );

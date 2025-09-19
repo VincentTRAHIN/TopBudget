@@ -7,16 +7,23 @@ import { X, UploadCloud, FileText } from 'lucide-react';
 
 interface ImportError {
   ligne: number;
-  data: Record<string, string>;
-  erreur: string;
+  erreurs: string[];
+  donnees: Record<string, string>;
+  contexte: string;
 }
 
 interface ImportResult {
+  success: boolean;
   message: string;
-  totalLignesLues: number;
-  importedCount: number;
+  totalLines: number;
+  successCount: number;
   errorCount: number;
-  erreurs: ImportError[];
+  errors: ImportError[];
+  statistiques?: {
+    lignesAvecEntetes: number;
+    lignesVides: number;
+    lignesValides: number;
+  };
 }
 
 interface ImportCsvModalBaseProps {
@@ -75,9 +82,19 @@ export default function ImportCsvModalBase({
         body: formData,
       });
       setImportResult(result);
-      toast.success(result.message || 'Importation terminée avec succès !');
-      if (result.importedCount > 0) {
+      
+      // Nettoyer le message pour éviter les doublons d'icônes (react-hot-toast ajoute déjà sa propre icône)
+      const cleanMessage = (result.message || 'Importation terminée avec succès !')
+        .replace(/^[✅❌⚠️🔥]?\s*/, ''); // Supprimer les émojis en début de message
+      
+      // Afficher le toast approprié selon le résultat
+      if (result.success && result.successCount > 0) {
+        toast.success(cleanMessage);
         onImportSuccess();
+      } else if (result.success && result.successCount === 0) {
+        toast.error('Aucune ligne importée : ' + cleanMessage);
+      } else {
+        toast.error('Erreur d\'importation : ' + cleanMessage);
       }
     } catch (error: unknown) {
       console.error("Erreur lors de l'importation:", error);
@@ -100,11 +117,12 @@ export default function ImportCsvModalBase({
       }
       toast.error(errorMessage);
       setImportResult({
+        success: false,
         message: errorMessage,
-        totalLignesLues: 0,
-        importedCount: 0,
+        totalLines: 0,
+        successCount: 0,
         errorCount: 0,
-        erreurs: [],
+        errors: [],
       });
     } finally {
       setIsImporting(false);
@@ -174,18 +192,21 @@ export default function ImportCsvModalBase({
             <ul
               className={`text-sm ${importResult.errorCount > 0 ? 'text-red-700' : 'text-green-700'}`}
             >
-              <li>Lignes lues : {importResult.totalLignesLues}</li>
-              <li>{importedItemLabel} : {importResult.importedCount}</li>
+              <li>Lignes lues : {importResult.totalLines}</li>
+              <li>{importedItemLabel} : {importResult.successCount}</li>
               <li>Lignes avec erreurs : {importResult.errorCount}</li>
+              {importResult.statistiques && (
+                <li>Lignes vides : {importResult.statistiques.lignesVides}</li>
+              )}
             </ul>
-            {importResult.erreurs && importResult.erreurs.length > 0 && (
+            {importResult.errors && importResult.errors.length > 0 && (
               <div className="mt-2 max-h-32 overflow-y-auto text-xs border-t border-red-200 pt-2">
                 <p className="font-medium text-red-800 mb-1">
                   Détails des erreurs :
                 </p>
-                {importResult.erreurs.map((err, index) => (
+                {importResult.errors.slice(0, 10).map((err, index) => (
                   <p key={index} className="text-red-600">
-                    Ligne {err.ligne}: {err.erreur}
+                    Ligne {err.ligne}: {err.erreurs.join(', ')}
                   </p>
                 ))}
               </div>

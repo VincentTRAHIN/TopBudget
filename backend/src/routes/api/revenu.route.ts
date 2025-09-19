@@ -6,6 +6,7 @@ import {
   obtenirRevenuParId,
   modifierRevenu,
   supprimerRevenu,
+  supprimerTousRevenus,
   importerRevenus,
 } from "../../controllers/revenu.controller";
 import uploadCSV from "../../middlewares/upload.middleware";
@@ -29,6 +30,7 @@ router.put(
   asyncHandler(modifierRevenu),
 );
 router.delete("/:id", proteger, asyncHandler(supprimerRevenu));
+router.delete("/", proteger, asyncHandler(supprimerTousRevenus));
 router.post("/import", proteger, uploadCSV, asyncHandler(importerRevenus));
 
 export default router;

@@ -290,4 +290,19 @@ export class RevenuService {
 
     await RevenuModel.findByIdAndDelete(id);
   }
+
+  /**
+   * Supprimer tous les revenus d'un utilisateur
+   */
+  static async deleteAll(userId: string): Promise<{ deletedCount: number }> {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new AppError(AUTH.ERRORS.INVALID_USER_ID, 400);
+    }
+
+    const result = await RevenuModel.deleteMany({ utilisateur: userId });
+    
+    return {
+      deletedCount: result.deletedCount || 0
+    };
+  }
 }

@@ -341,6 +341,48 @@ export const supprimerDepense = createAsyncHandler(
   },
 );
 
+/**
+ * @swagger
+ * /api/depenses/delete-all:
+ *   delete:
+ *     tags: [Dépenses]
+ *     summary: Supprimer toutes les dépenses de l'utilisateur
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Toutes les dépenses supprimées avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     deletedCount:
+ *                       type: number
+ */
+export const supprimerToutesDepenses = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
+    try {
+      const result = await DepenseService.deleteAll(req.user.id);
+      return sendSuccess(res, `${result.deletedCount} dépenses supprimées avec succès`, result);
+    } catch (error) {
+      logger.error(DEPENSE.ERRORS.DELETE_ERROR, error);
+      next(error);
+    }
+  },
+);
+
 interface MulterRequest extends AuthRequest {
   file?: Express.Multer.File;
 }
