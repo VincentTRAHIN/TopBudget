@@ -134,9 +134,34 @@ npm run dev
 
 ### Avec Docker
 
+#### 🔧 Environnement de développement
+
 ```bash
-docker-compose up -d
+# Démarrer tous les services (backend + frontend + MongoDB + mongo-express)
+docker-compose -f docker-compose.yml -f docker/docker-compose.dev.yml up -d
+
+# Voir les logs
+docker-compose -f docker-compose.yml -f docker/docker-compose.dev.yml logs -f
+
+# Arrêter les services
+docker-compose -f docker-compose.yml -f docker/docker-compose.dev.yml down
 ```
+
+**URLs accessibles** :
+
+- Frontend : <http://localhost:3000>
+- Backend API : <http://localhost:5001/api>
+- Mongo Express : <http://localhost:8081> (avec profile `--profile tools`)
+
+#### 🚀 Environnement de production
+
+```bash
+docker-compose -f docker-compose.yml -f docker/docker-compose.prod.yml up -d
+```
+
+> **💡 Architecture Docker** : TopBudget utilise une architecture en "overlay" avec `docker-compose.yml` comme base commune et des fichiers spécifiques par environnement (`dev.yml`, `prod.yml`)
+
+
 
 ## Développement
 
