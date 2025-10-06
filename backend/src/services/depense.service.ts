@@ -3,7 +3,7 @@ import DepenseModel from "../models/depense.model";
 import UserModel from "../models/user.model";
 import CategorieModel from "../models/categorie.model";
 import { AppError } from "../middlewares/error.middleware";
-import { DEPENSE, AUTH } from "../constants";
+import { DEPENSE, AUTH, USER } from "../constants";
 import {
   TypeCompteEnum,
   TypeDepense,
@@ -318,7 +318,7 @@ export class DepenseService {
    */
   static async deleteAll(userId: string): Promise<{ deletedCount: number }> {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      throw new AppError(AUTH.ERRORS.USER_NOT_FOUND, 400);
+      throw new AppError(USER.ERRORS.NOT_FOUND, 400);
     }
 
     const result = await DepenseModel.deleteMany({

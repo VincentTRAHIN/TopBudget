@@ -3,7 +3,7 @@ import RevenuModel from "../models/revenu.model";
 import UserModel from "../models/user.model";
 import CategorieRevenuModel from "../models/categorieRevenu.model";
 import { AppError } from "../middlewares/error.middleware";
-import { REVENU, AUTH } from "../constants";
+import { REVENU, AUTH, USER } from "../constants";
 import { TypeCompteRevenu, IRevenuPopulated } from "../types/revenu.types";
 import { IUser } from "../types/user.types";
 import {
@@ -296,7 +296,7 @@ export class RevenuService {
    */
   static async deleteAll(userId: string): Promise<{ deletedCount: number }> {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      throw new AppError(AUTH.ERRORS.INVALID_USER_ID, 400);
+      throw new AppError(USER.ERRORS.NOT_FOUND, 400);
     }
 
     const result = await RevenuModel.deleteMany({ utilisateur: userId });
