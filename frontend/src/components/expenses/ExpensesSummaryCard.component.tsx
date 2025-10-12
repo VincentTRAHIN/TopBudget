@@ -1,7 +1,7 @@
 'use client';
 
 import { useCurrentMonthFlows } from '@/hooks/useCurrentMonthTotal.hook';
-import { DepenseFilters } from '@/hooks/useDepenses.hook';
+import { DepenseFilters, useDepenses } from '@/hooks/useDepenses.hook';
 import { TrendingDown, Hash, Calendar, CreditCard } from 'lucide-react';
 import React, { useMemo } from 'react';
 
@@ -65,6 +65,19 @@ function ExpensesSummaryCard({
     selectedVue === 'couple_complet' ? 'couple' : 'moi',
   );
 
+  // Récupérer les données détaillées des dépenses pour les calculs
+  const { depenses, pagination, isLoading: isDepensesLoading } = useDepenses(
+    1, // page
+    1000, // limit élevé pour avoir toutes les données du mois
+    {
+      ...filters,
+      dateDebut: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+      dateFin: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0],
+    },
+    {}, // sort
+    selectedVue
+  );
+
   const contextText = useMemo(() => {
     const currentMonth = new Date().toLocaleDateString('fr-FR', {
       month: 'long',
@@ -97,6 +110,32 @@ function ExpensesSummaryCard({
     const currentDate = new Date().getDate();
     return formatAmount(totalDepenses / currentDate);
   }, [totalDepenses, formatAmount]);
+
+  // Calculer le nombre de dépenses
+  const nombreDepenses = useMemo(() => {
+    return pagination?.total || 0;
+  }, [pagination?.total]);
+
+  // Calculer la catégorie principale
+  const categoriePrincipale = useMemo(() => {
+    if (!depenses || depenses.length === 0) return '--';
+
+    const categorieCount: Record<string, number> = {};
+
+    depenses.forEach((depense) => {
+      const categorieNom = typeof depense.categorie === 'object'
+        ? depense.categorie.nom
+        : 'Non catégorisé';
+      categorieCount[categorieNom] = (categorieCount[categorieNom] || 0) + 1;
+    });
+
+    const categorieMax = Object.entries(categorieCount).reduce((max, [nom, count]) =>
+      count > max.count ? { nom, count } : max,
+      { nom: '', count: 0 }
+    );
+
+    return categorieMax.nom || '--';
+  }, [depenses]);
 
   const hasActiveFilters = useMemo(() => {
     return Object.keys(filters).length > 0;
@@ -132,10 +171,10 @@ function ExpensesSummaryCard({
 
         <SummaryStatCard
           title="Nombre de Dépenses"
-          value="--"
+          value={nombreDepenses}
           icon={Hash}
           colorClass="text-blue-600"
-          isLoading={isLoading}
+          isLoading={isLoading || isDepensesLoading}
         />
 
         <SummaryStatCard
@@ -148,10 +187,10 @@ function ExpensesSummaryCard({
 
         <SummaryStatCard
           title="Catégorie Principale"
-          value="--"
+          value={categoriePrincipale}
           icon={CreditCard}
           colorClass="text-purple-600"
-          isLoading={isLoading}
+          isLoading={isLoading || isDepensesLoading}
         />
       </div>
 

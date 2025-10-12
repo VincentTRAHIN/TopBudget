@@ -1,14 +1,17 @@
 import { useState, useMemo } from 'react';
+import { TableColumn } from './table.types';
 
 export interface UseTableFeaturesProps<T> {
   data: T[];
   defaultSortKey?: keyof T;
+  columns?: TableColumn<T>[];
 }
 
 
 export function useTableFeatures<T extends Record<string, any>>({
   data,
   defaultSortKey,
+  columns = [],
 }: UseTableFeaturesProps<T>) {
   interface SortStateProps   { key: keyof T; direction: 'asc' | 'desc' } 
   const [sortState, setSortState] = useState<SortStateProps | null>(
@@ -25,9 +28,26 @@ export function useTableFeatures<T extends Record<string, any>>({
 
   const sortedData = useMemo(() => {
     if (!sortState) return data;
+    
+    // Trouver la colonne correspondante pour utiliser getSortValue ou getValue
+    const column = columns.find(col => col.accessor === sortState.key);
+    
     return [...data].sort((a, b) => {
-      const aValue = a[sortState.key];
-      const bValue = b[sortState.key];
+      let aValue: any;
+      let bValue: any;
+      
+      // Utiliser getSortValue si disponible, sinon getValue, sinon la valeur brute
+      if (column?.getSortValue) {
+        aValue = column.getSortValue(a);
+        bValue = column.getSortValue(b);
+      } else if (column?.getValue) {
+        aValue = column.getValue(a);
+        bValue = column.getValue(b);
+      } else {
+        aValue = a[sortState.key];
+        bValue = b[sortState.key];
+      }
+      
       if (aValue === bValue) return 0;
       if (aValue == null) return 1;
       if (bValue == null) return -1;
@@ -38,7 +58,7 @@ export function useTableFeatures<T extends Record<string, any>>({
         ? String(aValue).localeCompare(String(bValue))
         : String(bValue).localeCompare(String(aValue));
     });
-  }, [data, sortState]);
+  }, [data, sortState, columns]);
 
   return {
     sortState,

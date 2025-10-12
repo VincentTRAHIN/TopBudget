@@ -7,6 +7,7 @@ import {
   obtenirCategorieRevenuParId,
   modifierCategorieRevenu,
   supprimerCategorieRevenu,
+  supprimerToutesCategoriesRevenu,
 } from "../../controllers/categorieRevenu.controller";
 import { asyncHandler } from "../../utils/async.utils";
 
@@ -30,6 +31,8 @@ router.post(
   asyncHandler(ajouterCategorieRevenu),
 );
 router.get("/", asyncHandler(obtenirCategoriesRevenu));
+
+router.delete("/delete-all", asyncHandler(supprimerToutesCategoriesRevenu));
 
 router.get("/:id", asyncHandler(obtenirCategorieRevenuParId));
 router.put(

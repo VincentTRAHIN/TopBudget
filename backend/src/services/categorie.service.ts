@@ -123,4 +123,27 @@ export class CategorieService {
 
     await CategorieModel.findByIdAndDelete(id);
   }
+
+  /**
+   * Supprime toutes les catégories qui ne sont pas utilisées
+   */
+  static async deleteAll(): Promise<{ deletedCount: number }> {
+    // Récupérer toutes les catégories
+    const allCategories = await CategorieModel.find().select("_id").lean();
+    const categoryIds = allCategories.map(cat => cat._id.toString());
+
+    // Trouver les catégories qui sont utilisées dans les dépenses
+    const usedCategories = await DepenseModel.distinct("categorie");
+    const usedCategoryIds = usedCategories.map(id => id.toString());
+
+    // Filtrer les catégories non utilisées
+    const unusedCategoryIds = categoryIds.filter(id => !usedCategoryIds.includes(id));
+
+    // Supprimer les catégories non utilisées
+    const result = await CategorieModel.deleteMany({
+      _id: { $in: unusedCategoryIds.map(id => new mongoose.Types.ObjectId(id)) }
+    });
+
+    return { deletedCount: result.deletedCount || 0 };
+  }
 }

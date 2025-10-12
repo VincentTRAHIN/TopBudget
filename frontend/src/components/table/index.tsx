@@ -14,6 +14,7 @@ export function Table<T extends Record<string, any>>({
 }: TableProps<T>) {
   const { sortState, handleSort, sortedData } = useTableFeatures<T>({
     data,
+    columns,
     defaultSortKey: columns.find(col => col.enableSort)?.accessor as keyof T,
   });
 

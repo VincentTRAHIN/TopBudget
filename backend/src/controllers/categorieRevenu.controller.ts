@@ -241,3 +241,41 @@ export const supprimerCategorieRevenu = createAsyncHandler<
     next(error);
   }
 });
+
+/**
+ * @swagger
+ * /api/categories-revenu/delete-all:
+ *   delete:
+ *     tags: [Categories Revenu]
+ *     summary: Supprimer toutes les catégories de revenu non utilisées de l'utilisateur
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Catégories de revenu supprimées avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     deletedCount:
+ *                       type: number
+ */
+export const supprimerToutesCategoriesRevenu = createAsyncHandler(
+  async (req, res, next): Promise<void> => {
+    try {
+      const result = await CategorieRevenuService.deleteAll(req.user!.id);
+      sendSuccess(res, CATEGORIE_REVENU.SUCCESS.DELETED_ALL, result);
+    } catch (error) {
+      logger.error(CATEGORIE_REVENU.ERRORS.DELETE_ERROR, error);
+      next(error);
+    }
+  }
+);

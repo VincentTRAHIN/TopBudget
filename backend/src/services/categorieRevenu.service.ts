@@ -167,4 +167,32 @@ export class CategorieRevenuService {
 
     await CategorieRevenu.findByIdAndDelete(id);
   }
+
+  /**
+   * Supprime toutes les catégories de revenu qui ne sont pas utilisées par un utilisateur
+   */
+  static async deleteAll(userId: string): Promise<{ deletedCount: number }> {
+    // Récupérer toutes les catégories de l'utilisateur
+    const allCategories = await CategorieRevenu.find({ utilisateur: userId })
+      .select("_id")
+      .lean();
+    const categoryIds = allCategories.map(cat => cat._id.toString());
+
+    // Trouver les catégories qui sont utilisées dans les revenus
+    const usedCategories = await RevenuModel.distinct("categorieRevenu", {
+      utilisateur: userId
+    });
+    const usedCategoryIds = usedCategories.map(id => id.toString());
+
+    // Filtrer les catégories non utilisées
+    const unusedCategoryIds = categoryIds.filter(id => !usedCategoryIds.includes(id));
+
+    // Supprimer les catégories non utilisées
+    const result = await CategorieRevenu.deleteMany({
+      _id: { $in: unusedCategoryIds.map(id => new mongoose.Types.ObjectId(id)) },
+      utilisateur: userId
+    });
+
+    return { deletedCount: result.deletedCount || 0 };
+  }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { ICategorie } from '@/types/categorie.type';
 import { RefreshCw } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories.hook';
@@ -19,7 +19,8 @@ interface CategoriesListProps {
   onDelete: () => void;
   onAdd: () => void;
   endpoint: string;
-  refresh: KeyedMutator<ICategorie[]>
+  refresh: KeyedMutator<ICategorie[]>;
+  search: string;
 }
 
 export default function CategoriesList({
@@ -30,9 +31,9 @@ export default function CategoriesList({
   onDelete,
   onAdd,
   endpoint,
-  refresh
+  refresh,
+  search
 }: CategoriesListProps) {
-  const [search, setSearch] = useState('');
   const { refreshCategories } = useCategories();
 
   const { columns, actions } = useColumns<ICategorie | ICategorieRevenu>({
@@ -56,23 +57,6 @@ export default function CategoriesList({
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          <div className="flex gap-2 w-full md:w-auto">
-            <input
-              type="text"
-              placeholder="Rechercher une catégorie..."
-              disabled
-              className="input flex-grow md:w-64 opacity-50"
-            />
-            <button
-              disabled
-              className="btn-primary px-4 py-2 whitespace-nowrap opacity-50 cursor-not-allowed"
-            >
-              Ajouter une catégorie
-            </button>
-          </div>
-        </div>
-
         <div className="bg-white rounded-lg shadow-md p-8">
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -86,23 +70,6 @@ export default function CategoriesList({
   if (isError) {
     return (
       <div className="space-y-4">
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          <div className="flex gap-2 w-full md:w-auto">
-            <input
-              type="text"
-              placeholder="Rechercher une catégorie..."
-              disabled
-              className="input flex-grow md:w-64 opacity-50"
-            />
-            <button
-              onClick={onAdd}
-              className="btn-primary px-4 py-2 whitespace-nowrap"
-            >
-              Ajouter une catégorie
-            </button>
-          </div>
-        </div>
-
         <div className="bg-white rounded-lg shadow-md p-8">
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="text-red-500">
@@ -143,24 +110,6 @@ export default function CategoriesList({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <div className="flex gap-2 w-full md:w-auto">
-          <input
-            type="text"
-            placeholder="Rechercher une catégorie..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input flex-grow md:w-64"
-          />
-          <button
-            onClick={onAdd}
-            className="btn-primary px-4 py-2 whitespace-nowrap"
-          >
-            Ajouter une catégorie
-          </button>
-        </div>
-      </div>
-
       <div className="overflow-x-auto">
         <Table
           columns={columns}
@@ -169,7 +118,6 @@ export default function CategoriesList({
           emptyRender={
             <EmptyComponent
               search={search}
-              setSearch={setSearch}
               onAdd={onAdd}
               categories={categories}
             />

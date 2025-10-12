@@ -2,7 +2,7 @@ import { ICategorie } from "@/types/categorie.type";
 
 interface EmptyComponentProps {
   search: string;
-  setSearch: React.Dispatch<React.SetStateAction<string>>;
+  setSearch?: React.Dispatch<React.SetStateAction<string>>;
   onAdd: () => void;
   categories: ICategorie[];
 }
@@ -16,12 +16,14 @@ export function EmptyComponent({ search, onAdd, categories, setSearch }: EmptyCo
           <p className="mb-2">
             Aucune catégorie trouvée pour &quot;{search}&quot;
           </p>
-          <button
-            onClick={() => setSearch('')}
-            className="text-indigo-600 hover:text-indigo-800 text-sm"
-          >
-            Effacer la recherche
-          </button>
+          {setSearch && (
+            <button
+              onClick={() => setSearch('')}
+              className="text-indigo-600 hover:text-indigo-800 text-sm"
+            >
+              Effacer la recherche
+            </button>
+          )}
         </div>
       ) : categories.length === 0 ? (
         <div className="text-gray-500">

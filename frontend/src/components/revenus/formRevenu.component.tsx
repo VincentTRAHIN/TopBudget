@@ -8,7 +8,7 @@ import fetcher from '@/utils/fetcher.utils';
 import { X } from 'lucide-react';
 import { useRevenus } from '@/hooks/useRevenus.hook';
 import { IRevenu } from '@/types/revenu.type';
-import { TYPE_REVENU_OPTIONS } from '@/types/common.type';
+import { TYPE_REVENU_OPTIONS, TypeRevenuEnum } from '@/types/common.type';
 import { revenusEndpoint } from '@/services/api.service';
 import { useCategoriesRevenu } from '@/hooks/useCategoriesRevenu.hook';
 import { ICategorieRevenu } from '@/types/categorieRevenu.type';
@@ -30,7 +30,7 @@ interface RevenuFormValues {
   montant: number | string;
   description: string;
   date: string;
-  typeCompte: 'Perso' | 'Conjoint';
+  typeCompte: TypeRevenuEnum[keyof TypeRevenuEnum];
   commentaire?: string;
   categorieRevenu: string;
   estRecurrent: boolean;
@@ -53,7 +53,7 @@ export default function FormRevenu({
         montant: existingRevenu.montant,
         description: existingRevenu.description,
         date: existingRevenu.date.slice(0, 10),
-        typeCompte: existingRevenu.typeCompte,
+        typeCompte: TypeRevenuEnum[existingRevenu.typeCompte as keyof typeof TypeRevenuEnum],
         commentaire: existingRevenu.commentaire || '',
         categorieRevenu:
           typeof existingRevenu.categorieRevenu === 'object'
