@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useCoupleFixedCharges } from '@/hooks/useCoupleFixedCharges.hook';
+import React, { useState, useMemo } from 'react';
+import { useCoupleFixedCharges, CoupleFixedCharge } from '@/hooks/useCoupleFixedCharges.hook';
 import { Table } from '../table';
+import { DataType, DisplayType, TableColumn } from '../table/table.types';
 
 export default function CoupleFixedChargesList() {
   const today = new Date();
@@ -11,6 +12,41 @@ export default function CoupleFixedChargesList() {
     (today.getMonth() + 1).toString().padStart(2, '0'),
   );
   const { data, isLoading, isError } = useCoupleFixedCharges(annee, mois);
+
+  const columns = useMemo<TableColumn<CoupleFixedCharge>[]>(() => [
+    {
+      header: 'Description',
+      accessor: 'description',
+      dataType: DataType.STRING,
+      enableSort: true,
+      className: 'font-medium',
+    },
+    {
+      header: 'Catégorie',
+      accessor: 'categorie',
+      dataType: DataType.STRING,
+      getValue: (row) => {
+        if (typeof row.categorie === 'string') return row.categorie;
+        return row.categorie?.nom || 'Non catégorisé';
+      },
+      enableSort: true,
+    },
+    {
+      header: 'Montant',
+      accessor: 'montant',
+      dataType: DataType.NUMBER,
+      displayType: DisplayType.CURRENCY,
+      enableSort: true,
+      className: 'text-right font-semibold',
+    },
+    {
+      header: 'Payé par',
+      accessor: 'payePar',
+      dataType: DataType.STRING,
+      enableSort: true,
+      className: 'text-center',
+    },
+  ], []);
 
   if (isLoading) {
     return (
@@ -188,16 +224,20 @@ export default function CoupleFixedChargesList() {
       </div>
       <Table
         data={data.listeChargesFixes}
-        columns={[]}
+        columns={columns}
         emptyRender={
           <div className="px-4 py-2 text-center text-gray-400">
             Aucune charge fixe commune pour cette période.
           </div>
         }
       />
-      <div className="font-semibold text-right">
-        Total des charges fixes communes :{' '}
-        {data.totalChargesFixesCommunes.toFixed(2)}€
+      <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="font-semibold text-right text-lg text-gray-800">
+          Total des charges fixes communes :{' '}
+          <span className="text-indigo-600">
+            {data.totalChargesFixesCommunes.toFixed(2)}€
+          </span>
+        </div>
       </div>
     </div>
   );
