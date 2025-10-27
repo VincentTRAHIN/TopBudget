@@ -2,14 +2,12 @@
 
 import Layout from '@/components/layout/Layout';
 import RequireAuth from '@/components/auth/requireAuth.component';
-import PieChartCategories from '@/components/dashboard/pieChartCategories.component';
+import PieChartFlows from '@/components/shared/PieChartFlows.component';
 import MonthlyComparisonSummary from '@/components/dashboard/MonthlyComparisonSummary.component';
 import { MonthlyFlowsChart } from '@/components/dashboard/MonthlyExpensesChart.component';
 import StatsSummary from '@/components/statistiques/StatsSummary.component';
-import TopCategoriesYearToDate from '@/components/statistiques/TopCategoriesYearToDate.component';
 import CoupleContributionsSummary from '@/components/statistiques/CoupleContributionsSummary.component';
 import CoupleFixedChargesList from '@/components/statistiques/CoupleFixedChargesList.component';
-import { PieChartCategoriesRevenu } from '@/components/statistiques/PieChartCategoriesRevenu.component';
 import { useAuth } from '@/hooks/useAuth.hook';
 import { useState } from 'react';
 import { User, Users } from 'lucide-react';
@@ -118,16 +116,16 @@ export default function StatistiquesPage() {
             </h2>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <div>
-                <PieChartCategories
+                <PieChartFlows
+                  type="depenses"
                   statsContext={statsContext}
                   customTitle={getTitleForChart('depenses')}
                 />
               </div>
               <div>
-                <PieChartCategoriesRevenu
-                  year={currentYear}
-                  month={currentMonth}
-                  contexte={statsContext === 'moi' ? 'perso' : statsContext}
+                <PieChartFlows
+                  type="revenus"
+                  statsContext={statsContext}
                   customTitle={getTitleForChart('revenus')}
                 />
               </div>
@@ -149,7 +147,13 @@ export default function StatistiquesPage() {
                 </div>
               </div>
               <div className="xl:col-span-1">
-                <TopCategoriesYearToDate statsContext={statsContext} />
+                <PieChartFlows
+                  type="depenses"
+                  statsContext={statsContext}
+                  mode="year"
+                  showModeToggle={true}
+                  customTitle="Top Catégories de Dépenses"
+                />
               </div>
             </div>
           </section>

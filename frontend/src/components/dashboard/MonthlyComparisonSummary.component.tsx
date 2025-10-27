@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useMonthlyComparison } from '../../hooks/useMonthlyComparison.hook';
+import Tooltip from '@/components/shared/Tooltip.component';
 import {
   Calendar,
   TrendingUp,
@@ -10,63 +11,6 @@ import {
   DollarSign,
   HelpCircle,
 } from 'lucide-react';
-
-const Tooltip = ({
-  children,
-  content,
-  isOpen,
-  onToggle,
-  onClickOutside
-}: {
-  children: React.ReactNode;
-  content: React.ReactNode;
-  isOpen: boolean;
-  onToggle: () => void;
-  onClickOutside: () => void;
-}) => {
-  const tooltipRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (tooltipRef.current && !tooltipRef.current.contains(event.target as Node)) {
-        onClickOutside();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClickOutside]);
-
-  return (
-    <div className="relative inline-block" ref={tooltipRef}>
-      <button
-        type="button"
-        onClick={onToggle}
-        className="inline-flex items-center cursor-pointer text-gray-400 hover:text-gray-600 focus:outline-none"
-        aria-expanded={isOpen}
-        aria-label="Plus d'informations"
-      >
-        {children}
-      </button>
-      {isOpen && (
-        <div
-          role="tooltip"
-          className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-md shadow-lg md:left-auto md:right-0 md:-translate-x-0"
-        >
-          {content}
-          <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-3 h-3 bg-gray-800 rotate-45 md:left-auto md:right-3"></div> {/* Flèche */}
-        </div>
-      )}
-    </div>
-  );
-};
 
 const MonthlyComparisonSummary: React.FC<{
   statsContext?: 'moi' | 'couple';

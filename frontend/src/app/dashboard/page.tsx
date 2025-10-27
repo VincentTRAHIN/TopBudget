@@ -6,7 +6,6 @@ import KPICard from '@/components/dashboard/KPICard.component';
 import LastDepenses from '@/components/dashboard/lastDepenses.component';
 import MonthlyComparisonSummary from '@/components/dashboard/MonthlyComparisonSummary.component';
 import { MonthlyFlowsChart } from '@/components/dashboard/MonthlyExpensesChart.component';
-import PieChartCategories from '@/components/dashboard/pieChartCategories.component';
 import { useCurrentMonthFlows } from '@/hooks/useCurrentMonthTotal.hook';
 import { TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 
@@ -66,13 +65,6 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               <div className="xl:col-span-2">
                 <MonthlyFlowsChart statsContext="moi" defaultDataType="solde" />
-              </div>
-
-              <div className="xl:col-span-1">
-                <PieChartCategories
-                  statsContext="moi"
-                  customTitle="Dépenses (Mois en cours)"
-                />
               </div>
             </div>
           </section>
