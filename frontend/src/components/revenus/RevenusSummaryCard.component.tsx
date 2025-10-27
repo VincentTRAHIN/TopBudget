@@ -1,8 +1,9 @@
 'use client';
 
 import { useCurrentMonthFlows } from '@/hooks/useCurrentMonthTotal.hook';
-import { RevenuFilters } from '@/hooks/useRevenus.hook';
+import { RevenuFilters, useRevenus } from '@/hooks/useRevenus.hook';
 import { TrendingUp, Hash, Calendar, CreditCard } from 'lucide-react';
+import React, { useMemo } from 'react';
 
 interface RevenusSummaryCardProps {
   selectedVue: 'moi' | 'partenaire' | 'couple_complet';
@@ -46,6 +47,19 @@ export default function RevenusSummaryCard({ selectedVue, filters }: RevenusSumm
     selectedVue === 'couple_complet' ? 'couple' : 'moi'
   );
 
+  // Récupérer les données détaillées des revenus pour les calculs
+  const { revenus, pagination, isLoading: isRevenusLoading } = useRevenus(
+    1, // page
+    1000, // limit élevé pour avoir toutes les données du mois
+    {
+      ...filters,
+      dateDebut: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+      dateFin: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0],
+    },
+    {}, // sort
+    selectedVue
+  );
+
   const getContextText = () => {
     const currentMonth = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
     switch (selectedVue) {
@@ -64,6 +78,32 @@ export default function RevenusSummaryCard({ selectedVue, filters }: RevenusSumm
       maximumFractionDigits: 2 
     })} €`;
   };
+
+  // Calculer le nombre de revenus
+  const nombreRevenus = useMemo(() => {
+    return pagination?.total || 0;
+  }, [pagination?.total]);
+
+  // Calculer la source principale (catégorie de revenu)
+  const sourcePrincipale = useMemo(() => {
+    if (!revenus || revenus.length === 0) return '--';
+
+    const categorieCount: Record<string, number> = {};
+
+    revenus.forEach((revenu) => {
+      const categorieNom = typeof revenu.categorieRevenu === 'object'
+        ? revenu.categorieRevenu.nom
+        : 'Non catégorisé';
+      categorieCount[categorieNom] = (categorieCount[categorieNom] || 0) + 1;
+    });
+
+    const categorieMax = Object.entries(categorieCount).reduce((max, [nom, count]) =>
+      count > max.count ? { nom, count } : max,
+      { nom: '', count: 0 }
+    );
+
+    return categorieMax.nom || '--';
+  }, [revenus]);
 
   if (isError) {
     return (
@@ -95,10 +135,10 @@ export default function RevenusSummaryCard({ selectedVue, filters }: RevenusSumm
         
         <SummaryStatCard
           title="Nombre de Revenus"
-          value="--"
+          value={nombreRevenus}
           icon={Hash}
           colorClass="text-blue-600"
-          isLoading={isLoading}
+          isLoading={isLoading || isRevenusLoading}
         />
         
         <SummaryStatCard
@@ -111,10 +151,10 @@ export default function RevenusSummaryCard({ selectedVue, filters }: RevenusSumm
         
         <SummaryStatCard
           title="Source Principale"
-          value="--"
+          value={sourcePrincipale}
           icon={CreditCard}
           colorClass="text-purple-600"
-          isLoading={isLoading}
+          isLoading={isLoading || isRevenusLoading}
         />
       </div>
 

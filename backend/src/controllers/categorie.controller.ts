@@ -224,3 +224,37 @@ export const supprimerCategorie = createAsyncHandler(
     }
   },
 );
+
+/**
+ * @swagger
+ * /api/categories/delete-all:
+ *   delete:
+ *     summary: Supprimer toutes les catégories non utilisées
+ *     tags: [Catégories]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Catégories supprimées avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 deletedCount:
+ *                   type: number
+ */
+export const supprimerToutesCategories = createAsyncHandler(
+  async (
+    req: TypedAuthRequest,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const result = await CategorieService.deleteAll();
+      return sendSuccess(res, CATEGORIE.SUCCESS.DELETED, result);
+    } catch (error) {
+      next(error);
+    }
+  },
+);

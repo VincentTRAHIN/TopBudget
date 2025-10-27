@@ -4,6 +4,7 @@ export const CATEGORIE_REVENU = {
     FETCHED: "Catégories de revenu récupérées avec succès",
     UPDATED: "Catégorie de revenu mise à jour avec succès",
     DELETED: "Catégorie de revenu supprimée avec succès",
+    DELETED_ALL: "Catégories de revenu non utilisées supprimées avec succès",
   },
   ERRORS: {
     NOT_FOUND: "Catégorie de revenu non trouvée",

@@ -5,6 +5,7 @@ import {
   obtenirCategories,
   modifierCategorie,
   supprimerCategorie,
+  supprimerToutesCategories,
 } from "../../controllers/categorie.controller";
 import { creerCategorieValidator } from "../../middlewares/validators/categorie.validator";
 import { asyncHandler } from "../../utils/async.utils";
@@ -19,6 +20,8 @@ router.post(
 );
 
 router.get("/", proteger, asyncHandler(obtenirCategories));
+
+router.delete("/delete-all", proteger, asyncHandler(supprimerToutesCategories));
 
 router.put("/:id", proteger, asyncHandler(modifierCategorie));
 

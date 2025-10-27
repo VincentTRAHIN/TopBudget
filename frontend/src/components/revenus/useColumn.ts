@@ -52,6 +52,8 @@ export function useColumns({
       dataType: DataType.STRING,
       displayType: DisplayType.ENUM,
       getValue: (row) => row.categorieRevenu.nom || 'N/A',
+      getSortValue: (row) => row.categorieRevenu.nom || 'N/A',
+      enableSort: true,
     },
     {
       header: 'Récurrent ?',
@@ -64,6 +66,8 @@ export function useColumns({
           ? { name: 'check', size: 16, color: 'green' }
           : { name: 'x', size: 16, color: 'red' }
       ),
+      getSortValue: (row) => row.estRecurrent ? 1 : 0,
+      enableSort: true,
     },
     {
       accessor: 'commentaire',
@@ -76,18 +80,22 @@ export function useColumns({
       accessor: 'utilisateur',
       dataType: DataType.STRING,
       getValue: (row) => row.utilisateur.nom,
+      getSortValue: (row) => row.utilisateur.nom,
+      enableSort: true,
     },
 
     {
       header: 'Compte',
       accessor: 'typeCompte',
       dataType: DataType.STRING,
+      enableSort: true,
     },
     {
       header: 'Montant (€)',
       accessor: 'montant',
       dataType: DataType.NUMBER,
       displayType: DisplayType.CURRENCY,
+      enableSort: true,
     },
   ];
 

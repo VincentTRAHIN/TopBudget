@@ -62,12 +62,16 @@ export function useColumns({
       dataType: DataType.STRING,
       displayType: DisplayType.ENUM,
       getValue: (row) => row.categorie.nom || 'N/A',
+      getSortValue: (row) => row.categorie.nom || 'N/A',
+      enableSort: true,
     },
     {
       header: 'Payé par',
       accessor: 'utilisateur',
       dataType: DataType.STRING,
       getValue: (row) => row.utilisateur.nom,
+      getSortValue: (row) => row.utilisateur.nom,
+      enableSort: true,
     },
     {
       header: 'Charge Fixe',
@@ -80,22 +84,27 @@ export function useColumns({
           ? { name: 'pin', size: 16, color: 'blue' }
           : undefined
       ),
+      getSortValue: (row) => row.estChargeFixe ? 1 : 0,
+      enableSort: true,
     },
     {
       header: 'Compte',
       accessor: 'typeCompte',
       dataType: DataType.STRING,
+      enableSort: true,
     },
     {
       header: 'Type de dépense',
       accessor: 'typeDepense',
       dataType: DataType.STRING,
+      enableSort: true,
     },
     {
       header: 'Montant (€)',
       accessor: 'montant',
       dataType: DataType.NUMBER,
       displayType: DisplayType.CURRENCY,
+      enableSort: true,
     },
   ];
 

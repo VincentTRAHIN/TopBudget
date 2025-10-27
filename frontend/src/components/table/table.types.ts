@@ -53,6 +53,11 @@ export interface TableColumn<T> {
    */
   getValue?: (row: T) => string;
   /**
+   * Fonction pour obtenir la valeur de tri
+   * Si non défini, utilise getValue ou la valeur brute de l'accessor
+   */
+  getSortValue?: (row: T) => string | number;
+  /**
    * Fonction pour obtenir la devise actuelle
    * Si non défini, utilise '€' par défaut
    */
