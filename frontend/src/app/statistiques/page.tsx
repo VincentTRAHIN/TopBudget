@@ -39,15 +39,32 @@ export default function StatistiquesPage() {
   ];
 
   const getTitleForChart = (type: 'depenses' | 'revenus') => {
-    if (statsContext === 'couple') {
-      return type === 'depenses'
-        ? `Répartition des Dépenses Communes par Catégorie - ${monthNames[currentMonth - 1]} ${currentYear}`
-        : `Répartition des Revenus du Couple par Catégorie - ${monthNames[currentMonth - 1]} ${currentYear}`;
-    }
-
     return type === 'depenses'
-      ? `Répartition par Catégorie - ${monthNames[currentMonth - 1]} ${currentYear}`
-      : `Répartition des Revenus par Catégorie - ${monthNames[currentMonth - 1]} ${currentYear}`;
+      ? 'Dépenses par Catégorie'
+      : 'Revenus par Catégorie';
+  };
+
+  const getTooltipContent = (type: 'depenses' | 'revenus') => {
+    if (type === 'depenses') {
+      return (
+        <div>
+          <p className="font-medium mb-1">Répartition des dépenses</p>
+          <p>
+            Ce graphique montre comment vos dépenses se répartissent entre les différentes catégories. 
+            Chaque segment représente le pourcentage et le montant dépensé dans une catégorie spécifique.
+          </p>
+        </div>
+      );
+    }
+    return (
+      <div>
+        <p className="font-medium mb-1">Répartition des revenus</p>
+        <p>
+          Ce graphique montre la répartition de vos revenus par catégorie (salaire, investissements, autres sources). 
+          Visualisez facilement d&apos;où proviennent vos entrées d&apos;argent.
+        </p>
+      </div>
+    );
   };
 
   return (
@@ -120,6 +137,7 @@ export default function StatistiquesPage() {
                   type="depenses"
                   statsContext={statsContext}
                   customTitle={getTitleForChart('depenses')}
+                  tooltipContent={getTooltipContent('depenses')}
                 />
               </div>
               <div>
@@ -127,6 +145,7 @@ export default function StatistiquesPage() {
                   type="revenus"
                   statsContext={statsContext}
                   customTitle={getTitleForChart('revenus')}
+                  tooltipContent={getTooltipContent('revenus')}
                 />
               </div>
             </div>
@@ -139,12 +158,7 @@ export default function StatistiquesPage() {
             </h2>
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               <div className="xl:col-span-2">
-                <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                    Évolution des Flux Mensuels
-                  </h3>
-                  <MonthlyFlowsChart statsContext={statsContext} />
-                </div>
+                <MonthlyFlowsChart statsContext={statsContext} />
               </div>
               <div className="xl:col-span-1">
                 <PieChartFlows
@@ -152,7 +166,16 @@ export default function StatistiquesPage() {
                   statsContext={statsContext}
                   mode="year"
                   showModeToggle={true}
-                  customTitle="Top Catégories de Dépenses"
+                  customTitle="Top 5 des Dépenses"
+                  tooltipContent={
+                    <div>
+                      <p className="font-medium mb-1">Catégories principales</p>
+                      <p>
+                        Identifiez rapidement vos 5 catégories de dépenses les plus importantes. 
+                        Basculez entre vue mensuelle et annuelle pour comparer vos habitudes de consommation.
+                      </p>
+                    </div>
+                  }
                 />
               </div>
             </div>

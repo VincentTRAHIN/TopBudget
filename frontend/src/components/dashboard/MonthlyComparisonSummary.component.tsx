@@ -25,7 +25,7 @@ const MonthlyComparisonSummary: React.FC<{
     return (
       <div className="bg-white p-6 rounded-lg shadow-md">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Comparaison Mensuelle</h3>
+          <h3 className="text-lg font-semibold">Évolution du Mois</h3>
         </div>
         <div className="animate-pulse flex flex-col space-y-2">
           <div className="h-6 bg-gray-200 rounded w-3/4"></div>
@@ -149,19 +149,22 @@ const MonthlyComparisonSummary: React.FC<{
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">Comparaison Mensuelle</h3>
+        <h3 className="text-lg font-semibold">Évolution du Mois</h3>
         <Tooltip
           isOpen={comparisonTooltipOpen}
           onToggle={() => setComparisonTooltipOpen(prev => !prev)}
           onClickOutside={() => setComparisonTooltipOpen(false)}
           content={
             <div>
-              <p className="font-medium mb-1">Info Comparaison Mensuelle</p>
-              <p>Ce bloc compare les {type === 'depenses' ? 'dépenses' : type === 'revenus' ? 'revenus' : 'soldes'} du mois de {currentMonth} avec ceux de {prevMonth}. Il indique la différence absolue et en pourcentage.</p>
+              <p className="font-medium mb-1">Évolution mensuelle</p>
+              <p>
+                Compare les {type === 'depenses' ? 'dépenses' : type === 'revenus' ? 'revenus' : 'soldes'} de {currentMonth} par rapport à {prevMonth}. 
+                La variation est exprimée en euros et en pourcentage pour mieux visualiser l&apos;évolution de vos finances d&apos;un mois à l&apos;autre.
+              </p>
             </div>
           }
         >
-          <HelpCircle size={16} aria-label="Aide sur la comparaison mensuelle" />
+          <HelpCircle size={16} aria-label="Aide sur l'évolution mensuelle" />
         </Tooltip>
       </div>
 

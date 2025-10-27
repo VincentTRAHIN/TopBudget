@@ -4,6 +4,8 @@ import React, { useState, useMemo } from 'react';
 import { useCoupleFixedCharges, CoupleFixedCharge } from '@/hooks/useCoupleFixedCharges.hook';
 import { Table } from '../table';
 import { DataType, DisplayType, TableColumn } from '../table/table.types';
+import TooltipComponent from '@/components/shared/Tooltip.component';
+import { HelpCircle } from 'lucide-react';
 
 export default function CoupleFixedChargesList() {
   const today = new Date();
@@ -11,6 +13,7 @@ export default function CoupleFixedChargesList() {
   const [mois, setMois] = useState<string>(
     (today.getMonth() + 1).toString().padStart(2, '0'),
   );
+  const [tooltipOpen, setTooltipOpen] = useState(false);
   const { data, isLoading, isError } = useCoupleFixedCharges(annee, mois);
 
   const columns = useMemo<TableColumn<CoupleFixedCharge>[]>(() => [
@@ -51,7 +54,9 @@ export default function CoupleFixedChargesList() {
   if (isLoading) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
-        <h3 className="text-lg font-semibold mb-4">Charges Fixes Communes</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Charges Fixes Partagées</h3>
+        </div>
         <div className="mb-4 flex gap-4 justify-center">
           <div>
             <label htmlFor="mois-select-charges" className="mr-2">
@@ -96,7 +101,9 @@ export default function CoupleFixedChargesList() {
   if (isError) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md text-center text-red-500">
-        <h3 className="text-lg font-semibold mb-4">Charges Fixes Communes</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Charges Fixes Partagées</h3>
+        </div>
         <div className="mb-4 flex gap-4 justify-center">
           <div>
             <label htmlFor="mois-select-charges" className="mr-2">
@@ -141,7 +148,9 @@ export default function CoupleFixedChargesList() {
   if (!data || !data.listeChargesFixes) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
-        <h3 className="text-lg font-semibold mb-4">Charges Fixes Communes</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Charges Fixes Partagées</h3>
+        </div>
         <div className="mb-4 flex gap-4 justify-center">
           <div>
             <label htmlFor="mois-select-charges" className="mr-2">
@@ -185,7 +194,25 @@ export default function CoupleFixedChargesList() {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h3 className="text-lg font-semibold mb-4">Charges Fixes Communes</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">Charges Fixes Partagées</h3>
+        <TooltipComponent
+          isOpen={tooltipOpen}
+          onToggle={() => setTooltipOpen(prev => !prev)}
+          onClickOutside={() => setTooltipOpen(false)}
+          content={
+            <div>
+              <p className="font-medium mb-1">Dépenses récurrentes</p>
+              <p>
+                Liste des charges fixes payées par le couple (loyer, abonnements, factures récurrentes). 
+                Ces dépenses sont partagées entre les deux partenaires et comptabilisées dans les contributions mensuelles.
+              </p>
+            </div>
+          }
+        >
+          <HelpCircle size={16} aria-label="Aide sur les charges fixes" />
+        </TooltipComponent>
+      </div>
       <div className="flex gap-4 mb-4">
         <div>
           <label htmlFor="mois-select-charges" className="mr-2">

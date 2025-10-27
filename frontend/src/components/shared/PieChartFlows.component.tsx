@@ -12,6 +12,8 @@ import {
 import { useCategoryDistribution } from '@/hooks/useCategoryDistribution.hook';
 import { useRevenuDistributionByCategorie } from '@/hooks/useRevenuDistributionByCategorie.hook';
 import { DataType } from '@/components/table/table.types';
+import TooltipComponent from '@/components/shared/Tooltip.component';
+import { HelpCircle } from 'lucide-react';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -36,6 +38,7 @@ interface PieChartFlowsProps {
   customTitle?: string;
   mode?: 'month' | 'year'; // Mode par défaut : mois ou année
   showModeToggle?: boolean; // Afficher le toggle mois/année
+  tooltipContent?: React.ReactNode; // Contenu personnalisé du tooltip
 }
 
 /**
@@ -46,6 +49,7 @@ interface PieChartFlowsProps {
  * @param customTitle - Titre personnalisé (optionnel)
  * @param mode - Mode d'affichage par défaut ('month' ou 'year')
  * @param showModeToggle - Afficher le toggle pour changer de mode
+ * @param tooltipContent - Contenu personnalisé du tooltip d'aide
  */
 export default function PieChartFlows({
   type,
@@ -53,6 +57,7 @@ export default function PieChartFlows({
   customTitle,
   mode = 'month',
   showModeToggle = false,
+  tooltipContent,
 }: PieChartFlowsProps) {
   const [selectedYear, setSelectedYear] = useState<number>(
     new Date().getFullYear(),
@@ -61,6 +66,7 @@ export default function PieChartFlows({
     new Date().getMonth() + 1,
   );
   const [viewMode, setViewMode] = useState<'month' | 'year'>(mode);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
 
   // Hooks conditionnels selon le type
   const hookContexte = statsContext === 'moi' ? 'moi' : statsContext === 'couple' ? 'couple' : undefined;
@@ -98,10 +104,10 @@ export default function PieChartFlows({
     }
 
     if (viewMode === 'year') {
-      return `${baseTitlePart} ${contexteText}par Catégorie - ${selectedYear} (Cumul annuel)`;
+      return `${baseTitlePart} ${contexteText} - ${selectedYear} (Cumul annuel)`;
     }
 
-    return `${baseTitlePart} ${contexteText}par Catégorie - ${currentMonthName} ${selectedYear}`;
+    return `${baseTitlePart} ${contexteText} - ${currentMonthName} ${selectedYear}`;
   }, [customTitle, contexteText, currentMonthName, selectedYear, monthNames, type, viewMode]);
 
   const borderColors = useMemo(() => {
@@ -177,7 +183,19 @@ export default function PieChartFlows({
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-      <h3 className="text-lg font-semibold mb-4 text-gray-800">{displayTitle}</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-800">{displayTitle}</h3>
+        {tooltipContent && (
+          <TooltipComponent
+            isOpen={tooltipOpen}
+            onToggle={() => setTooltipOpen(prev => !prev)}
+            onClickOutside={() => setTooltipOpen(false)}
+            content={tooltipContent}
+          >
+            <HelpCircle size={16} aria-label="Aide sur le graphique" />
+          </TooltipComponent>
+        )}
+      </div>
 
       <div className="flex flex-wrap gap-4 items-center mb-4">
         {showModeToggle && (

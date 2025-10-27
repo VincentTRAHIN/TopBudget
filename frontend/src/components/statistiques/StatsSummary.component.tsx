@@ -15,7 +15,7 @@ export default function StatsSummary({
   if (isLoading) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-4">Résumé des Statistiques</h3>
+        <h3 className="text-lg font-semibold mb-4">Indicateurs Clés</h3>
         <div className="animate-pulse flex flex-col space-y-2">
           <div className="h-6 bg-gray-200 rounded w-3/4"></div>
           <div className="h-6 bg-gray-200 rounded w-1/2"></div>
@@ -28,7 +28,7 @@ export default function StatsSummary({
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h3 className="text-lg font-semibold mb-4">Résumé des Statistiques</h3>
+      <h3 className="text-lg font-semibold mb-4">Indicateurs Clés</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Carte Dépenses */}
         <StatCard

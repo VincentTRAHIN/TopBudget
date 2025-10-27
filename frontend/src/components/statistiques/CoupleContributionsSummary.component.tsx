@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { useCoupleContributionsSummary } from '@/hooks/useCoupleContributionsSummary.hook';
 import { useAuth } from '@/hooks/useAuth.hook';
+import TooltipComponent from '@/components/shared/Tooltip.component';
+import { HelpCircle } from 'lucide-react';
 
 interface CoupleContributionsSummaryProps {
   partenaireNom?: string;
@@ -16,6 +18,7 @@ export default function CoupleContributionsSummary({
   const [mois, setMois] = useState<string>(
     (today.getMonth() + 1).toString().padStart(2, '0'),
   );
+  const [tooltipOpen, setTooltipOpen] = useState(false);
   const { data, isLoading, isError } = useCoupleContributionsSummary(
     annee,
     mois,
@@ -40,9 +43,25 @@ export default function CoupleContributionsSummary({
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h3 className="text-lg font-semibold mb-4">
-        Résumé des Contributions du Couple
-      </h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">Équilibre des Contributions</h3>
+        <TooltipComponent
+          isOpen={tooltipOpen}
+          onToggle={() => setTooltipOpen(prev => !prev)}
+          onClickOutside={() => setTooltipOpen(false)}
+          content={
+            <div>
+              <p className="font-medium mb-1">Répartition 50/50</p>
+              <p>
+                Ce bloc calcule l&apos;équilibre des contributions aux dépenses communes du couple. 
+                Chacun devrait contribuer à hauteur de 50% du total. L&apos;écart affiché indique qui doit rembourser l&apos;autre pour équilibrer les comptes.
+              </p>
+            </div>
+          }
+        >
+          <HelpCircle size={16} aria-label="Aide sur les contributions" />
+        </TooltipComponent>
+      </div>
       <div className="flex gap-4 mb-4">
         <div>
           <label htmlFor="mois-select" className="mr-2">

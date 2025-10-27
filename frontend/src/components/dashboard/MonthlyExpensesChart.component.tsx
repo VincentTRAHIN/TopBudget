@@ -14,6 +14,8 @@ import {
   ChartOptions,
 } from 'chart.js';
 import { useMonthlyFlowsEvolution } from '@/hooks/useMonthlyFlowsEvolution.hook';
+import TooltipComponent from '@/components/shared/Tooltip.component';
+import { HelpCircle } from 'lucide-react';
 
 ChartJS.register(
   CategoryScale,
@@ -32,6 +34,7 @@ export const MonthlyFlowsChart: React.FC<{
   const [dataType, setDataType] = useState<'depenses' | 'revenus' | 'solde'>(
     defaultDataType,
   );
+  const [tooltipOpen, setTooltipOpen] = useState(false);
   const { data, isLoading, isError, errorMessage } = useMonthlyFlowsEvolution(
     selectedPeriod,
     statsContext,
@@ -229,6 +232,25 @@ export const MonthlyFlowsChart: React.FC<{
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">Évolution des Flux Mensuels</h3>
+        <TooltipComponent
+          isOpen={tooltipOpen}
+          onToggle={() => setTooltipOpen(prev => !prev)}
+          onClickOutside={() => setTooltipOpen(false)}
+          content={
+            <div>
+              <p className="font-medium mb-1">Visualisation temporelle</p>
+              <p>
+                Ce graphique montre l&apos;évolution de vos {dataType === 'depenses' ? 'dépenses' : dataType === 'revenus' ? 'revenus' : 'soldes'} mois par mois. 
+                Vous pouvez ajuster la période (6, 12 ou 24 mois) et le type de données pour analyser vos tendances financières dans le temps.
+              </p>
+            </div>
+          }
+        >
+          <HelpCircle size={16} aria-label="Aide sur l'évolution mensuelle" />
+        </TooltipComponent>
+      </div>
       <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
         <label
           htmlFor="period-select"
