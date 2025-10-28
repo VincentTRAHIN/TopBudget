@@ -1641,3 +1641,80 @@ export const getUpcomingCharges = createAsyncHandler(
     sendSuccess(res, STATISTIQUES.SUCCESS.UPCOMING_CHARGES, result);
   }
 );
+
+/**
+ * @swagger
+ * /api/statistiques/last-sync:
+ *   get:
+ *     tags: [Statistiques]
+ *     summary: Obtenir les informations de la dernière synchronisation
+ *     description: Récupère la date de la dernière dépense/revenu et indique si une mise à jour est nécessaire
+ *     responses:
+ *       200:
+ *         description: Informations de synchronisation récupérées avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 lastExpenseDate:
+ *                   type: string
+ *                   format: date-time
+ *                   nullable: true
+ *                   description: Date de la dernière dépense
+ *                 lastRevenueDate:
+ *                   type: string
+ *                   format: date-time
+ *                   nullable: true
+ *                   description: Date du dernier revenu
+ *                 lastActivityDate:
+ *                   type: string
+ *                   format: date-time
+ *                   nullable: true
+ *                   description: Date de la dernière activité (dépense ou revenu)
+ *                 daysSinceLastExpense:
+ *                   type: integer
+ *                   nullable: true
+ *                   description: Nombre de jours depuis la dernière dépense
+ *                 daysSinceLastRevenue:
+ *                   type: integer
+ *                   nullable: true
+ *                   description: Nombre de jours depuis le dernier revenu
+ *                 daysSinceLastActivity:
+ *                   type: integer
+ *                   nullable: true
+ *                   description: Nombre de jours depuis la dernière activité
+ *                 needsUpdate:
+ *                   type: boolean
+ *                   description: True si plus de 7 jours sans activité
+ *       401:
+ *         description: Non autorisé
+ *       500:
+ *         description: Erreur serveur
+ */
+export const getLastSync = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
+    // Récupérer l'utilisateur complet pour vérifier s'il a un partenaire
+    const userComplete = (await User.findById(req.user.id)) as {
+      _id: mongoose.Types.ObjectId;
+      partenaireId?: mongoose.Types.ObjectId;
+    };
+
+    if (!userComplete) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
+    // Construire userIds en fonction du contexte (solo ou couple)
+    const userIds = userComplete.partenaireId
+      ? ({ $in: [userComplete._id, userComplete.partenaireId] } as UserIdsType)
+      : (userComplete._id as UserIdsType);
+
+    const result = await StatistiquesService.getLastSync(userIds);
+
+    sendSuccess(res, STATISTIQUES.SUCCESS.LAST_SYNC, result);
+  }
+);

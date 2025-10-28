@@ -13,6 +13,7 @@ export const STATISTIQUES = {
     SYNTHESE_MENSUELLE: "Synthèse mensuelle générée avec succès",
     FLUX_MENSUEL: "Total des flux mensuels récupéré avec succès",
     UPCOMING_CHARGES: "Charges à venir récupérées avec succès",
+    LAST_SYNC: "Informations de synchronisation récupérées avec succès",
   },
 
   ERRORS: {

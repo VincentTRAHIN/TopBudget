@@ -20,6 +20,7 @@ import {
   repartitionParCategorie,
   repartitionRevenusParCategorie as ctrlRepartitionRevenusParCategorie,
   getUpcomingCharges,
+  getLastSync,
 } from "../../controllers/statistiques.controller";
 import { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
@@ -147,5 +148,6 @@ router.get(
 );
 router.get("/synthese-mensuelle", proteger, asyncHandler(getSyntheseMensuelle));
 router.get("/upcoming-charges", proteger, getUpcomingCharges);
+router.get("/last-sync", proteger, getLastSync);
 
 export default router;

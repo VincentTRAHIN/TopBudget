@@ -1015,4 +1015,113 @@ describe("StatistiquesService", () => {
       expect(result.totalUpcoming).toBe(0);
     });
   });
+
+  describe("getLastSync", () => {
+    it("should return last expense and revenue dates", async () => {
+      // Créer une dépense récente
+      await DepenseModel.create({
+        montant: 50,
+        date: new Date("2024-02-10"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Recent expense",
+      });
+
+      // Créer un revenu plus ancien
+      await RevenuModel.create({
+        montant: 1000,
+        date: new Date("2024-02-01"),
+        categorieRevenu: testCategorieRevenuId,
+        utilisateur: testUserId,
+        description: "Salary",
+        typeCompte: "Perso",
+      });
+
+      const result = await StatistiquesService.getLastSync(testUserId);
+
+      expect(result.lastExpenseDate).toBeInstanceOf(Date);
+      expect(result.lastRevenueDate).toBeInstanceOf(Date);
+      expect(result.lastActivityDate).toEqual(result.lastExpenseDate); // La dépense est plus récente
+      expect(result.daysSinceLastExpense).toBeGreaterThanOrEqual(0);
+      expect(result.daysSinceLastRevenue).toBeGreaterThanOrEqual(0);
+      expect(result.daysSinceLastActivity).toBeGreaterThanOrEqual(0);
+    });
+
+    it("should set needsUpdate to true if more than 7 days without activity", async () => {
+      // Créer une dépense de plus de 7 jours
+      const oldDate = new Date();
+      oldDate.setDate(oldDate.getDate() - 10);
+
+      await DepenseModel.create({
+        montant: 50,
+        date: oldDate,
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Old expense",
+      });
+
+      const result = await StatistiquesService.getLastSync(testUserId);
+
+      expect(result.daysSinceLastActivity).toBeGreaterThan(7);
+      expect(result.needsUpdate).toBe(true);
+    });
+
+    it("should set needsUpdate to false if activity within 7 days", async () => {
+      // Créer une dépense récente (2 jours)
+      const recentDate = new Date();
+      recentDate.setDate(recentDate.getDate() - 2);
+
+      await DepenseModel.create({
+        montant: 50,
+        date: recentDate,
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Recent expense",
+      });
+
+      const result = await StatistiquesService.getLastSync(testUserId);
+
+      expect(result.daysSinceLastActivity).toBeLessThanOrEqual(7);
+      expect(result.needsUpdate).toBe(false);
+    });
+
+    it("should handle no transactions gracefully", async () => {
+      const result = await StatistiquesService.getLastSync(testUserId);
+
+      expect(result.lastExpenseDate).toBeNull();
+      expect(result.lastRevenueDate).toBeNull();
+      expect(result.lastActivityDate).toBeNull();
+      expect(result.daysSinceLastExpense).toBeNull();
+      expect(result.daysSinceLastRevenue).toBeNull();
+      expect(result.daysSinceLastActivity).toBeNull();
+      expect(result.needsUpdate).toBe(false);
+    });
+
+    it("should work for couple context with multiple users", async () => {
+      // Dépense de l'utilisateur principal (ancienne)
+      await DepenseModel.create({
+        montant: 50,
+        date: new Date("2024-02-01"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "User expense",
+      });
+
+      // Dépense du partenaire (plus récente)
+      await DepenseModel.create({
+        montant: 100,
+        date: new Date("2024-02-15"),
+        categorie: testCategorieId,
+        utilisateur: testPartnerId,
+        description: "Partner expense",
+      });
+
+      const userIds = { $in: [testUserId, testPartnerId] };
+      const result = await StatistiquesService.getLastSync(userIds);
+
+      // Doit retourner la date de la dépense du partenaire (la plus récente)
+      expect(result.lastActivityDate).toBeInstanceOf(Date);
+      expect(new Date(result.lastActivityDate!).getDate()).toBe(15);
+    });
+  });
 });

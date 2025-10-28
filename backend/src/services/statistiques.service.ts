@@ -794,4 +794,77 @@ export class StatistiquesService {
       totalUpcoming,
     };
   }
+
+  /**
+   * Récupère les informations de la dernière synchronisation des dépenses et revenus
+   * @param userIds - ID(s) utilisateur(s) à analyser
+   * @returns Informations sur la dernière activité (date, jours écoulés, besoin de mise à jour)
+   */
+  static async getLastSync(
+    userIds: UserIdsType
+  ): Promise<{
+    lastExpenseDate: Date | null;
+    lastRevenueDate: Date | null;
+    lastActivityDate: Date | null;
+    daysSinceLastExpense: number | null;
+    daysSinceLastRevenue: number | null;
+    daysSinceLastActivity: number | null;
+    needsUpdate: boolean;
+  }> {
+    // Récupérer la dernière dépense
+    const lastExpense = await DepenseModel.findOne({
+      utilisateur: userIds,
+    })
+      .sort({ date: -1 })
+      .select("date")
+      .lean();
+
+    // Récupérer le dernier revenu
+    const lastRevenue = await RevenuModel.findOne({
+      utilisateur: userIds,
+    })
+      .sort({ date: -1 })
+      .select("date")
+      .lean();
+
+    const lastExpenseDate = lastExpense?.date || null;
+    const lastRevenueDate = lastRevenue?.date || null;
+
+    // Déterminer la date d'activité la plus récente
+    let lastActivityDate: Date | null = null;
+    if (lastExpenseDate && lastRevenueDate) {
+      lastActivityDate = lastExpenseDate > lastRevenueDate ? lastExpenseDate : lastRevenueDate;
+    } else if (lastExpenseDate) {
+      lastActivityDate = lastExpenseDate;
+    } else if (lastRevenueDate) {
+      lastActivityDate = lastRevenueDate;
+    }
+
+    // Calculer le nombre de jours écoulés
+    const now = new Date();
+    const daysSinceLastExpense = lastExpenseDate
+      ? Math.floor((now.getTime() - new Date(lastExpenseDate).getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+
+    const daysSinceLastRevenue = lastRevenueDate
+      ? Math.floor((now.getTime() - new Date(lastRevenueDate).getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+
+    const daysSinceLastActivity = lastActivityDate
+      ? Math.floor((now.getTime() - new Date(lastActivityDate).getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+
+    // Flag needsUpdate si plus de 7 jours depuis la dernière activité
+    const needsUpdate = daysSinceLastActivity !== null && daysSinceLastActivity > 7;
+
+    return {
+      lastExpenseDate,
+      lastRevenueDate,
+      lastActivityDate,
+      daysSinceLastExpense,
+      daysSinceLastRevenue,
+      daysSinceLastActivity,
+      needsUpdate,
+    };
+  }
 }
