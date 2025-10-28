@@ -3,15 +3,23 @@
 import Layout from '@/components/layout/Layout';
 import RequireAuth from '@/components/auth/requireAuth.component';
 import PieChartFlows from '@/components/shared/PieChartFlows.component';
-import MonthlyComparisonSummary from '@/components/dashboard/MonthlyComparisonSummary.component';
-import { MonthlyFlowsChart } from '@/components/dashboard/MonthlyExpensesChart.component';
-import StatsSummary from '@/components/statistiques/StatsSummary.component';
+import MonthlyComparisonChart from '@/components/statistiques/MonthlyComparisonChart.component';
+import ExpensesTrendsChart from '@/components/statistiques/ExpensesTrendsChart.component';
+import CategoryBreakdown from '@/components/statistiques/CategoryBreakdown.component';
 import CoupleContributionsSummary from '@/components/statistiques/CoupleContributionsSummary.component';
 import CoupleFixedChargesList from '@/components/statistiques/CoupleFixedChargesList.component';
 import { useAuth } from '@/hooks/useAuth.hook';
 import { useState } from 'react';
-import { User, Users } from 'lucide-react';
 
+/**
+ * Page Statistiques - Analyse financière détaillée
+ * 
+ * Cette page offre une vue complète des statistiques financières avec :
+ * - Comparaison mensuelle revenus/dépenses
+ * - Tendances des dépenses par catégorie
+ * - Répartition détaillée des dépenses
+ * - Statistiques spécifiques au couple (si applicable)
+ */
 export default function StatistiquesPage() {
   const { user } = useAuth();
   const [statsContext, setStatsContext] = useState<'moi' | 'couple'>('moi');
@@ -20,58 +28,25 @@ export default function StatistiquesPage() {
       ? user.partenaireId.nom
       : 'Partenaire';
 
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth() + 1;
+  // User SVG icon
+  const UserIcon = () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    </svg>
+  );
 
-  const monthNames = [
-    'Janvier',
-    'Février',
-    'Mars',
-    'Avril',
-    'Mai',
-    'Juin',
-    'Juillet',
-    'Août',
-    'Septembre',
-    'Octobre',
-    'Novembre',
-    'Décembre',
-  ];
-
-  const getTitleForChart = (type: 'depenses' | 'revenus') => {
-    return type === 'depenses'
-      ? 'Dépenses par Catégorie'
-      : 'Revenus par Catégorie';
-  };
-
-  const getTooltipContent = (type: 'depenses' | 'revenus') => {
-    if (type === 'depenses') {
-      return (
-        <div>
-          <p className="font-medium mb-1">Répartition des dépenses</p>
-          <p>
-            Ce graphique montre comment vos dépenses se répartissent entre les différentes catégories. 
-            Chaque segment représente le pourcentage et le montant dépensé dans une catégorie spécifique.
-          </p>
-        </div>
-      );
-    }
-    return (
-      <div>
-        <p className="font-medium mb-1">Répartition des revenus</p>
-        <p>
-          Ce graphique montre la répartition de vos revenus par catégorie (salaire, investissements, autres sources). 
-          Visualisez facilement d&apos;où proviennent vos entrées d&apos;argent.
-        </p>
-      </div>
-    );
-  };
+  // Users SVG icon
+  const UsersIcon = () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+  );
 
   return (
     <RequireAuth>
       <Layout>
         <div className="space-y-8">
-          {/* Enhanced Page Header */}
+          {/* En-tête de page avec switcher de contexte */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Statistiques Financières
@@ -82,7 +57,7 @@ export default function StatistiquesPage() {
                 : `Analyse détaillée des finances du couple${partenaireNom !== 'Partenaire' ? ` avec ${partenaireNom}` : ''}`}
             </p>
 
-            {/* Enhanced Context Switcher */}
+            {/* Switcher de contexte (Moi / Couple) */}
             <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
               <button
                 onClick={() => setStatsContext('moi')}
@@ -91,8 +66,9 @@ export default function StatistiquesPage() {
                     ? 'bg-white text-indigo-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
+                aria-label="Afficher mes statistiques personnelles"
               >
-                <User className="w-4 h-4" />
+                <UserIcon />
                 <span>Mes Statistiques</span>
               </button>
               {user?.partenaireId && (
@@ -103,76 +79,86 @@ export default function StatistiquesPage() {
                       ? 'bg-white text-indigo-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
+                  aria-label="Afficher les statistiques du couple"
                 >
-                  <Users className="w-4 h-4" />
+                  <UsersIcon />
                   <span>Statistiques du Couple</span>
                 </button>
               )}
             </div>
           </div>
 
-          {/* Section 1: Vue d'Ensemble */}
+          {/* Section 1: Vue d'Ensemble Mensuelle */}
           <section className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Vue d&apos;Ensemble
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <StatsSummary statsContext={statsContext} />
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Vue d&apos;Ensemble Mensuelle
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Comparaison de vos revenus et dépenses du mois en cours avec le mois précédent
+              </p>
+            </div>
+            <MonthlyComparisonChart contexte={statsContext} />
+          </section>
+
+          {/* Section 2: Analyse des Dépenses */}
+          <section className="mb-8">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Analyse des Dépenses
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Tendances et répartition de vos dépenses par catégorie
+              </p>
+            </div>
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              <div className="xl:col-span-2">
+                <ExpensesTrendsChart contexte={statsContext} nbMois={6} />
               </div>
-              <div className="lg:col-span-1">
-                <MonthlyComparisonSummary statsContext={statsContext} />
+              <div className="xl:col-span-1">
+                <CategoryBreakdown contexte={statsContext} />
               </div>
             </div>
           </section>
 
-          {/* Section 2: Répartitions par Catégorie */}
+          {/* Section 3: Répartitions par Catégorie (vue en camembert) */}
           <section className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Répartitions par Catégorie
-            </h2>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Répartitions par Catégorie
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Visualisation circulaire de la distribution de vos flux financiers
+              </p>
+            </div>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <div>
                 <PieChartFlows
                   type="depenses"
                   statsContext={statsContext}
-                  customTitle={getTitleForChart('depenses')}
-                  tooltipContent={getTooltipContent('depenses')}
+                  customTitle="Dépenses par Catégorie"
+                  tooltipContent={
+                    <div>
+                      <p className="font-medium mb-1">Répartition des dépenses</p>
+                      <p>
+                        Ce graphique montre comment vos dépenses se répartissent entre les différentes catégories. 
+                        Chaque segment représente le pourcentage et le montant dépensé dans une catégorie spécifique.
+                      </p>
+                    </div>
+                  }
                 />
               </div>
               <div>
                 <PieChartFlows
                   type="revenus"
                   statsContext={statsContext}
-                  customTitle={getTitleForChart('revenus')}
-                  tooltipContent={getTooltipContent('revenus')}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Section 3: Tendances et Évolutions */}
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Tendances et Évolutions
-            </h2>
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              <div className="xl:col-span-2">
-                <MonthlyFlowsChart statsContext={statsContext} />
-              </div>
-              <div className="xl:col-span-1">
-                <PieChartFlows
-                  type="depenses"
-                  statsContext={statsContext}
-                  mode="year"
-                  showModeToggle={true}
-                  customTitle="Top 5 des Dépenses"
+                  customTitle="Revenus par Catégorie"
                   tooltipContent={
                     <div>
-                      <p className="font-medium mb-1">Catégories principales</p>
+                      <p className="font-medium mb-1">Répartition des revenus</p>
                       <p>
-                        Identifiez rapidement vos 5 catégories de dépenses les plus importantes. 
-                        Basculez entre vue mensuelle et annuelle pour comparer vos habitudes de consommation.
+                        Ce graphique montre la répartition de vos revenus par catégorie (salaire, investissements, autres sources). 
+                        Visualisez facilement d&apos;où proviennent vos entrées d&apos;argent.
                       </p>
                     </div>
                   }
@@ -184,9 +170,14 @@ export default function StatistiquesPage() {
           {/* Section 4: Statistiques du Couple */}
           {user?.partenaireId && statsContext === 'couple' && (
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6">
-                Statistiques du Couple
-              </h2>
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Statistiques du Couple
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Analyse des contributions et charges partagées
+                </p>
+              </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <CoupleContributionsSummary partenaireNom={partenaireNom} />
                 <CoupleFixedChargesList />
