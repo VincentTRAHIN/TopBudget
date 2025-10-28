@@ -25,6 +25,7 @@ export interface DepenseFilters {
   typeCompte?: string;
   typeDepense?: string;
   search?: string;
+  estChargeFixe?: string; // "true" | "false" | undefined
 }
 
 export interface DepenseSort {

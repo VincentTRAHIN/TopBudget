@@ -60,7 +60,8 @@ function TableDepenses({
     typeDepense = '',
     dateDebut = '',
     dateFin = '',
-    search = ''
+    search = '',
+    estChargeFixe = '',
   } = filters;
 
 
@@ -94,6 +95,11 @@ function TableDepenses({
     setFilter('typeDepense', value);
   }, [setFilter]);
 
+  const handleEstChargeFixeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setFilter('estChargeFixe', value);
+  }, [setFilter]);
+
   // Synchroniser avec le parent quand les filtres changent
   useEffect(() => {
     const debounceTimeout = setTimeout(() => {
@@ -104,11 +110,12 @@ function TableDepenses({
         typeDepense: typeDepense || undefined,
         dateDebut: dateDebut || undefined,
         dateFin: dateFin || undefined,
+        estChargeFixe: estChargeFixe || undefined,
       });
     }, 300); // Debounce pour éviter trop d'appels
 
     return () => clearTimeout(debounceTimeout);
-  }, [search, selectedCategory, typeCompte, typeDepense, dateDebut, dateFin, onFilterChange]);
+  }, [search, selectedCategory, typeCompte, typeDepense, dateDebut, dateFin, estChargeFixe, onFilterChange]);
 
   return (
     <div className="space-y-4">
@@ -224,6 +231,24 @@ function TableDepenses({
                 {option.label}
               </option>
             ))}
+          </select>
+        </div>
+        <div className="w-[140px]">
+          <label
+            htmlFor="charge-fixe-select"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Charge fixe
+          </label>
+          <select
+            id="charge-fixe-select"
+            value={estChargeFixe}
+            onChange={handleEstChargeFixeChange}
+            className="input"
+          >
+            <option value="">Toutes</option>
+            <option value="true">Fixes uniquement</option>
+            <option value="false">Variables uniquement</option>
           </select>
         </div>
         
