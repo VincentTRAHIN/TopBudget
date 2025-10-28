@@ -124,6 +124,7 @@ export function useDepenseFilters() {
   return useTableFilters({
     storageKey: 'depenses',
     initialFilters: {
+      search: '',
       categorie: '',
       typeCompte: '',
       typeDepense: '',

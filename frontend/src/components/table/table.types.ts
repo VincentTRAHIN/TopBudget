@@ -107,4 +107,17 @@ export interface TableProps<T> {
   footer?: React.ReactNode;
   rowAction?: TableAction<T>[];
   emptyRender?: React.ReactNode;
+  /**
+   * Callback pour gérer le tri côté serveur
+   * Si défini, désactive le tri côté client
+   */
+  onSortChange?: (sortBy: string, order: 'asc' | 'desc') => void;
+  /**
+   * Clé de tri actuelle (pour afficher l'indicateur de tri)
+   */
+  currentSortKey?: string;
+  /**
+   * Direction de tri actuelle
+   */
+  currentSortOrder?: 'asc' | 'desc';
 }
