@@ -157,14 +157,6 @@ export default function RevenusSummaryCard({ selectedVue, filters }: RevenusSumm
           isLoading={isLoading || isRevenusLoading}
         />
       </div>
-
-      {Object.keys(filters).length > 0 && (
-        <div className="mt-4 p-3 bg-green-100 rounded-md">
-          <p className="text-sm text-green-800">
-            <strong>Filtres actifs:</strong> Les données affichées peuvent être filtrées
-          </p>
-        </div>
-      )}
     </div>
   );
 } 

@@ -107,4 +107,12 @@ export interface TableProps<T> {
   footer?: React.ReactNode;
   rowAction?: TableAction<T>[];
   emptyRender?: React.ReactNode;
+  /**
+   * Fonction pour obtenir la classe CSS d'une ligne en fonction des données
+   * Exemple : row => row.estChargeFixe ? 'bg-green-50' : ''
+   */
+  getRowClassName?: (row: T) => string;
+  onSortChange?: (sortBy: string, order: 'asc' | 'desc') => void;
+  currentSortKey?: string;
+  currentSortOrder?: 'asc' | 'desc';
 }

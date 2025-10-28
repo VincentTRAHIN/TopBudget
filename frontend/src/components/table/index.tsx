@@ -11,6 +11,10 @@ export function Table<T extends Record<string, any>>({
   footer,
   rowAction,
   emptyRender,
+  getRowClassName,
+  onSortChange,
+  currentSortKey,
+  currentSortOrder,
 }: TableProps<T>) {
   const { sortState, handleSort, sortedData } = useTableFeatures<T>({
     data,
@@ -81,41 +85,47 @@ export function Table<T extends Record<string, any>>({
         </thead>
         <tbody>
           {sortedData.length > 0 ? (
-            sortedData.map((row, index) => (
-              <tr className="border-b hover:bg-gray-50" key={index}>
-                {columns.map((column, columnIndex) => (
-                  <td key={columnIndex} className={`px-4 py-2 ${column.className}`}>
-                    {column.getValue ? column.getValue(row) : renderCell(column, row)}
-                  </td>
-                ))}
-                {rowAction && (
-                  <td className="px-4 py-2">
-                    {rowAction.map((action, rowIndex) => {
-                      const { icon, action: actionFn, disabled: disabledFn, color: colorFn, header, ariaLabel: ariaLabelFn, className } = action;
-                      const color = colorFn || 'blue';
-                      const disabled = typeof disabledFn === 'function' ? disabledFn(row) : !!disabledFn;
-                      const ariaLabel = header
-                        ? undefined
-                        : typeof ariaLabelFn === 'function'
-                          ? ariaLabelFn(row)
-                          : ariaLabelFn || 'Action';
-                      return (
-                        <button
-                          key={rowIndex}
-                          type="button"
-                          className={`p-1 text-${color}-600 hover:text-${color}-800 disabled:opacity-50 disabled:cursor-not-allowed ${className || ''}`}
-                          onClick={() => actionFn(row)}
-                          aria-label={ariaLabel}
-                          disabled={disabled}
-                        >
-                          <span className="inline-block mr-1 align-middle"><DynamicIcon name={icon} size={16} color={color} /></span>
-                        </button>
-                      );
-                    })}
-                  </td>
-                )}
-              </tr>
-            ))
+            sortedData.map((row, index) => {
+              const rowClassName = getRowClassName ? getRowClassName(row) : '';
+              return (
+                <tr 
+                  className={`border-b hover:bg-gray-50 ${rowClassName}`} 
+                  key={index}
+                >
+                  {columns.map((column, columnIndex) => (
+                    <td key={columnIndex} className={`px-4 py-2 ${column.className}`}>
+                      {column.getValue ? column.getValue(row) : renderCell(column, row)}
+                    </td>
+                  ))}
+                  {rowAction && (
+                    <td className="px-4 py-2">
+                      {rowAction.map((action, rowIndex) => {
+                        const { icon, action: actionFn, disabled: disabledFn, color: colorFn, header, ariaLabel: ariaLabelFn, className } = action;
+                        const color = colorFn || 'blue';
+                        const disabled = typeof disabledFn === 'function' ? disabledFn(row) : !!disabledFn;
+                        const ariaLabel = header
+                          ? undefined
+                          : typeof ariaLabelFn === 'function'
+                            ? ariaLabelFn(row)
+                            : ariaLabelFn || 'Action';
+                        return (
+                          <button
+                            key={rowIndex}
+                            type="button"
+                            className={`p-1 text-${color}-600 hover:text-${color}-800 disabled:opacity-50 disabled:cursor-not-allowed ${className || ''}`}
+                            onClick={() => actionFn(row)}
+                            aria-label={ariaLabel}
+                            disabled={disabled}
+                          >
+                            <span className="inline-block mr-1 align-middle"><DynamicIcon name={icon} size={16} color={color} /></span>
+                          </button>
+                        );
+                      })}
+                    </td>
+                  )}
+                </tr>
+              );
+            })
           ) : (
             <tr>
               <td colSpan={columns.length + (rowAction ? 1 : 0)} className="px-4 py-8">
