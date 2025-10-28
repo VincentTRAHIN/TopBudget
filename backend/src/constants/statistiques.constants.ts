@@ -14,6 +14,7 @@ export const STATISTIQUES = {
     FLUX_MENSUEL: "Total des flux mensuels récupéré avec succès",
     UPCOMING_CHARGES: "Charges à venir récupérées avec succès",
     LAST_SYNC: "Informations de synchronisation récupérées avec succès",
+    EXPENSES_TRENDS: "Tendances de dépenses récupérées avec succès",
   },
 
   ERRORS: {
@@ -37,5 +38,6 @@ export const STATISTIQUES = {
     SYNTHESE_MENSUELLE:
       "Erreur lors de la récupération de la synthèse mensuelle",
     VALIDATION_ERROR: "Erreur de validation des données",
+    EXPENSES_TRENDS: "Erreur lors de la récupération des tendances de dépenses",
   },
 } as const;

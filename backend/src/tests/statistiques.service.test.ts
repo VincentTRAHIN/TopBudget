@@ -1124,4 +1124,230 @@ describe("StatistiquesService", () => {
       expect(new Date(result.lastActivityDate!).getDate()).toBe(15);
     });
   });
+
+  describe("getExpensesTrends", () => {
+    it("should return top categories with trends", async () => {
+      const testCategorie2Id = (
+        await Categorie.create({
+          nom: "Alimentation",
+          description: "Courses alimentaires",
+        })
+      )._id as mongoose.Types.ObjectId;
+
+      // Mois actuel (février 2024)
+      const currentDate = new Date("2024-02-15");
+
+      // Dépenses mois actuel (février)
+      await DepenseModel.create({
+        montant: 300,
+        date: new Date("2024-02-10"),
+        categorie: testCategorieId, // Test Categorie
+        utilisateur: testUserId,
+        description: "Dépense catégorie 1",
+      });
+
+      await DepenseModel.create({
+        montant: 200,
+        date: new Date("2024-02-12"),
+        categorie: testCategorie2Id, // Alimentation
+        utilisateur: testUserId,
+        description: "Courses",
+      });
+
+      // Dépenses mois précédent (janvier)
+      await DepenseModel.create({
+        montant: 200,
+        date: new Date("2024-01-10"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Dépense catégorie 1 mois précédent",
+      });
+
+      await DepenseModel.create({
+        montant: 250,
+        date: new Date("2024-01-12"),
+        categorie: testCategorie2Id,
+        utilisateur: testUserId,
+        description: "Courses mois précédent",
+      });
+
+      const result = await StatistiquesService.getExpensesTrends(
+        testUserId,
+        3,
+        currentDate
+      );
+
+      expect(result).toBeDefined();
+      expect(result.topCategories).toBeDefined();
+      expect(result.topCategories.length).toBeGreaterThan(0);
+      expect(result.evolutionMensuelle).toBeDefined();
+      expect(result.evolutionMensuelle.length).toBe(3);
+
+      // Vérifier la structure des top catégories
+      const topCat = result.topCategories[0];
+      expect(topCat).toHaveProperty("categorieId");
+      expect(topCat).toHaveProperty("nom");
+      expect(topCat).toHaveProperty("totalActuel");
+      expect(topCat).toHaveProperty("totalPrecedent");
+      expect(topCat).toHaveProperty("variation");
+      expect(topCat).toHaveProperty("variationPourcent");
+      expect(topCat).toHaveProperty("tendance");
+      expect(["hausse", "baisse", "stable"]).toContain(topCat.tendance);
+    });
+
+    it("should calculate trends correctly (hausse)", async () => {
+      const currentDate = new Date("2024-02-15");
+
+      // Mois actuel: 500€
+      await DepenseModel.create({
+        montant: 500,
+        date: new Date("2024-02-10"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Dépense actuelle",
+      });
+
+      // Mois précédent: 300€
+      await DepenseModel.create({
+        montant: 300,
+        date: new Date("2024-01-10"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Dépense précédente",
+      });
+
+      const result = await StatistiquesService.getExpensesTrends(
+        testUserId,
+        2,
+        currentDate
+      );
+
+      const topCat = result.topCategories[0];
+      expect(topCat.totalActuel).toBe(500);
+      expect(topCat.totalPrecedent).toBe(300);
+      expect(topCat.variation).toBe(200);
+      expect(topCat.tendance).toBe("hausse");
+      expect(topCat.variationPourcent).toBeCloseTo(66.67, 1);
+    });
+
+    it("should calculate trends correctly (baisse)", async () => {
+      const currentDate = new Date("2024-02-15");
+
+      // Mois actuel: 200€
+      await DepenseModel.create({
+        montant: 200,
+        date: new Date("2024-02-10"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Dépense actuelle",
+      });
+
+      // Mois précédent: 400€
+      await DepenseModel.create({
+        montant: 400,
+        date: new Date("2024-01-10"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Dépense précédente",
+      });
+
+      const result = await StatistiquesService.getExpensesTrends(
+        testUserId,
+        2,
+        currentDate
+      );
+
+      const topCat = result.topCategories[0];
+      expect(topCat.totalActuel).toBe(200);
+      expect(topCat.totalPrecedent).toBe(400);
+      expect(topCat.variation).toBe(-200);
+      expect(topCat.tendance).toBe("baisse");
+      expect(topCat.variationPourcent).toBe(-50);
+    });
+
+    it("should work for couple context", async () => {
+      const currentDate = new Date("2024-02-15");
+
+      // Dépenses utilisateur
+      await DepenseModel.create({
+        montant: 300,
+        date: new Date("2024-02-10"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Dépense user",
+      });
+
+      // Dépenses partenaire
+      await DepenseModel.create({
+        montant: 200,
+        date: new Date("2024-02-12"),
+        categorie: testCategorieId,
+        utilisateur: testPartnerId,
+        description: "Dépense partner",
+      });
+
+      const userIds = { $in: [testUserId, testPartnerId] };
+      const result = await StatistiquesService.getExpensesTrends(
+        userIds,
+        3,
+        currentDate
+      );
+
+      expect(result.topCategories.length).toBeGreaterThan(0);
+      // Total devrait être 500 (300 + 200)
+      expect(result.topCategories[0].totalActuel).toBe(500);
+    });
+
+    it("should return evolution mensuelle with correct structure", async () => {
+      const currentDate = new Date("2024-03-15");
+
+      // Créer des dépenses sur 3 mois
+      await DepenseModel.create({
+        montant: 100,
+        date: new Date("2024-01-10"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Janvier",
+      });
+
+      await DepenseModel.create({
+        montant: 150,
+        date: new Date("2024-02-10"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Février",
+      });
+
+      await DepenseModel.create({
+        montant: 200,
+        date: new Date("2024-03-10"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Mars",
+      });
+
+      const result = await StatistiquesService.getExpensesTrends(
+        testUserId,
+        3,
+        currentDate
+      );
+
+      expect(result.evolutionMensuelle.length).toBe(3);
+      
+      // Vérifier la structure de chaque mois
+      result.evolutionMensuelle.forEach((mois) => {
+        expect(mois).toHaveProperty("mois");
+        expect(mois).toHaveProperty("annee");
+        expect(mois).toHaveProperty("categories");
+        expect(Array.isArray(mois.categories)).toBe(true);
+        
+        if (mois.categories.length > 0) {
+          expect(mois.categories[0]).toHaveProperty("categorieId");
+          expect(mois.categories[0]).toHaveProperty("nom");
+          expect(mois.categories[0]).toHaveProperty("total");
+        }
+      });
+    });
+  });
 });
+

@@ -1718,3 +1718,64 @@ export const getLastSync = createAsyncHandler(
     sendSuccess(res, STATISTIQUES.SUCCESS.LAST_SYNC, result);
   }
 );
+
+/**
+ * @swagger
+ * /api/statistiques/expenses-trends:
+ *   get:
+ *     tags: [Statistiques]
+ *     summary: Obtenir les tendances de dépenses par catégorie
+ *     description: Récupère les top catégories avec leurs évolutions et tendances sur plusieurs mois
+ *     parameters:
+ *       - in: query
+ *         name: nbMois
+ *         schema:
+ *           type: number
+ *         description: Nombre de mois à analyser (défaut 6)
+ *       - in: query
+ *         name: contexte
+ *         schema:
+ *           type: string
+ *           enum: [moi, couple]
+ *         description: Contexte des statistiques (moi ou couple)
+ *     responses:
+ *       200:
+ *         description: Tendances de dépenses récupérées avec succès
+ *       401:
+ *         description: Non autorisé
+ *       500:
+ *         description: Erreur serveur
+ */
+export const getExpensesTrends = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
+    const nbMois = req.query.nbMois ? parseInt(req.query.nbMois as string, 10) : 6;
+    const contexte = (req.query.contexte as 'moi' | 'couple') || 'moi';
+
+    // Récupérer l'utilisateur complet
+    const userComplete = (await User.findById(req.user.id)) as {
+      _id: mongoose.Types.ObjectId;
+      partenaireId?: mongoose.Types.ObjectId;
+    };
+
+    if (!userComplete) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
+    // Construire userIds en fonction du contexte
+    let userIds: UserIdsType;
+    if (contexte === 'couple' && userComplete.partenaireId) {
+      userIds = { $in: [userComplete._id, userComplete.partenaireId] } as UserIdsType;
+    } else {
+      userIds = userComplete._id as UserIdsType;
+    }
+
+    const result = await StatistiquesService.getExpensesTrends(userIds, nbMois);
+
+    sendSuccess(res, STATISTIQUES.SUCCESS.EXPENSES_TRENDS, result);
+  }
+);
+

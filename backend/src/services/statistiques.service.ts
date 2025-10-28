@@ -867,4 +867,166 @@ export class StatistiquesService {
       needsUpdate,
     };
   }
+
+  /**
+   * Récupère les tendances de dépenses par catégorie
+   * @param userIds - ID(s) utilisateur
+   * @param nbMois - Nombre de mois à analyser (défaut: 6)
+   * @param dateReference - Date de référence (défaut: maintenant)
+   * @returns Top catégories avec évolutions et tendances
+   */
+  static async getExpensesTrends(
+    userIds: UserIdsType,
+    nbMois: number = 6,
+    dateReference: Date = new Date()
+  ): Promise<{
+    topCategories: Array<{
+      categorieId: string;
+      nom: string;
+      totalActuel: number;
+      totalPrecedent: number;
+      variation: number;
+      variationPourcent: number;
+      tendance: 'hausse' | 'baisse' | 'stable';
+    }>;
+    evolutionMensuelle: Array<{
+      mois: number;
+      annee: number;
+      categories: Array<{
+        categorieId: string;
+        nom: string;
+        total: number;
+      }>;
+    }>;
+  }> {
+    // Période actuelle (mois en cours)
+    const currentMonthStart = new Date(
+      dateReference.getFullYear(),
+      dateReference.getMonth(),
+      1
+    );
+    const currentMonthEnd = new Date(
+      dateReference.getFullYear(),
+      dateReference.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999
+    );
+
+    // Période précédente (mois précédent)
+    const previousMonthStart = new Date(
+      dateReference.getFullYear(),
+      dateReference.getMonth() - 1,
+      1
+    );
+    const previousMonthEnd = new Date(
+      dateReference.getFullYear(),
+      dateReference.getMonth(),
+      0,
+      23,
+      59,
+      59,
+      999
+    );
+
+    // Récupérer la répartition par catégorie pour le mois actuel et précédent
+    const [currentMonthData, previousMonthData] = await Promise.all([
+      this.getRepartitionParCategorie(
+        userIds,
+        currentMonthStart,
+        currentMonthEnd,
+        "depense"
+      ),
+      this.getRepartitionParCategorie(
+        userIds,
+        previousMonthStart,
+        previousMonthEnd,
+        "depense"
+      ),
+    ]);
+
+    // Créer un map pour faciliter la comparaison
+    const previousMonthMap = new Map(
+      previousMonthData.map((cat) => [cat._id.toString(), cat.total])
+    );
+
+    // Calculer les variations et tendances
+    const topCategories = currentMonthData.map((cat) => {
+      const categorieId = cat._id.toString();
+      const totalActuel = cat.total;
+      const totalPrecedent = previousMonthMap.get(categorieId) || 0;
+      const variation = totalActuel - totalPrecedent;
+      const variationPourcent =
+        totalPrecedent > 0 ? (variation / totalPrecedent) * 100 : 100;
+
+      let tendance: 'hausse' | 'baisse' | 'stable';
+      if (Math.abs(variationPourcent) < 5) {
+        tendance = 'stable';
+      } else if (variation > 0) {
+        tendance = 'hausse';
+      } else {
+        tendance = 'baisse';
+      }
+
+      return {
+        categorieId,
+        nom: cat.nom || 'Sans catégorie',
+        totalActuel,
+        totalPrecedent,
+        variation,
+        variationPourcent: Math.round(variationPourcent * 100) / 100,
+        tendance,
+      };
+    });
+
+    // Récupérer l'évolution mensuelle
+    const evolutionMensuelle: Array<{
+      mois: number;
+      annee: number;
+      categories: Array<{
+        categorieId: string;
+        nom: string;
+        total: number;
+      }>;
+    }> = [];
+
+    for (let i = nbMois - 1; i >= 0; i--) {
+      const date = new Date(dateReference);
+      date.setMonth(date.getMonth() - i);
+      const start = new Date(date.getFullYear(), date.getMonth(), 1);
+      const end = new Date(
+        date.getFullYear(),
+        date.getMonth() + 1,
+        0,
+        23,
+        59,
+        59,
+        999
+      );
+
+      const repartition = await this.getRepartitionParCategorie(
+        userIds,
+        start,
+        end,
+        "depense"
+      );
+
+      evolutionMensuelle.push({
+        mois: start.getMonth() + 1,
+        annee: start.getFullYear(),
+        categories: repartition.map((cat) => ({
+          categorieId: cat._id.toString(),
+          nom: cat.nom || 'Sans catégorie',
+          total: cat.total,
+        })),
+      });
+    }
+
+    return {
+      topCategories: topCategories.slice(0, 10), // Top 10 catégories
+      evolutionMensuelle,
+    };
+  }
 }
