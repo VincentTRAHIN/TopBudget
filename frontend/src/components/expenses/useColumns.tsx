@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { KeyedMutator } from 'swr';
 import debug from 'debug';
+import { DynamicIcon } from 'lucide-react/dynamic';
 import { DataType, DisplayType, TableColumn, TableAction } from '../table/table.types';
 import { IDepense } from '@/types/depense.type';
 import { depensesEndpoint } from '@/services/api.service';
@@ -22,6 +23,21 @@ export function useColumns({
   refreshDepenses,
 }: UseColumnsProps) {
   const log = debug('app:frontend:useColumnTableDepenses');
+
+  const handleToggleChargeFixe = useCallback(async (depenseId: string, currentValue: boolean) => {
+    try {
+      log(`Toggle charge fixe pour dépense ID: %s (valeur actuelle: %s)`, depenseId, currentValue);
+      await fetcher(`${depensesEndpoint}/${depenseId}/toggle-charge-fixe`, {
+        method: 'PATCH',
+      });
+      toast.success(`Charge fixe ${currentValue ? 'désactivée' : 'activée'} !`);
+      log(`Charge fixe modifiée pour dépense ID: %s. Rafraîchissement.`, depenseId);
+      refreshDepenses();
+    } catch (error) {
+      log(`Erreur toggle charge fixe pour dépense ID: %s, Erreur: %O`, depenseId, error);
+      toast.error('Erreur lors de la modification');
+    }
+  }, [refreshDepenses]);
 
   const handleDelete = useCallback(async (id: string) => {
     if (!confirm('Confirmer la suppression ?')) return;
@@ -78,12 +94,53 @@ export function useColumns({
       accessor: 'estChargeFixe',
       className: 'text-center',
       dataType: DataType.BOOLEAN,
-      displayType: DisplayType.ICON,
-      getIcon: (row) => (
-        row.recurrence
-          ? { name: 'pin', size: 16, color: 'blue' }
-          : undefined
-      ),
+      getValue: (row) => {
+        const isDisabled = currentUserId !== (typeof row.utilisateur === 'object' ? row.utilisateur._id : row.utilisateur);
+        const isFixed = row.estChargeFixe;
+        
+        return (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isDisabled) {
+                handleToggleChargeFixe(row._id, isFixed || false);
+              }
+            }}
+            disabled={isDisabled}
+            className={`
+              inline-flex items-center gap-2 px-3 py-1.5 rounded-md
+              transition-all duration-300 ease-in-out
+              ${isDisabled 
+                ? 'opacity-50 cursor-not-allowed bg-gray-100' 
+                : 'cursor-pointer hover:shadow-md active:scale-95'
+              }
+              ${isFixed 
+                ? 'bg-green-50 text-green-700 hover:bg-green-100' 
+                : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+              }
+            `}
+            title={
+              isDisabled 
+                ? 'Vous ne pouvez modifier que vos propres dépenses' 
+                : isFixed 
+                  ? 'Cliquer pour marquer comme variable' 
+                  : 'Cliquer pour marquer comme charge fixe'
+            }
+          >
+            <DynamicIcon 
+              name="pin" 
+              size={16} 
+              className={`
+                transition-all duration-300
+                ${isFixed ? 'rotate-0 text-green-600' : 'rotate-45 text-gray-400'}
+              `}
+            />
+            <span className="text-sm font-medium">
+              {isFixed ? 'Fixe' : 'Variable'}
+            </span>
+          </button>
+        ) as any;
+      },
       getSortValue: (row) => row.estChargeFixe ? 1 : 0,
       enableSort: true,
     },
