@@ -22,7 +22,6 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ['localhost', 'backend'],
     remotePatterns: [
       {
         protocol: 'http',
@@ -37,6 +36,10 @@ const nextConfig: NextConfig = {
         pathname: '/uploads/**',
       },
     ],
+    // Ignorer les erreurs d'images en dev (avatars manquants)
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    unoptimized: process.env.NODE_ENV === 'development',
   },
   async rewrites() {
     return [

@@ -4,10 +4,11 @@ import { useAuth } from '@/hooks/useAuth.hook';
 import { getAvatarColor } from '@/utils/avatar.utils';
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 function Header() {
   const { user } = useAuth();
+  const [avatarError, setAvatarError] = useState(false);
 
   const userInitial = useMemo(() => {
     return user?.nom && user.nom.length > 0
@@ -21,13 +22,14 @@ function Header() {
 
       {user && (
         <Link href="/profil" className="hover:opacity-80 transition-opacity">
-          {user.avatarUrl ? (
+          {user.avatarUrl && !avatarError ? (
             <Image
               src={user.avatarUrl}
               alt={`Avatar de ${user.nom || 'utilisateur'}`}
               width={40}
               height={40}
               className="w-10 h-10 rounded-full object-cover border-2 border-gray-100 shadow-sm"
+              onError={() => setAvatarError(true)}
             />
           ) : (
             <div
