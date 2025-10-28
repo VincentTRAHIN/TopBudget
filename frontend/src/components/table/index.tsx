@@ -11,12 +11,31 @@ export function Table<T extends Record<string, any>>({
   footer,
   rowAction,
   emptyRender,
+  onSortChange,
+  currentSortKey,
+  currentSortOrder,
 }: TableProps<T>) {
   const { sortState, handleSort, sortedData } = useTableFeatures<T>({
     data,
     columns,
     defaultSortKey: columns.find(col => col.enableSort)?.accessor as keyof T,
+    serverSide: !!onSortChange,
   });
+
+  // Si le tri est géré côté serveur, utiliser les données telles quelles
+  const displayData = onSortChange ? data : sortedData;
+
+  // Gérer le clic sur un en-tête pour le tri
+  const handleColumnSort = (accessor: keyof T) => {
+    if (onSortChange) {
+      // Tri côté serveur
+      const newOrder = currentSortKey === String(accessor) && currentSortOrder === 'asc' ? 'desc' : 'asc';
+      onSortChange(String(accessor), newOrder);
+    } else {
+      // Tri côté client
+      handleSort(accessor);
+    }
+  };
 
 
   // Factorisation du rendu des cellules
@@ -61,16 +80,27 @@ export function Table<T extends Record<string, any>>({
 
               const header = (column.header ?? String(column.accessor))
                 .replace(/^\w/, (c) => c.toUpperCase())
+              
+              // Déterminer si cette colonne est actuellement triée
+              const isSorted = onSortChange 
+                ? currentSortKey === String(column.accessor)
+                : sortState?.key === column.accessor;
+              
+              // Déterminer la direction du tri
+              const sortDirection = onSortChange 
+                ? currentSortOrder 
+                : sortState?.direction;
+              
               return (
                 <th
                   key={index}
                   className={`px-4 py-2 text-left ${column.enableSort ? 'cursor-pointer select-none' : ''} ${column.className || ''}`}
-                  onClick={column.enableSort ? () => handleSort(column.accessor) : undefined}
+                  onClick={column.enableSort ? () => handleColumnSort(column.accessor) : undefined}
                 >
                   {header}
-                  {column.enableSort && sortState?.key === column.accessor && (
+                  {column.enableSort && isSorted && (
                     <span className="ml-1">
-                      {sortState.direction === 'asc' ? '▲' : '▼'}
+                      {sortDirection === 'asc' ? '▲' : '▼'}
                     </span>
                   )}
                 </th>
@@ -80,8 +110,8 @@ export function Table<T extends Record<string, any>>({
           </tr>
         </thead>
         <tbody>
-          {sortedData.length > 0 ? (
-            sortedData.map((row, index) => (
+          {displayData.length > 0 ? (
+            displayData.map((row, index) => (
               <tr className="border-b hover:bg-gray-50" key={index}>
                 {columns.map((column, columnIndex) => (
                   <td key={columnIndex} className={`px-4 py-2 ${column.className}`}>

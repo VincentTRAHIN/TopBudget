@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { IDepense } from '@/types/depense.type';
 import { useDepenses, DepenseFilters } from '@/hooks/useDepenses.hook';
 import { ICategorie } from '@/types/categorie.type';
@@ -9,7 +9,7 @@ import React from 'react';
 import { Table } from '../table';
 import { useColumns } from './useColumns';
 import { TYPE_COMPTE_OPTIONS, TYPE_DEPENSE_OPTIONS } from '@/types/common.type';
-import { useDepenseFilters } from '@/hooks/useTableFilters.hook';
+import { useDebounce } from '@/hooks/useDebounce.hook';
 
 const log = debug('app:frontend:TableDepenses');
 
@@ -18,8 +18,12 @@ interface TableDepensesProps {
   depenses: IDepense[];
   onEdit: (depense: IDepense) => void;
   onFilterChange: (filters: Partial<DepenseFilters>) => void;
+  onSortChange?: (sortBy: string, order: 'asc' | 'desc') => void;
+  currentSortKey?: string;
+  currentSortOrder?: 'asc' | 'desc';
   currentUserId?: string;
   partenaireId?: string;
+  currentFilters: DepenseFilters; // IMPORTANT : les filtres viennent du parent
 }
 
 function TableDepenses({
@@ -27,7 +31,11 @@ function TableDepenses({
   categories = [],
   onEdit,
   onFilterChange,
+  onSortChange,
+  currentSortKey,
+  currentSortOrder,
   currentUserId,
+  currentFilters,
 }: TableDepensesProps) {
   log('Composant TableDepenses rendu avec props: %O', {
     depenses,
@@ -36,12 +44,22 @@ function TableDepenses({
   });
 
   const { refreshDepenses } = useDepenses();
-  const { 
-    filters, 
-    setFilter, 
-    resetFilters, 
-    hasActiveFilters 
-  } = useDepenseFilters();
+
+  // État local UNIQUEMENT pour l'input de recherche (controlled input)
+  const [localSearchValue, setLocalSearchValue] = useState(currentFilters.search || '');
+  
+  // Debouncer la recherche
+  const debouncedSearch = useDebounce(localSearchValue, 600);
+  
+  // États locaux pour tous les autres filtres (controlés par le parent)
+  const [selectedCategory, setSelectedCategory] = useState(currentFilters.categorie || '');
+  const [dateDebut, setDateDebut] = useState(currentFilters.dateDebut || '');
+  const [dateFin, setDateFin] = useState(currentFilters.dateFin || '');
+  const [typeCompte, setTypeCompte] = useState(currentFilters.typeCompte || '');
+  const [typeDepense, setTypeDepense] = useState(currentFilters.typeDepense || '');
+
+  // Ref pour tracker si c'est le premier render
+  const isFirstRender = useRef(true);
 
   const {
     actions,
@@ -53,62 +71,75 @@ function TableDepenses({
     refreshDepenses
   })
 
-  // Extraire les valeurs des filtres pour faciliter l'usage
-  const {
-    categorie: selectedCategory = '',
-    typeCompte = '',
-    typeDepense = '',
-    dateDebut = '',
-    dateFin = '',
-    search = ''
-  } = filters;
-
-
+  // Handlers pour les changements de filtres
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setFilter('search', value);
-  }, [setFilter]);
+    setLocalSearchValue(e.target.value);
+  }, []);
 
   const handleCategoryChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setFilter('categorie', value);
-  }, [setFilter]);
+    setSelectedCategory(e.target.value);
+  }, []);
 
   const handleDateDebutChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setFilter('dateDebut', value);
-  }, [setFilter]);
+    setDateDebut(e.target.value);
+  }, []);
 
   const handleDateFinChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setFilter('dateFin', value);
-  }, [setFilter]);
+    setDateFin(e.target.value);
+  }, []);
 
   const handleTypeCompteChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setFilter('typeCompte', value);
-  }, [setFilter]);
+    setTypeCompte(e.target.value);
+  }, []);
 
   const handleTypeDepenseChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setFilter('typeDepense', value);
-  }, [setFilter]);
+    setTypeDepense(e.target.value);
+  }, []);
 
-  // Synchroniser avec le parent quand les filtres changent
+  const handleResetFilters = useCallback(() => {
+    setLocalSearchValue('');
+    setSelectedCategory('');
+    setDateDebut('');
+    setDateFin('');
+    setTypeCompte('');
+    setTypeDepense('');
+  }, []);
+
+  // Gérer le tri côté serveur
+  const handleSortChange = useCallback((sortBy: string, order: 'asc' | 'desc') => {
+    if (onSortChange) {
+      onSortChange(sortBy, order);
+    }
+  }, [onSortChange]);
+
+  // Vérifier si des filtres sont actifs
+  const hasActiveFilters = Boolean(
+    localSearchValue || 
+    selectedCategory || 
+    dateDebut || 
+    dateFin || 
+    typeCompte || 
+    typeDepense
+  );
+
+  // Synchroniser avec le parent UNIQUEMENT quand les filtres changent
   useEffect(() => {
-    const debounceTimeout = setTimeout(() => {
-      onFilterChange({
-        search: search || undefined,
-        categorie: selectedCategory || undefined,
-        typeCompte: typeCompte || undefined,
-        typeDepense: typeDepense || undefined,
-        dateDebut: dateDebut || undefined,
-        dateFin: dateFin || undefined,
-      });
-    }, 300); // Debounce pour éviter trop d'appels
+    // Ne rien faire au premier render pour éviter un appel inutile
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
 
-    return () => clearTimeout(debounceTimeout);
-  }, [search, selectedCategory, typeCompte, typeDepense, dateDebut, dateFin, onFilterChange]);
+    // Envoyer TOUS les filtres (même vides) pour que le parent puisse les synchroniser
+    onFilterChange({ 
+      search: debouncedSearch || undefined,
+      categorie: selectedCategory || undefined,
+      typeCompte: typeCompte || undefined,
+      typeDepense: typeDepense || undefined,
+      dateDebut: dateDebut || undefined,
+      dateFin: dateFin || undefined,
+    });
+  }, [debouncedSearch, selectedCategory, typeCompte, typeDepense, dateDebut, dateFin, onFilterChange]);
 
   return (
     <div className="space-y-4">
@@ -125,7 +156,7 @@ function TableDepenses({
             id="search-input"
             type="text"
             placeholder="Description, commentaire..."
-            value={search}
+            value={localSearchValue}
             onChange={handleSearchChange}
             className="input"
           />
@@ -230,7 +261,7 @@ function TableDepenses({
         {/* Bouton de reset des filtres */}
         <div className="flex items-end">
           <button
-            onClick={resetFilters}
+            onClick={handleResetFilters}
             disabled={!hasActiveFilters}
             className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
               hasActiveFilters 
@@ -254,10 +285,13 @@ function TableDepenses({
         }
         columns={columns}
         rowAction={actions}
+        onSortChange={onSortChange}
+        currentSortKey={currentSortKey}
+        currentSortOrder={currentSortOrder}
       />
 
     </div>
   );
 }
 
-export default React.memo(TableDepenses);
+export default TableDepenses;

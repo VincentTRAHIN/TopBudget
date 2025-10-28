@@ -99,7 +99,13 @@ export default function ExpensesPage() {
   }, []);
 
   const handleFilterChange = useCallback((newFilters: Partial<DepenseFilters>) => {
-    handleFilterOrSortChange(newFilters, undefined);
+    // Merger avec les filtres existants au lieu de tout remplacer
+    setFilters((prevFilters) => ({ ...prevFilters, ...newFilters }));
+    setCurrentPage(1);
+  }, []);
+
+  const handleSortChange = useCallback((sortBy: string, order: 'asc' | 'desc') => {
+    handleFilterOrSortChange(undefined, { sortBy, order });
   }, [handleFilterOrSortChange]);
 
   const handleVueChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -283,6 +289,10 @@ export default function ExpensesPage() {
                   categories={categories}
                   onEdit={handleEdit}
                   onFilterChange={handleFilterChange}
+                  onSortChange={handleSortChange}
+                  currentSortKey={sort.sortBy}
+                  currentSortOrder={sort.order}
+                  currentFilters={filters}
                   currentUserId={user?._id}
                   partenaireId={partenaireId}
                 />
