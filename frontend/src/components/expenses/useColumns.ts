@@ -80,9 +80,9 @@ export function useColumns({
       dataType: DataType.BOOLEAN,
       displayType: DisplayType.ICON,
       getIcon: (row) => (
-        row.recurrence
-          ? { name: 'pin', size: 16, color: 'blue' }
-          : undefined
+        row.estChargeFixe
+          ? { name: 'pin', size: 18, color: '#10b981' } // Vert pour charge fixe
+          : { name: 'circle', size: 14, color: '#d1d5db' } // Gris clair pour non-fixe
       ),
       getSortValue: (row) => row.estChargeFixe ? 1 : 0,
       enableSort: true,

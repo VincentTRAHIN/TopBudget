@@ -194,14 +194,6 @@ function ExpensesSummaryCard({
         />
       </div>
 
-      {hasActiveFilters && (
-        <div className="mt-4 p-3 bg-red-100 rounded-md">
-          <p className="text-sm text-red-800">
-            <strong>Filtres actifs:</strong> Les données affichées peuvent être
-            filtrées
-          </p>
-        </div>
-      )}
     </div>
   );
 }

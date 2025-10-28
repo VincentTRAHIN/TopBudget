@@ -285,6 +285,11 @@ function TableDepenses({
         }
         columns={columns}
         rowAction={actions}
+        getRowClassName={(row) => 
+          row.estChargeFixe 
+            ? 'bg-green-50/30 hover:!bg-green-100/40' 
+            : ''
+        }
         onSortChange={onSortChange}
         currentSortKey={currentSortKey}
         currentSortOrder={currentSortOrder}

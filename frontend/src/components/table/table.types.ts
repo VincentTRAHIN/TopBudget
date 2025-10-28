@@ -108,6 +108,11 @@ export interface TableProps<T> {
   rowAction?: TableAction<T>[];
   emptyRender?: React.ReactNode;
   /**
+   * Fonction pour obtenir la classe CSS d'une ligne en fonction des données
+   * Exemple : row => row.estChargeFixe ? 'bg-green-50' : ''
+   */
+  getRowClassName?: (row: T) => string;
+  /**
    * Callback pour gérer le tri côté serveur
    * Si défini, désactive le tri côté client
    */
