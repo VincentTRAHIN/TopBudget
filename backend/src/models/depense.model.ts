@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IDepense, TypeCompteEnum, TypeDepenseEnum } from "../types/depense.types";
+import { IDepense, TypeCompteEnum, TypeDepenseEnum, RecurringFrequencyEnum } from "../types/depense.types";
 
 const DepenseSchema = new Schema<IDepense>(
   {
@@ -29,6 +29,14 @@ const DepenseSchema = new Schema<IDepense>(
       required: true,
     },
     estChargeFixe: { type: Boolean, default: false, required: true },
+    isRecurring: { type: Boolean, default: false },
+    recurringFrequency: {
+      type: String,
+      enum: Object.values(RecurringFrequencyEnum),
+      required: false,
+    },
+    nextDueDate: { type: Date, required: false },
+    lastPaidDate: { type: Date, required: false },
   },
   { timestamps: true }
 );
@@ -44,5 +52,7 @@ DepenseSchema.index({ utilisateur: 1, typeDepense: 1, date: -1 });
 DepenseSchema.index({ utilisateur: 1, typeCompte: 1, date: -1 });
 
 DepenseSchema.index({ description: "text", commentaire: "text" });
+
+DepenseSchema.index({ utilisateur: 1, isRecurring: 1, nextDueDate: 1 });
 
 export default mongoose.model<IDepense>("Depense", DepenseSchema);

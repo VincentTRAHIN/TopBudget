@@ -1,8 +1,16 @@
 import { Document, Types } from "mongoose";
-import { TypeCompteEnum, TypeDepenseEnum, TypeCompte, TypeDepense } from "./common.types";
+import { 
+  TypeCompteEnum, 
+  TypeDepenseEnum, 
+  TypeCompte, 
+  TypeDepense,
+  RecurringFrequencyEnum,
+  RecurringFrequency 
+} from "./common.types";
 
 // Re-export des types pour compatibilité
-export { TypeCompteEnum, TypeDepenseEnum, TypeCompte, TypeDepense };
+export { TypeCompteEnum, TypeDepenseEnum, TypeCompte, TypeDepense, RecurringFrequencyEnum, RecurringFrequency };
+
 export interface IDepense extends Document {
   montant: number;
   description?: string;
@@ -14,6 +22,10 @@ export interface IDepense extends Document {
   categorie: Types.ObjectId;
   utilisateur: Types.ObjectId;
   estChargeFixe: boolean;
+  isRecurring?: boolean;
+  recurringFrequency?: RecurringFrequencyEnum;
+  nextDueDate?: Date;
+  lastPaidDate?: Date;
 }
 
 /**
@@ -44,6 +56,10 @@ export interface IDepenseInput {
   description?: string;
   utilisateur: Types.ObjectId;
   estChargeFixe?: boolean;
+  isRecurring?: boolean;
+  recurringFrequency?: RecurringFrequencyEnum;
+  nextDueDate?: Date;
+  lastPaidDate?: Date;
 }
 
 export interface IDepenseResponse {
@@ -64,6 +80,10 @@ export interface IDepenseResponse {
     readonly nom: string;
   };
   readonly estChargeFixe: boolean;
+  readonly isRecurring?: boolean;
+  readonly recurringFrequency?: RecurringFrequencyEnum;
+  readonly nextDueDate?: Date;
+  readonly lastPaidDate?: Date;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }

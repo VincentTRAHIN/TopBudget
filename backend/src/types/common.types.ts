@@ -28,10 +28,24 @@ export enum TypeRevenuEnum {
   CONJOINT = 'Conjoint',
 }
 
+/**
+ * Fréquences de récurrence pour les dépenses et revenus récurrents
+ */
+export enum RecurringFrequencyEnum {
+  DAILY = 'Daily',           // Quotidien
+  WEEKLY = 'Weekly',         // Hebdomadaire
+  BIWEEKLY = 'BiWeekly',     // Toutes les 2 semaines
+  MONTHLY = 'Monthly',       // Mensuel
+  QUARTERLY = 'Quarterly',   // Trimestriel
+  BIANNUAL = 'BiAnnual',     // Semestriel
+  ANNUAL = 'Annual',         // Annuel
+}
+
 // Types string pour compatibilité avec l'existant
 export type TypeCompte = keyof typeof TypeCompteEnum;
 export type TypeDepense = keyof typeof TypeDepenseEnum; 
 export type TypeRevenu = keyof typeof TypeRevenuEnum;
+export type RecurringFrequency = keyof typeof RecurringFrequencyEnum;
 
 // Alias pour compatibilité ascendante
 export type TypeCompteRevenu = TypeRevenu;
@@ -42,6 +56,7 @@ export type TypeCompteRevenu = TypeRevenu;
 export const TYPE_COMPTE_VALUES = Object.values(TypeCompteEnum);
 export const TYPE_DEPENSE_VALUES = Object.values(TypeDepenseEnum);
 export const TYPE_REVENU_VALUES = Object.values(TypeRevenuEnum);
+export const RECURRING_FREQUENCY_VALUES = Object.values(RecurringFrequencyEnum);
 
 /**
  * Fonctions utilitaires pour la validation des types
@@ -56,4 +71,8 @@ export const isValidTypeDepense = (value: string): value is TypeDepense => {
 
 export const isValidTypeRevenu = (value: string): value is TypeRevenu => {
   return TYPE_REVENU_VALUES.includes(value as TypeRevenuEnum);
+};
+
+export const isValidRecurringFrequency = (value: string): value is RecurringFrequency => {
+  return RECURRING_FREQUENCY_VALUES.includes(value as RecurringFrequencyEnum);
 };

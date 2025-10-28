@@ -10,6 +10,7 @@
     "watch": "ts-node-dev --respawn --transpile-only --poll src/index.ts",
     "dev": "ts-node-dev --respawn --transpile-only --poll src/index.ts",
     "seed": "ts-node scripts/seeding.script.ts",
+    "migrate:depense-recurring": "ts-node scripts/migrate-depense-recurring-fields.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
