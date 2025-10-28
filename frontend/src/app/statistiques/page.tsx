@@ -2,17 +2,53 @@
 
 import Layout from '@/components/layout/Layout';
 import RequireAuth from '@/components/auth/requireAuth.component';
-import PieChartFlows from '@/components/shared/PieChartFlows.component';
-import MonthlyComparisonChart from '@/components/statistiques/MonthlyComparisonChart.component';
-import ExpensesTrendsChart from '@/components/statistiques/ExpensesTrendsChart.component';
-import CategoryBreakdown from '@/components/statistiques/CategoryBreakdown.component';
-import CoupleContributionsSummary from '@/components/statistiques/CoupleContributionsSummary.component';
-import CoupleFixedChargesList from '@/components/statistiques/CoupleFixedChargesList.component';
 import { useAuth } from '@/hooks/useAuth.hook';
-import { useState } from 'react';
+import { useState, useMemo, useCallback, lazy, Suspense, memo } from 'react';
+
+// Lazy loading des composants lourds (graphiques Chart.js)
+const MonthlyComparisonChart = lazy(() => import('@/components/statistiques/MonthlyComparisonChart.component'));
+const ExpensesTrendsChart = lazy(() => import('@/components/statistiques/ExpensesTrendsChart.component'));
+const CategoryBreakdown = lazy(() => import('@/components/statistiques/CategoryBreakdown.component'));
+const PieChartFlows = lazy(() => import('@/components/shared/PieChartFlows.component'));
+const CoupleContributionsSummary = lazy(() => import('@/components/statistiques/CoupleContributionsSummary.component'));
+const CoupleFixedChargesList = lazy(() => import('@/components/statistiques/CoupleFixedChargesList.component'));
+
+// Skeleton de chargement pour les graphiques
+const ChartSkeleton = memo(({ height = 'h-96' }: { height?: string }) => (
+  <div className={`bg-white rounded-lg shadow-sm p-6 ${height}`}>
+    <div className="animate-pulse space-y-4">
+      <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      <div className="flex-1 bg-gray-200 rounded mt-4 h-64"></div>
+    </div>
+  </div>
+));
+ChartSkeleton.displayName = 'ChartSkeleton';
+
+// Icons SVG memoizés
+const UserIcon = memo(() => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  </svg>
+));
+UserIcon.displayName = 'UserIcon';
+
+const UsersIcon = memo(() => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+  </svg>
+));
+UsersIcon.displayName = 'UsersIcon';
 
 /**
- * Page Statistiques - Analyse financière détaillée
+ * Page Statistiques - Analyse financière détaillée avec optimisations
+ * 
+ * Optimisations appliquées :
+ * - Lazy loading de tous les graphiques Chart.js
+ * - Memoization des composants statiques (icons)
+ * - useMemo pour les tooltips et titres
+ * - useCallback pour les handlers d'événements
+ * - Suspense boundaries pour chargement progressif
  * 
  * Cette page offre une vue complète des statistiques financières avec :
  * - Comparaison mensuelle revenus/dépenses
@@ -23,24 +59,45 @@ import { useState } from 'react';
 export default function StatistiquesPage() {
   const { user } = useAuth();
   const [statsContext, setStatsContext] = useState<'moi' | 'couple'>('moi');
-  const partenaireNom =
-    typeof user?.partenaireId === 'object' && user?.partenaireId?.nom
+  
+  // Memoization du nom du partenaire
+  const partenaireNom = useMemo(() => {
+    return typeof user?.partenaireId === 'object' && user?.partenaireId?.nom
       ? user.partenaireId.nom
       : 'Partenaire';
+  }, [user?.partenaireId]);
 
-  // User SVG icon
-  const UserIcon = () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-    </svg>
-  );
+  // Memoization de la description
+  const pageDescription = useMemo(() => {
+    return statsContext === 'moi'
+      ? 'Analyse détaillée de vos finances personnelles'
+      : `Analyse détaillée des finances du couple${partenaireNom !== 'Partenaire' ? ` avec ${partenaireNom}` : ''}`;
+  }, [statsContext, partenaireNom]);
 
-  // Users SVG icon
-  const UsersIcon = () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-    </svg>
-  );
+  // Handlers avec useCallback pour éviter les re-renders
+  const handleSetMoiContext = useCallback(() => setStatsContext('moi'), []);
+  const handleSetCoupleContext = useCallback(() => setStatsContext('couple'), []);
+
+  // Memoization des tooltips
+  const depensesTooltipContent = useMemo(() => (
+    <div>
+      <p className="font-medium mb-1">Répartition des dépenses</p>
+      <p>
+        Ce graphique montre comment vos dépenses se répartissent entre les différentes catégories. 
+        Chaque segment représente le pourcentage et le montant dépensé dans une catégorie spécifique.
+      </p>
+    </div>
+  ), []);
+
+  const revenusTooltipContent = useMemo(() => (
+    <div>
+      <p className="font-medium mb-1">Répartition des revenus</p>
+      <p>
+        Ce graphique montre la répartition de vos revenus par catégorie (salaire, investissements, autres sources). 
+        Visualisez facilement d&apos;où proviennent vos entrées d&apos;argent.
+      </p>
+    </div>
+  ), []);
 
   return (
     <RequireAuth>
@@ -52,15 +109,13 @@ export default function StatistiquesPage() {
               Statistiques Financières
             </h1>
             <p className="text-sm text-gray-600 mb-6">
-              {statsContext === 'moi'
-                ? 'Analyse détaillée de vos finances personnelles'
-                : `Analyse détaillée des finances du couple${partenaireNom !== 'Partenaire' ? ` avec ${partenaireNom}` : ''}`}
+              {pageDescription}
             </p>
 
             {/* Switcher de contexte (Moi / Couple) */}
             <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
               <button
-                onClick={() => setStatsContext('moi')}
+                onClick={handleSetMoiContext}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                   statsContext === 'moi'
                     ? 'bg-white text-indigo-600 shadow-sm'
@@ -73,7 +128,7 @@ export default function StatistiquesPage() {
               </button>
               {user?.partenaireId && (
                 <button
-                  onClick={() => setStatsContext('couple')}
+                  onClick={handleSetCoupleContext}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                     statsContext === 'couple'
                       ? 'bg-white text-indigo-600 shadow-sm'
@@ -98,7 +153,9 @@ export default function StatistiquesPage() {
                 Comparaison de vos revenus et dépenses du mois en cours avec le mois précédent
               </p>
             </div>
-            <MonthlyComparisonChart contexte={statsContext} />
+            <Suspense fallback={<ChartSkeleton />}>
+              <MonthlyComparisonChart contexte={statsContext} />
+            </Suspense>
           </section>
 
           {/* Section 2: Analyse des Dépenses */}
@@ -113,10 +170,14 @@ export default function StatistiquesPage() {
             </div>
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               <div className="xl:col-span-2">
-                <ExpensesTrendsChart contexte={statsContext} nbMois={6} />
+                <Suspense fallback={<ChartSkeleton height="h-80" />}>
+                  <ExpensesTrendsChart contexte={statsContext} nbMois={6} />
+                </Suspense>
               </div>
               <div className="xl:col-span-1">
-                <CategoryBreakdown contexte={statsContext} />
+                <Suspense fallback={<ChartSkeleton height="h-80" />}>
+                  <CategoryBreakdown contexte={statsContext} />
+                </Suspense>
               </div>
             </div>
           </section>
@@ -132,38 +193,22 @@ export default function StatistiquesPage() {
               </p>
             </div>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <div>
+              <Suspense fallback={<ChartSkeleton />}>
                 <PieChartFlows
                   type="depenses"
                   statsContext={statsContext}
                   customTitle="Dépenses par Catégorie"
-                  tooltipContent={
-                    <div>
-                      <p className="font-medium mb-1">Répartition des dépenses</p>
-                      <p>
-                        Ce graphique montre comment vos dépenses se répartissent entre les différentes catégories. 
-                        Chaque segment représente le pourcentage et le montant dépensé dans une catégorie spécifique.
-                      </p>
-                    </div>
-                  }
+                  tooltipContent={depensesTooltipContent}
                 />
-              </div>
-              <div>
+              </Suspense>
+              <Suspense fallback={<ChartSkeleton />}>
                 <PieChartFlows
                   type="revenus"
                   statsContext={statsContext}
                   customTitle="Revenus par Catégorie"
-                  tooltipContent={
-                    <div>
-                      <p className="font-medium mb-1">Répartition des revenus</p>
-                      <p>
-                        Ce graphique montre la répartition de vos revenus par catégorie (salaire, investissements, autres sources). 
-                        Visualisez facilement d&apos;où proviennent vos entrées d&apos;argent.
-                      </p>
-                    </div>
-                  }
+                  tooltipContent={revenusTooltipContent}
                 />
-              </div>
+              </Suspense>
             </div>
           </section>
 
@@ -179,8 +224,12 @@ export default function StatistiquesPage() {
                 </p>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <CoupleContributionsSummary partenaireNom={partenaireNom} />
-                <CoupleFixedChargesList />
+                <Suspense fallback={<ChartSkeleton height="h-64" />}>
+                  <CoupleContributionsSummary partenaireNom={partenaireNom} />
+                </Suspense>
+                <Suspense fallback={<ChartSkeleton height="h-64" />}>
+                  <CoupleFixedChargesList />
+                </Suspense>
               </div>
             </section>
           )}
