@@ -327,4 +327,32 @@ export class DepenseService {
 
     return { deletedCount: result.deletedCount || 0 };
   }
+
+  /**
+   * Bascule le statut estChargeFixe d'une dépense
+   * @param depenseId - ID de la dépense
+   * @param userId - ID de l'utilisateur (pour vérification de propriété)
+   * @returns La dépense mise à jour avec ses relations populées
+   */
+  static async toggleChargeFixe(depenseId: string, userId: string): Promise<IDepensePopulated> {
+    if (!mongoose.Types.ObjectId.isValid(depenseId)) {
+      throw new AppError(DEPENSE.ERRORS.NOT_FOUND, 404);
+    }
+
+    const depense = await DepenseModel.findById(depenseId);
+    if (!depense) {
+      throw new AppError(DEPENSE.ERRORS.NOT_FOUND, 404);
+    }
+
+    // Vérifier que l'utilisateur est propriétaire
+    if (depense.utilisateur.toString() !== userId) {
+      throw new AppError(AUTH.ERRORS.UNAUTHORIZED, 403);
+    }
+
+    // Toggle estChargeFixe
+    depense.estChargeFixe = !depense.estChargeFixe;
+    await depense.save();
+
+    return depense.populate(['categorie', 'utilisateur']) as unknown as IDepensePopulated;
+  }
 }
