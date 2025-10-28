@@ -1559,3 +1559,85 @@ export const getSyntheseMensuelle = async (
     next(new AppError(STATISTIQUES.ERRORS.SYNTHESE_MENSUELLE, 500));
   }
 };
+
+/**
+ * @swagger
+ * /api/statistiques/upcoming-charges:
+ *   get:
+ *     tags: [Statistiques]
+ *     summary: Obtenir les charges fixes à venir du mois
+ *     description: Récupère les charges fixes payées et à venir pour le mois en cours avec les totaux
+ *     parameters:
+ *       - in: query
+ *         name: mois
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *         description: Mois à analyser (1-12, défaut = mois actuel)
+ *       - in: query
+ *         name: annee
+ *         schema:
+ *           type: integer
+ *         description: Année à analyser (défaut = année actuelle)
+ *     responses:
+ *       200:
+ *         description: Charges fixes récupérées avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 paid:
+ *                   type: array
+ *                   description: Charges fixes déjà payées ce mois
+ *                 upcoming:
+ *                   type: array
+ *                   description: Charges fixes attendues mais non encore payées
+ *                 totalPaid:
+ *                   type: number
+ *                   description: Montant total des charges payées
+ *                 totalUpcoming:
+ *                   type: number
+ *                   description: Montant total des charges à venir
+ *       401:
+ *         description: Non autorisé
+ *       500:
+ *         description: Erreur serveur
+ */
+export const getUpcomingCharges = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
+    const { mois: moisQuery, annee: anneeQuery } = req.query as {
+      mois?: string;
+      annee?: string;
+    };
+
+    const now = new Date();
+    const currentMonth = moisQuery ? parseInt(moisQuery, 10) - 1 : now.getMonth();
+    const currentYear = anneeQuery ? parseInt(anneeQuery, 10) : now.getFullYear();
+    const currentDate = new Date(currentYear, currentMonth);
+
+    // Récupérer l'utilisateur complet pour vérifier s'il a un partenaire
+    const userComplete = (await User.findById(req.user.id)) as {
+      _id: mongoose.Types.ObjectId;
+      partenaireId?: mongoose.Types.ObjectId;
+    };
+
+    if (!userComplete) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
+    // Construire userIds en fonction du contexte (solo ou couple)
+    const userIds = userComplete.partenaireId
+      ? ({ $in: [userComplete._id, userComplete.partenaireId] } as UserIdsType)
+      : (userComplete._id as UserIdsType);
+
+    const result = await StatistiquesService.getUpcomingCharges(userIds, currentDate);
+
+    sendSuccess(res, STATISTIQUES.SUCCESS.UPCOMING_CHARGES, result);
+  }
+);

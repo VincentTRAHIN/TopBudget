@@ -898,4 +898,121 @@ describe("StatistiquesService", () => {
       });
     });
   });
+
+  describe("getUpcomingCharges", () => {
+    it("should identify paid fixed charges for current month", async () => {
+      const currentDate = new Date("2024-02-15");
+
+      // Créer des charges fixes payées ce mois
+      await DepenseModel.create({
+        montant: 800,
+        date: new Date("2024-02-05"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Loyer",
+        estChargeFixe: true,
+      });
+
+      await DepenseModel.create({
+        montant: 50,
+        date: new Date("2024-02-10"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Internet",
+        estChargeFixe: true,
+      });
+
+      const result = await StatistiquesService.getUpcomingCharges(testUserId, currentDate);
+
+      expect(result.paid).toHaveLength(2);
+      expect(result.totalPaid).toBe(850);
+      expect(result.upcoming).toHaveLength(0);
+      expect(result.totalUpcoming).toBe(0);
+    });
+
+    it("should identify upcoming fixed charges not yet paid", async () => {
+      const currentDate = new Date("2024-02-15");
+
+      // Charges du mois précédent
+      await DepenseModel.create({
+        montant: 800,
+        date: new Date("2024-01-05"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Loyer",
+        estChargeFixe: true,
+      });
+
+      await DepenseModel.create({
+        montant: 50,
+        date: new Date("2024-01-10"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Internet",
+        estChargeFixe: true,
+      });
+
+      // Une seule charge payée ce mois
+      await DepenseModel.create({
+        montant: 800,
+        date: new Date("2024-02-05"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Loyer",
+        estChargeFixe: true,
+      });
+
+      const result = await StatistiquesService.getUpcomingCharges(testUserId, currentDate);
+
+      expect(result.paid).toHaveLength(1);
+      expect(result.totalPaid).toBe(800);
+      expect(result.upcoming).toHaveLength(1);
+      expect(result.upcoming[0].description).toBe("Internet");
+      expect(result.upcoming[0].montant).toBe(50);
+      expect(result.totalUpcoming).toBe(50);
+    });
+
+    it("should work for couple context with multiple users", async () => {
+      const currentDate = new Date("2024-02-15");
+
+      // Charges du mois précédent pour les deux utilisateurs
+      await DepenseModel.create({
+        montant: 800,
+        date: new Date("2024-01-05"),
+        categorie: testCategorieId,
+        utilisateur: testUserId,
+        description: "Loyer",
+        estChargeFixe: true,
+      });
+
+      await DepenseModel.create({
+        montant: 100,
+        date: new Date("2024-01-10"),
+        categorie: testCategorieId,
+        utilisateur: testPartnerId,
+        description: "Électricité",
+        estChargeFixe: true,
+      });
+
+      // Aucune charge payée ce mois
+      const userIds = { $in: [testUserId, testPartnerId] };
+      const result = await StatistiquesService.getUpcomingCharges(userIds, currentDate);
+
+      expect(result.paid).toHaveLength(0);
+      expect(result.totalPaid).toBe(0);
+      expect(result.upcoming).toHaveLength(2);
+      expect(result.totalUpcoming).toBe(900);
+    });
+
+    it("should handle months with no previous charges", async () => {
+      const currentDate = new Date("2024-02-15");
+
+      const result = await StatistiquesService.getUpcomingCharges(testUserId, currentDate);
+
+      expect(result.paid).toHaveLength(0);
+      expect(result.totalPaid).toBe(0);
+      expect(result.upcoming).toHaveLength(0);
+      expect(result.totalUpcoming).toBe(0);
+    });
+  });
 });

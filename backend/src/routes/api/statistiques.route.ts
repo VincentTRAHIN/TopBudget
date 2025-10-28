@@ -19,6 +19,7 @@ import {
   getEvolutionSoldesMensuels,
   repartitionParCategorie,
   repartitionRevenusParCategorie as ctrlRepartitionRevenusParCategorie,
+  getUpcomingCharges,
 } from "../../controllers/statistiques.controller";
 import { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
@@ -145,5 +146,6 @@ router.get(
   asyncHandler(getCoupleFixedCharges),
 );
 router.get("/synthese-mensuelle", proteger, asyncHandler(getSyntheseMensuelle));
+router.get("/upcoming-charges", proteger, getUpcomingCharges);
 
 export default router;

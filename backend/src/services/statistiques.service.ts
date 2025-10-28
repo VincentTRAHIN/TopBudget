@@ -705,4 +705,93 @@ export class StatistiquesService {
       totalChargesCouple,
     };
   }
+
+  /**
+   * Récupère les charges fixes du mois en cours avec leur statut (payées ou à venir)
+   * @param userIds - ID(s) utilisateur(s) à analyser
+   * @param currentMonth - Date du mois en cours
+   * @returns Charges fixes payées et à venir avec totaux
+   */
+  static async getUpcomingCharges(
+    userIds: UserIdsType,
+    currentMonth: Date
+  ): Promise<{
+    paid: IDepensePopulated[];
+    upcoming: Array<{
+      description: string;
+      montant: number;
+      categorie: { _id: mongoose.Types.ObjectId; nom: string };
+      expectedDate: Date;
+    }>;
+    totalPaid: number;
+    totalUpcoming: number;
+  }> {
+    const dateDebut = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const dateFin = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+
+    // Récupérer toutes les charges fixes payées du mois en cours
+    const paidCharges = await DepenseModel.find({
+      utilisateur: userIds,
+      date: { $gte: dateDebut, $lte: dateFin },
+      estChargeFixe: true,
+    })
+      .select("montant date categorie description typeCompte typeDepense estChargeFixe commentaire utilisateur")
+      .populate({
+        path: "categorie",
+        select: "nom _id",
+      })
+      .sort({ date: 1 })
+      .lean<IDepensePopulated[]>();
+
+    // Récupérer les charges fixes du mois précédent pour identifier les récurrentes
+    const moisPrecedentDebut = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
+    const moisPrecedentFin = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 0);
+
+    const previousMonthCharges = await DepenseModel.find({
+      utilisateur: userIds,
+      date: { $gte: moisPrecedentDebut, $lte: moisPrecedentFin },
+      estChargeFixe: true,
+    })
+      .select("montant date categorie description typeCompte typeDepense estChargeFixe commentaire utilisateur")
+      .populate({
+        path: "categorie",
+        select: "nom _id",
+      })
+      .lean<IDepensePopulated[]>();
+
+    // Identifier les charges à venir (présentes le mois dernier mais pas encore payées ce mois)
+    const upcomingCharges = previousMonthCharges
+      .filter((prevCharge) => {
+        // Vérifier si cette charge n'a pas encore été payée ce mois
+        const alreadyPaid = paidCharges.some(
+          (paidCharge) =>
+            paidCharge.categorie._id.toString() === prevCharge.categorie._id.toString() &&
+            paidCharge.description === prevCharge.description
+        );
+        return !alreadyPaid;
+      })
+      .map((charge) => {
+        // Estimer la date attendue (même jour du mois que le mois précédent)
+        const prevDate = new Date(charge.date);
+        const expectedDay = Math.min(prevDate.getDate(), dateFin.getDate());
+        const expectedDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), expectedDay);
+
+        return {
+          description: charge.description || "Charge fixe",
+          montant: charge.montant,
+          categorie: charge.categorie,
+          expectedDate,
+        };
+      });
+
+    const totalPaid = paidCharges.reduce((acc, charge) => acc + charge.montant, 0);
+    const totalUpcoming = upcomingCharges.reduce((acc, charge) => acc + charge.montant, 0);
+
+    return {
+      paid: paidCharges,
+      upcoming: upcomingCharges,
+      totalPaid,
+      totalUpcoming,
+    };
+  }
 }

@@ -12,6 +12,7 @@ export const STATISTIQUES = {
     CHARGES_FIXES: "Charges fixes récupérées avec succès",
     SYNTHESE_MENSUELLE: "Synthèse mensuelle générée avec succès",
     FLUX_MENSUEL: "Total des flux mensuels récupéré avec succès",
+    UPCOMING_CHARGES: "Charges à venir récupérées avec succès",
   },
 
   ERRORS: {
