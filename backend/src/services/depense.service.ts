@@ -22,7 +22,7 @@ export class DepenseService {
   ): Record<string, unknown> {
     const matchFilter: Record<string, unknown> = {};
 
-    const { categorie, dateDebut, dateFin, typeCompte, typeDepense, search } =
+    const { categorie, dateDebut, dateFin, typeCompte, typeDepense, search, estChargeFixe } =
       query;
 
     if (
@@ -64,6 +64,15 @@ export class DepenseService {
     if (typeof search === "string" && search.trim()) {
       const regex = { $regex: search.trim(), $options: "i" };
       matchFilter.$or = [{ description: regex }, { commentaire: regex }];
+    }
+
+    // Filtre par estChargeFixe
+    if (typeof estChargeFixe === "string") {
+      if (estChargeFixe === "true") {
+        matchFilter.estChargeFixe = true;
+      } else if (estChargeFixe === "false") {
+        matchFilter.estChargeFixe = { $ne: true }; // false ou undefined
+      }
     }
 
     return matchFilter;

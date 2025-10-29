@@ -71,7 +71,18 @@ function TableDepenses({
     refreshDepenses
   })
 
-  // Handlers pour les changements de filtres
+  // Extraire les valeurs des filtres pour faciliter l'usage
+  const {
+    categorie: selectedCategory = '',
+    typeCompte = '',
+    typeDepense = '',
+    dateDebut = '',
+    dateFin = '',
+    search = '',
+    estChargeFixe = '',
+  } = filters;
+
+
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalSearchValue(e.target.value);
   }, []);
@@ -93,53 +104,31 @@ function TableDepenses({
   }, []);
 
   const handleTypeDepenseChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setTypeDepense(e.target.value);
-  }, []);
+    const value = e.target.value;
+    setFilter('typeDepense', value);
+  }, [setFilter]);
 
-  const handleResetFilters = useCallback(() => {
-    setLocalSearchValue('');
-    setSelectedCategory('');
-    setDateDebut('');
-    setDateFin('');
-    setTypeCompte('');
-    setTypeDepense('');
-  }, []);
-
-  // Gérer le tri côté serveur
-  const handleSortChange = useCallback((sortBy: string, order: 'asc' | 'desc') => {
-    if (onSortChange) {
-      onSortChange(sortBy, order);
-    }
-  }, [onSortChange]);
-
-  // Vérifier si des filtres sont actifs
-  const hasActiveFilters = Boolean(
-    localSearchValue || 
-    selectedCategory || 
-    dateDebut || 
-    dateFin || 
-    typeCompte || 
-    typeDepense
-  );
+  const handleEstChargeFixeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setFilter('estChargeFixe', value);
+  }, [setFilter]);
 
   // Synchroniser avec le parent UNIQUEMENT quand les filtres changent
   useEffect(() => {
-    // Ne rien faire au premier render pour éviter un appel inutile
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
+    const debounceTimeout = setTimeout(() => {
+      onFilterChange({
+        search: search || undefined,
+        categorie: selectedCategory || undefined,
+        typeCompte: typeCompte || undefined,
+        typeDepense: typeDepense || undefined,
+        dateDebut: dateDebut || undefined,
+        dateFin: dateFin || undefined,
+        estChargeFixe: estChargeFixe || undefined,
+      });
+    }, 300); // Debounce pour éviter trop d'appels
 
-    // Envoyer TOUS les filtres (même vides) pour que le parent puisse les synchroniser
-    onFilterChange({ 
-      search: debouncedSearch || undefined,
-      categorie: selectedCategory || undefined,
-      typeCompte: typeCompte || undefined,
-      typeDepense: typeDepense || undefined,
-      dateDebut: dateDebut || undefined,
-      dateFin: dateFin || undefined,
-    });
-  }, [debouncedSearch, selectedCategory, typeCompte, typeDepense, dateDebut, dateFin, onFilterChange]);
+    return () => clearTimeout(debounceTimeout);
+  }, [search, selectedCategory, typeCompte, typeDepense, dateDebut, dateFin, estChargeFixe, onFilterChange]);
 
   return (
     <div className="space-y-4">
@@ -255,6 +244,24 @@ function TableDepenses({
                 {option.label}
               </option>
             ))}
+          </select>
+        </div>
+        <div className="w-[140px]">
+          <label
+            htmlFor="charge-fixe-select"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Charge fixe
+          </label>
+          <select
+            id="charge-fixe-select"
+            value={estChargeFixe}
+            onChange={handleEstChargeFixeChange}
+            className="input"
+          >
+            <option value="">Toutes</option>
+            <option value="true">Fixes uniquement</option>
+            <option value="false">Variables uniquement</option>
           </select>
         </div>
         
