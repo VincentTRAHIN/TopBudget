@@ -71,7 +71,7 @@ function TableDepenses({
     refreshDepenses
   })
 
-  // Extraire les valeurs des filtres pour faciliter l'usage
+  // Extraction des valeurs de filtres (y compris estChargeFixe)
   const {
     categorie: selectedCategory = '',
     typeCompte = '',
@@ -81,8 +81,10 @@ function TableDepenses({
     search = '',
     estChargeFixe = '',
   } = filters;
-
-
+  const handleEstChargeFixeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilter('estChargeFixe', e.target.value);
+  }, [setFilter]);
+  
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalSearchValue(e.target.value);
   }, []);
@@ -104,20 +106,41 @@ function TableDepenses({
   }, []);
 
   const handleTypeDepenseChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setFilter('typeDepense', value);
-  }, [setFilter]);
+    setTypeDepense(e.target.value);
+  }, []);
 
-  const handleEstChargeFixeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setFilter('estChargeFixe', value);
-  }, [setFilter]);
+  const handleResetFilters = useCallback(() => {
+    setLocalSearchValue('');
+    setSelectedCategory('');
+    setDateDebut('');
+    setDateFin('');
+    setTypeCompte('');
+    setTypeDepense('');
+  }, []);
 
-  // Synchroniser avec le parent UNIQUEMENT quand les filtres changent
+  // Gérer le tri côté serveur
+  const handleSortChange = useCallback((sortBy: string, order: 'asc' | 'desc') => {
+    if (onSortChange) {
+      onSortChange(sortBy, order);
+    }
+  }, [onSortChange]);
+
+  // Vérifier si des filtres sont actifs
+  const hasActiveFilters = Boolean(
+    localSearchValue || 
+    selectedCategory || 
+    dateDebut || 
+    dateFin || 
+    typeCompte || 
+    typeDepense ||
+    estChargeFixe
+  );
+
+  // Synchroniser avec le parent quand les filtres changent (debounce 300ms)
   useEffect(() => {
     const debounceTimeout = setTimeout(() => {
       onFilterChange({
-        search: search || undefined,
+        search: debouncedSearch || undefined,
         categorie: selectedCategory || undefined,
         typeCompte: typeCompte || undefined,
         typeDepense: typeDepense || undefined,
@@ -125,10 +148,9 @@ function TableDepenses({
         dateFin: dateFin || undefined,
         estChargeFixe: estChargeFixe || undefined,
       });
-    }, 300); // Debounce pour éviter trop d'appels
-
+    }, 300);
     return () => clearTimeout(debounceTimeout);
-  }, [search, selectedCategory, typeCompte, typeDepense, dateDebut, dateFin, estChargeFixe, onFilterChange]);
+  }, [debouncedSearch, selectedCategory, typeCompte, typeDepense, dateDebut, dateFin, estChargeFixe, onFilterChange]);
 
   return (
     <div className="space-y-4">

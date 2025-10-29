@@ -107,22 +107,4 @@ export interface TableProps<T> {
   footer?: React.ReactNode;
   rowAction?: TableAction<T>[];
   emptyRender?: React.ReactNode;
-  /**
-   * Fonction pour obtenir la classe CSS d'une ligne en fonction des données
-   * Exemple : row => row.estChargeFixe ? 'bg-green-50' : ''
-   */
-  getRowClassName?: (row: T) => string;
-  /**
-   * Callback pour gérer le tri côté serveur
-   * Si défini, désactive le tri côté client
-   */
-  onSortChange?: (sortBy: string, order: 'asc' | 'desc') => void;
-  /**
-   * Clé de tri actuelle (pour afficher l'indicateur de tri)
-   */
-  currentSortKey?: string;
-  /**
-   * Direction de tri actuelle
-   */
-  currentSortOrder?: 'asc' | 'desc';
 }

@@ -7,7 +7,6 @@ import {
   supprimerDepense,
   supprimerToutesDepenses,
   importerDepenses,
-  toggleChargeFixe,
 } from "../../controllers/depense.controller";
 import { creerDepenseValidator } from "../../middlewares/validators/depense.validator";
 import uploadCSV from "../../middlewares/upload.middleware";
@@ -18,7 +17,6 @@ const router = Router();
 router.post("/", proteger, creerDepenseValidator, asyncHandler(ajouterDepense));
 router.get("/", proteger, asyncHandler(obtenirDepenses));
 router.put("/:id", proteger, asyncHandler(modifierDepense));
-router.patch("/:id/toggle-charge-fixe", proteger, asyncHandler(toggleChargeFixe));
 
 router.delete("/:id", proteger, asyncHandler(supprimerDepense));
 router.delete("/", proteger, asyncHandler(supprimerToutesDepenses));

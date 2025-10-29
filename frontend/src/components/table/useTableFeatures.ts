@@ -5,7 +5,6 @@ export interface UseTableFeaturesProps<T> {
   data: T[];
   defaultSortKey?: keyof T;
   columns?: TableColumn<T>[];
-  serverSide?: boolean;
 }
 
 
@@ -13,7 +12,6 @@ export function useTableFeatures<T extends Record<string, any>>({
   data,
   defaultSortKey,
   columns = [],
-  serverSide = false,
 }: UseTableFeaturesProps<T>) {
   interface SortStateProps   { key: keyof T; direction: 'asc' | 'desc' } 
   const [sortState, setSortState] = useState<SortStateProps | null>(
@@ -29,9 +27,6 @@ export function useTableFeatures<T extends Record<string, any>>({
 
 
   const sortedData = useMemo(() => {
-    // Si le tri est géré côté serveur, ne pas trier côté client
-    if (serverSide) return data;
-    
     if (!sortState) return data;
     
     // Trouver la colonne correspondante pour utiliser getSortValue ou getValue
@@ -59,11 +54,13 @@ export function useTableFeatures<T extends Record<string, any>>({
       if (typeof aValue === 'number' && typeof bValue === 'number') {
         return sortState.direction === 'asc' ? aValue - bValue : bValue - aValue;
       }
-        return sortState.direction === 'asc'
+      return sortState.direction === 'asc'
         ? String(aValue).localeCompare(String(bValue))
         : String(bValue).localeCompare(String(aValue));
     });
-  }, [data, sortState, columns, serverSide]);  return {
+  }, [data, sortState, columns]);
+
+  return {
     sortState,
     setSortState,
     handleSort,

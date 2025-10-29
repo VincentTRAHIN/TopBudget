@@ -6,7 +6,6 @@ import TableDepenses from '@/components/expenses/tableDepenses.component';
 import FormDepense from '@/components/expenses/formDepenses.component';
 import FormCategorie from '@/components/categories/formCategorie.component';
 import ImportCsvModal from '@/components/expenses/importCsvModal.component';
-import ExpensesSummaryCard from '@/components/expenses/ExpensesSummaryCard.component';
 import DeleteAllExpensesButton from '@/components/expenses/DeleteAllExpensesButton.component';
 import {
   useDepenses,
@@ -99,13 +98,7 @@ export default function ExpensesPage() {
   }, []);
 
   const handleFilterChange = useCallback((newFilters: Partial<DepenseFilters>) => {
-    // Merger avec les filtres existants au lieu de tout remplacer
-    setFilters((prevFilters) => ({ ...prevFilters, ...newFilters }));
-    setCurrentPage(1);
-  }, []);
-
-  const handleSortChange = useCallback((sortBy: string, order: 'asc' | 'desc') => {
-    handleFilterOrSortChange(undefined, { sortBy, order });
+    handleFilterOrSortChange(newFilters, undefined);
   }, [handleFilterOrSortChange]);
 
   const handleVueChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -254,16 +247,6 @@ export default function ExpensesPage() {
 
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Vue d&apos;ensemble
-            </h2>
-            <ExpensesSummaryCard 
-              selectedVue={selectedVue}
-              filters={filters}
-            />
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">
               Liste des Dépenses
             </h2>
             
@@ -289,10 +272,6 @@ export default function ExpensesPage() {
                   categories={categories}
                   onEdit={handleEdit}
                   onFilterChange={handleFilterChange}
-                  onSortChange={handleSortChange}
-                  currentSortKey={sort.sortBy}
-                  currentSortOrder={sort.order}
-                  currentFilters={filters}
                   currentUserId={user?._id}
                   partenaireId={partenaireId}
                 />

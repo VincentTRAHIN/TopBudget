@@ -58,7 +58,6 @@ export interface DepenseQueryParams extends Query {
   sortBy?: string;
   order?: "asc" | "desc";
   vue?: ViewType;
-  estChargeFixe?: string; // "true" | "false" | undefined
 }
 
 export interface DepenseCreateBody {
