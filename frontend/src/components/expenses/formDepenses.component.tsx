@@ -3,6 +3,7 @@
 import { useDepenses, DepensesResponse } from '@/hooks/useDepenses.hook';
 import { useRef, useEffect } from 'react';
 import { useCategories } from '@/hooks/useCategories.hook';
+import { useDescriptions } from '@/hooks/useDescriptions.hook';
 import { IDepense } from '@/types/depense.type';
 import { ICategorie } from '@/types/categorie.type';
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
@@ -12,6 +13,7 @@ import { TYPE_COMPTE_OPTIONS, TYPE_DEPENSE_OPTIONS } from '@/types/common.type';
 import fetcher from '@/utils/fetcher.utils';
 import { depensesEndpoint } from '@/services/api.service';
 import { X } from 'lucide-react';
+import { AutocompleteInput } from '@/components/shared/AutocompleteInput.component';
 
 const DepenseSchema = Yup.object().shape({
   montant: Yup.number().positive('Doit être positif').required('Requis'),
@@ -46,6 +48,7 @@ export default function FormDepense({
 }) {
   const { refreshDepenses } = useDepenses();
   const { categories }: { categories: ICategorie[] } = useCategories();
+  const { descriptions, isLoading: isLoadingDescriptions } = useDescriptions();
 
   const formRef = useRef<HTMLFormElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
@@ -292,12 +295,18 @@ export default function FormDepense({
               >
                 Description
               </label>
-              <Field
-                id="description"
-                type="text"
-                name="description"
-                className="input"
-              />
+              <Field name="description">
+                {({ field, form }: any) => (
+                  <AutocompleteInput
+                    name="description"
+                    value={field.value}
+                    onChange={(value) => form.setFieldValue('description', value)}
+                    suggestions={descriptions}
+                    placeholder={isLoadingDescriptions ? "Chargement..." : "Ex: Loyer, Électricité..."}
+                    disabled={isLoadingDescriptions}
+                  />
+                )}
+              </Field>
               <ErrorMessage
                 name="description"
                 component="div"
