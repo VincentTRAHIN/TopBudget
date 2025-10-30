@@ -14,6 +14,9 @@ interface TableRevenusProps {
   revenus: IRevenu[];
   onEdit: (revenu: IRevenu) => void;
   onFilterChange: (filters: Partial<RevenuFilters>) => void;
+  onSortChange?: (sortBy: string, order: 'asc' | 'desc') => void;
+  currentSortKey?: string;
+  currentSortOrder?: 'asc' | 'desc';
   currentUserId?: string;
 }
 
@@ -21,6 +24,9 @@ export default function TableRevenus({
   revenus = [],
   onEdit,
   onFilterChange,
+  onSortChange,
+  currentSortKey,
+  currentSortOrder,
   currentUserId,
 }: TableRevenusProps) {
   const { 
@@ -75,7 +81,7 @@ export default function TableRevenus({
     setFilter('dateFin', e.target.value);
   }, [setFilter]);
 
-  // Synchroniser avec le parent quand les filtres changent
+  // Synchroniser avec le parent quand les filtres changent (debounce réduit à 200ms)
   useEffect(() => {
     const debounceTimeout = setTimeout(() => {
       onFilterChange({
@@ -86,7 +92,7 @@ export default function TableRevenus({
         dateDebut: dateDebut || undefined,
         dateFin: dateFin || undefined,
       });
-    }, 300);
+    }, 200);
 
     return () => clearTimeout(debounceTimeout);
   }, [search, categorieRevenu, typeCompte, estRecurrent, dateDebut, dateFin, onFilterChange]);
@@ -105,10 +111,11 @@ export default function TableRevenus({
           <input
             id="search-input"
             type="text"
-            placeholder="Description, commentaire..."
+            placeholder="Description, commentaire, catégorie..."
             value={search}
             onChange={handleSearchChange}
             className="input"
+            autoComplete="off"
           />
         </div>
         <div className="flex-grow min-w-[150px]">
@@ -227,6 +234,9 @@ export default function TableRevenus({
           data={revenus}
           columns={columns}
           rowAction={actions}
+          onSortChange={onSortChange}
+          currentSortKey={currentSortKey}
+          currentSortOrder={currentSortOrder}
           emptyRender={
             <div className="text-center py-4 text-gray-500">
               Aucun revenu trouvé.
