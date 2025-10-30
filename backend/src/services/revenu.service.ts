@@ -13,9 +13,9 @@ import {
 } from "../types/typed-request";
 
 export class RevenuService {
-  private static buildRevenuQuery(
+  private static async buildRevenuQuery(
     params: RevenuQueryParams,
-  ): Record<string, unknown> {
+  ): Promise<Record<string, unknown>> {
     const query: Record<string, unknown> = {};
     const {
       dateDebut,
@@ -48,9 +48,27 @@ export class RevenuService {
       }
     }
 
+    // Recherche multi-champs : description, commentaire ET nom de catégorie
     if (search) {
       const searchRegex = { $regex: search, $options: "i" };
-      query.$or = [{ description: searchRegex }, { commentaire: searchRegex }];
+      const searchOr: Array<Record<string, unknown>> = [
+        { description: searchRegex },
+        { commentaire: searchRegex },
+      ];
+
+      // Recherche par nom de catégorie
+      const matchingCategories = await CategorieRevenuModel.find({
+        nom: searchRegex,
+      })
+        .select("_id")
+        .lean();
+
+      if (matchingCategories.length > 0) {
+        const categorieIds = matchingCategories.map((c) => c._id);
+        searchOr.push({ categorieRevenu: { $in: categorieIds } });
+      }
+
+      query.$or = searchOr;
     }
     return query;
   }
@@ -109,7 +127,7 @@ export class RevenuService {
     const skip = (page - 1) * limit;
     const { sortBy = "date", order = "desc", vue = "moi" } = params;
 
-    const queryFilters = this.buildRevenuQuery(params);
+    const queryFilters = await this.buildRevenuQuery(params);
     const userIdsToQuery: mongoose.Types.ObjectId[] = [];
 
     if (vue === "moi") {

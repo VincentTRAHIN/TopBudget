@@ -16,6 +16,8 @@ services:
       - topbudget-network
     depends_on:
       - backend
+    ports:
+      - "3000:3000"
 
   # ============================================  
   # Backend Node.js + TypeScript
@@ -30,6 +32,9 @@ services:
       - mongo
     volumes:
       - logs-data:/app/logs
+      - ./backend/.env:/app/.env
+    ports:
+      - "5001:5001"
 
   # ============================================
   # Base de données MongoDB
@@ -42,6 +47,23 @@ services:
       - mongo-data:/data/db
     environment:
       - MONGO_INITDB_DATABASE=topbudget
+
+  # ============================================
+  # Mongo Express - Interface Web MongoDB
+  # ============================================
+  mongo-express:
+    image: mongo-express:latest
+    networks:
+      - topbudget-network
+    depends_on:
+      - mongo
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://mongo:27017/
+      - ME_CONFIG_BASICAUTH_USERNAME=${ME_CONFIG_BASICAUTH_USERNAME:-admin}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${ME_CONFIG_BASICAUTH_PASSWORD:-devpassword}
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
 
 volumes:
   mongo-data:
