@@ -17,9 +17,9 @@ import {
 } from "../types/typed-request";
 
 export class DepenseService {
-  private static buildDepenseQuery(
+  private static async buildDepenseQuery(
     query: DepenseQueryParams,
-  ): Record<string, unknown> {
+  ): Promise<Record<string, unknown>> {
     const matchFilter: Record<string, unknown> = {};
 
     const { categorie, dateDebut, dateFin, typeCompte, typeDepense, search } =
@@ -61,9 +61,27 @@ export class DepenseService {
       matchFilter.typeCompte = typeCompte;
     }
 
+    // Recherche multi-champs : description, commentaire ET nom de catégorie
     if (typeof search === "string" && search.trim()) {
       const regex = { $regex: search.trim(), $options: "i" };
-      matchFilter.$or = [{ description: regex }, { commentaire: regex }];
+      const searchOr: Array<Record<string, unknown>> = [
+        { description: regex },
+        { commentaire: regex },
+      ];
+
+      // Recherche par nom de catégorie
+      const matchingCategories = await CategorieModel.find({
+        nom: regex,
+      })
+        .select("_id")
+        .lean();
+
+      if (matchingCategories.length > 0) {
+        const categorieIds = matchingCategories.map((c) => c._id);
+        searchOr.push({ categorie: { $in: categorieIds } });
+      }
+
+      matchFilter.$or = searchOr;
     }
 
     return matchFilter;
@@ -127,7 +145,7 @@ export class DepenseService {
     const skip = (page - 1) * limit;
     const { sortBy = "date", order = "desc", vue = "moi" } = params;
 
-    const queryFilters = this.buildDepenseQuery(params);
+    const queryFilters = await this.buildDepenseQuery(params);
     const userIdsToQuery: mongoose.Types.ObjectId[] = [];
 
     if (vue === "moi") {
@@ -354,5 +372,27 @@ export class DepenseService {
     await depense.save();
 
     return depense.populate(['categorie', 'utilisateur']) as unknown as IDepensePopulated;
+  }
+
+  /**
+   * Récupère la liste des descriptions uniques de dépenses pour l'autocomplétion
+   * @param userId - ID de l'utilisateur
+   * @returns Tableau de descriptions uniques triées par fréquence d'utilisation
+   */
+  static async getUniqueDescriptions(userId: string): Promise<string[]> {
+    const descriptions = await DepenseModel.aggregate([
+      // Filtrer par utilisateur
+      { $match: { utilisateur: new mongoose.Types.ObjectId(userId) } },
+      // Regrouper par description et compter les occurrences
+      { $group: { _id: "$description", count: { $sum: 1 } } },
+      // Trier par fréquence (les plus utilisées en premier)
+      { $sort: { count: -1 } },
+      // Limiter à 100 descriptions max
+      { $limit: 100 },
+      // Projeter seulement la description
+      { $project: { _id: 0, description: "$_id" } }
+    ]);
+
+    return descriptions.map(d => d.description);
   }
 }

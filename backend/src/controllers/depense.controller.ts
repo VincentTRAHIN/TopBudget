@@ -445,3 +445,44 @@ export const toggleChargeFixe = createAsyncHandler(
     }
   },
 );
+
+/**
+ * @swagger
+ * /api/depenses/descriptions:
+ *   get:
+ *     tags: [Dépenses]
+ *     summary: Récupérer les descriptions uniques pour l'autocomplétion
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des descriptions uniques
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ */
+export const getUniqueDescriptions = createAsyncHandler(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AppError(AUTH.ERRORS.UNAUTHORIZED, 401));
+    }
+
+    try {
+      const descriptions = await DepenseService.getUniqueDescriptions(req.user.id);
+      return sendSuccess(res, 'Descriptions récupérées avec succès', descriptions);
+    } catch (error) {
+      logger.error('Erreur lors de la récupération des descriptions', error);
+      next(error);
+    }
+  },
+);
