@@ -6,7 +6,6 @@ import TableDepenses from '@/components/expenses/tableDepenses.component';
 import FormDepense from '@/components/expenses/formDepenses.component';
 import FormCategorie from '@/components/categories/formCategorie.component';
 import ImportCsvModal from '@/components/expenses/importCsvModal.component';
-import ExpensesSummaryCard from '@/components/expenses/ExpensesSummaryCard.component';
 import DeleteAllExpensesButton from '@/components/expenses/DeleteAllExpensesButton.component';
 import {
   useDepenses,
@@ -29,12 +28,12 @@ export default function ExpensesPage() {
   const [showAddCategorieForm, setShowAddCategorieForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [filters, setFilters] = useState<DepenseFilters>({});
-  const [sort, setSort] = useState<DepenseSort>({});
+  const [sort, setSort] = useState<DepenseSort>({ sortBy: 'date', order: 'desc' });
   const [selectedVue, setSelectedVue] = useState<
     'moi' | 'partenaire' | 'couple_complet'
   >('moi');
   
-  const { depenses, pagination, isLoading, isError } = useDepenses(
+  const { depenses, pagination, isLoading, isError, refreshDepenses } = useDepenses(
     currentPage,
     ITEMS_PER_PAGE,
     filters,
@@ -252,15 +251,23 @@ export default function ExpensesPage() {
             </div>
           </div>
 
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Vue d&apos;ensemble
-            </h2>
-            <ExpensesSummaryCard 
-              selectedVue={selectedVue}
-              filters={filters}
+          {/* Formulaires d'ajout (au-dessus de la liste) */}
+          {showAddCategorieForm && (
+            <FormCategorie
+              onClose={handleCloseAddCategorieForm}
+              endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/categories`}
+              refresh={refreshCategories}
             />
-          </section>
+          )}
+          {showAddForm && (
+            <FormDepense
+              existingDepense={selectedDepense ?? undefined}
+              onClose={handleCloseAddForm}
+            />
+          )}
+          {showImportModal && (
+            <ImportCsvModal onClose={handleCloseImportModal} />
+          )}
 
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
@@ -295,6 +302,7 @@ export default function ExpensesPage() {
                   currentFilters={filters}
                   currentUserId={user?._id}
                   partenaireId={partenaireId}
+                  refreshDepenses={refreshDepenses}
                 />
               </div>
             )}
@@ -336,23 +344,6 @@ export default function ExpensesPage() {
                 </div>
               </div>
             </section>
-          )}
-
-          {showAddCategorieForm && (
-            <FormCategorie
-              onClose={handleCloseAddCategorieForm}
-              endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/categories`}
-              refresh={refreshCategories}
-            />
-          )}
-          {showAddForm && (
-            <FormDepense
-              existingDepense={selectedDepense ?? undefined}
-              onClose={handleCloseAddForm}
-            />
-          )}
-          {showImportModal && (
-            <ImportCsvModal onClose={handleCloseImportModal} />
           )}
         </div>
       </Layout>

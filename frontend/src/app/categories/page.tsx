@@ -75,10 +75,10 @@ export default function CategoriesPage() {
                 
                 <button
                   onClick={handleAdd}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md flex items-center gap-2 transition-colors shadow-sm"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>Nouvelle Catégorie</span>
+                  <Plus size={16} />
+                  Nouvelle Catégorie
                 </button>
 
                 <DeleteAllCategoriesButton onSuccess={refreshCategories} />

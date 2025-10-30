@@ -6,7 +6,6 @@ import TableRevenus from '@/components/revenus/tableRevenus.component';
 import FormRevenu from '@/components/revenus/formRevenu.component';
 import FormCategorie from '@/components/categories/formCategorie.component';
 import ImportCsvModalRevenu from '@/components/revenus/importCsvModalRevenu.component';
-import RevenusSummaryCard from '@/components/revenus/RevenusSummaryCard.component';
 import { DeleteAllRevenusButton } from '@/components/revenus/DeleteAllRevenusButton.component';
 import { useRevenus, RevenuFilters, RevenuSort } from '@/hooks/useRevenus.hook';
 import { useCategoriesRevenu } from '@/hooks/useCategoriesRevenu.hook';
@@ -25,7 +24,7 @@ export default function RevenusPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAddCategorieForm, setShowAddCategorieForm] = useState(false);
   const [filters, setFilters] = useState<RevenuFilters>({});
-  const [sort, setSort] = useState<RevenuSort>({});
+  const [sort, setSort] = useState<RevenuSort>({ sortBy: 'date', order: 'desc' });
   const [selectedVue, setSelectedVue] = useState<
     'moi' | 'partenaire' | 'couple_complet'
   >('moi');
@@ -96,13 +95,14 @@ export default function RevenusPage() {
     setCurrentPage(1);
   };
 
-  const handleSortChange = (newSort: RevenuSort) => {
-    handleFilterOrSortChange(undefined, newSort);
-  };
+  const handleSortChange = useCallback((sortBy: string, order: 'asc' | 'desc') => {
+    handleFilterOrSortChange(undefined, { sortBy, order });
+  }, []);
 
-  const handleFilterChange = (newFilters: Partial<RevenuFilters>) => {
-    handleFilterOrSortChange(newFilters, undefined);
-  };
+  const handleFilterChange = useCallback((newFilters: Partial<RevenuFilters>) => {
+    setFilters((prevFilters) => ({ ...prevFilters, ...newFilters }));
+    setCurrentPage(1);
+  }, []);
 
   const handleVueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedVue(e.target.value as 'moi' | 'partenaire' | 'couple_complet');
@@ -200,18 +200,7 @@ export default function RevenusPage() {
             </div>
           </div>
 
-          {/* Section 2: Vue d'ensemble */}
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Vue d&apos;ensemble
-            </h2>
-            <RevenusSummaryCard 
-              selectedVue={selectedVue}
-              filters={filters}
-            />
-          </section>
-
-          {/* Section 3: Liste des Revenus */}
+          {/* Section : Liste des Revenus */}
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
               Liste des Revenus
@@ -238,6 +227,9 @@ export default function RevenusPage() {
                   revenus={revenus}
                   onEdit={handleEdit}
                   onFilterChange={handleFilterChange}
+                  onSortChange={handleSortChange}
+                  currentSortKey={sort.sortBy}
+                  currentSortOrder={sort.order}
                   currentUserId={user?._id}
                 />
               </div>
