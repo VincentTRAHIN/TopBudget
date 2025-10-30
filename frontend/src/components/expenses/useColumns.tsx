@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { KeyedMutator } from 'swr';
 import debug from 'debug';
-import { DynamicIcon } from 'lucide-react/dynamic';
 import { DataType, DisplayType, TableColumn, TableAction } from '../table/table.types';
 import { IDepense } from '@/types/depense.type';
 import { depensesEndpoint } from '@/services/api.service';
@@ -27,15 +26,59 @@ export function useColumns({
   const handleToggleChargeFixe = useCallback(async (depenseId: string, currentValue: boolean) => {
     try {
       log(`Toggle charge fixe pour dépense ID: %s (valeur actuelle: %s)`, depenseId, currentValue);
-      await fetcher(`${depensesEndpoint}/${depenseId}/toggle-charge-fixe`, {
-        method: 'PATCH',
-      });
-      toast.success(`Charge fixe ${currentValue ? 'désactivée' : 'activée'} !`);
-      log(`Charge fixe modifiée pour dépense ID: %s. Rafraîchissement.`, depenseId);
-      refreshDepenses();
+      
+      // Appel API avec mise à jour optimiste
+      await refreshDepenses(
+        async (currentData) => {
+          // Appel API
+          await fetcher(`${depensesEndpoint}/${depenseId}/toggle-charge-fixe`, {
+            method: 'PATCH',
+          });
+          
+          // Retourner les données mises à jour manuellement (pas de refetch)
+          if (!currentData?.depenses) return currentData;
+          
+          return {
+            ...currentData,
+            depenses: currentData.depenses.map(depense =>
+              depense._id === depenseId
+                ? { ...depense, estChargeFixe: !currentValue }
+                : depense
+            )
+          };
+        },
+        {
+          // Mise à jour optimiste immédiate
+          optimisticData: (currentData) => {
+            if (!currentData?.depenses) return currentData;
+            
+            return {
+              ...currentData,
+              depenses: currentData.depenses.map(depense =>
+                depense._id === depenseId
+                  ? { ...depense, estChargeFixe: !currentValue }
+                  : depense
+              )
+            };
+          },
+          // Ne PAS revalider automatiquement (on retourne les données directement)
+          revalidate: false,
+          // Revenir aux données précédentes en cas d'erreur
+          rollbackOnError: true,
+        }
+      );
+
+      // Toast de succès selon l'action
+      toast.success(
+        !currentValue 
+          ? '🔒 Dépense marquée comme charge fixe' 
+          : '🔓 Dépense retirée des charges fixes'
+      );
+
+      log(`Charge fixe modifiée pour dépense ID: %s`, depenseId);
     } catch (error) {
       log(`Erreur toggle charge fixe pour dépense ID: %s, Erreur: %O`, depenseId, error);
-      toast.error('Erreur lors de la modification');
+      toast.error('❌ Erreur lors de la mise à jour');
     }
   }, [refreshDepenses]);
 
@@ -90,7 +133,7 @@ export function useColumns({
       enableSort: true,
     },
     {
-      header: 'Charge Fixe',
+      header: 'Charge Fixe/Variable',
       accessor: 'estChargeFixe',
       className: 'text-center',
       dataType: DataType.BOOLEAN,
@@ -100,42 +143,43 @@ export function useColumns({
         
         return (
           <button
+            type="button"
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               if (!isDisabled) {
+                console.log('🟢 Appel de handleToggleChargeFixe...');
                 handleToggleChargeFixe(row._id, isFixed || false);
+              } else {
+                console.log('🔴 Bouton disabled, action bloquée');
               }
             }}
             disabled={isDisabled}
             className={`
-              inline-flex items-center gap-2 px-3 py-1.5 rounded-md
-              transition-all duration-300 ease-in-out
+              inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+              transition-all duration-200 ease-in-out
               ${isDisabled 
                 ? 'opacity-50 cursor-not-allowed bg-gray-100' 
                 : 'cursor-pointer hover:shadow-md active:scale-95'
               }
               ${isFixed 
-                ? 'bg-green-50 text-green-700 hover:bg-green-100' 
-                : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }
             `}
+            aria-label={isFixed ? 'Retirer des charges fixes' : 'Marquer comme charge fixe'}
             title={
               isDisabled 
                 ? 'Vous ne pouvez modifier que vos propres dépenses' 
                 : isFixed 
-                  ? 'Cliquer pour marquer comme variable' 
+                  ? 'Cliquer pour retirer des charges fixes' 
                   : 'Cliquer pour marquer comme charge fixe'
             }
           >
-            <DynamicIcon 
-              name="pin" 
-              size={16} 
-              className={`
-                transition-all duration-300
-                ${isFixed ? 'rotate-0 text-green-600' : 'rotate-45 text-gray-400'}
-              `}
-            />
-            <span className="text-sm font-medium">
+            <span className="text-base" role="img" aria-hidden="true">
+              {isFixed ? '🔒' : '🔓'}
+            </span>
+            <span className="text-xs font-medium">
               {isFixed ? 'Fixe' : 'Variable'}
             </span>
           </button>

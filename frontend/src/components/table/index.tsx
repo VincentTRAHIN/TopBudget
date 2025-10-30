@@ -95,15 +95,20 @@ export function Table<T extends Record<string, any>>({
               return (
                 <th
                   key={index}
-                  className={`px-4 py-2 text-left ${column.enableSort ? 'cursor-pointer select-none' : ''} ${column.className || ''}`}
+                  className={`px-4 py-2 text-left ${column.enableSort ? 'cursor-pointer select-none hover:bg-gray-200 transition-colors' : ''} ${column.className || ''}`}
                   onClick={column.enableSort ? () => handleColumnSort(column.accessor) : undefined}
                 >
-                  {header}
-                  {column.enableSort && isSorted && (
-                    <span className="ml-1">
-                      {sortDirection === 'asc' ? '▲' : '▼'}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {header}
+                    {column.enableSort && (
+                      <span className="text-xs">
+                        {isSorted 
+                          ? (sortDirection === 'asc' ? '↑' : '↓')
+                          : '↕'
+                        }
+                      </span>
+                    )}
+                  </div>
                 </th>
               );
             })}
