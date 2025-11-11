@@ -1,6 +1,7 @@
-import useSWR from 'swr';
-import fetcher from '../utils/fetcher.utils';
-import { upcomingChargesEndpoint } from '../services/api.service';
+import useSWR from "swr";
+
+import { upcomingChargesEndpoint } from "../services/api.service";
+import fetcher from "../utils/fetcher.utils";
 
 /**
  * Interface pour une charge fixe payée
@@ -59,20 +60,20 @@ export interface UseUpcomingChargesReturn {
 
 /**
  * Hook personnalisé pour récupérer les charges fixes à venir
- * 
+ *
  * Récupère les charges fixes payées et à venir pour le mois en cours
  * (ou pour un mois spécifié).
- * 
+ *
  * @param mois - Numéro du mois (1-12), optionnel (défaut = mois actuel)
  * @param annee - Année, optionnel (défaut = année actuelle)
  * @returns Données des charges fixes avec états de chargement et d'erreur
- * 
+ *
  * @example
  * ```tsx
  * const { paid, upcoming, totalPaid, totalUpcoming, isLoading } = useUpcomingCharges();
- * 
+ *
  * if (isLoading) return <div>Chargement...</div>;
- * 
+ *
  * return (
  *   <div>
  *     <h3>Payé : {totalPaid}€</h3>
@@ -86,20 +87,17 @@ export interface UseUpcomingChargesReturn {
  * );
  * ```
  */
-export function useUpcomingCharges(
-  mois?: number,
-  annee?: number,
-): UseUpcomingChargesReturn {
+export function useUpcomingCharges(mois?: number, annee?: number): UseUpcomingChargesReturn {
   // Construction de l'URL avec paramètres optionnels
   let url = upcomingChargesEndpoint;
   const params = new URLSearchParams();
 
   if (mois !== undefined) {
-    params.append('mois', mois.toString());
+    params.append("mois", mois.toString());
   }
 
   if (annee !== undefined) {
-    params.append('annee', annee.toString());
+    params.append("annee", annee.toString());
   }
 
   if (params.toString()) {
@@ -107,12 +105,7 @@ export function useUpcomingCharges(
   }
 
   // Appel SWR avec fetcher
-  const {
-    data,
-    error,
-    isLoading,
-    mutate,
-  } = useSWR<UpcomingChargesData>(url, fetcher, {
+  const { data, error, isLoading, mutate } = useSWR<UpcomingChargesData>(url, fetcher, {
     refreshInterval: 0, // Pas de refresh automatique
     revalidateOnFocus: true, // Revalider quand la fenêtre reprend le focus
   });

@@ -1,9 +1,9 @@
 import dayjs from "dayjs";
 import { DynamicIcon } from "lucide-react/dynamic";
-import { DataType, DisplayType, TableProps } from "./table.types";
-import { useTableFeatures } from "./useTableFeatures";
 import { useCallback } from "react";
 
+import { DataType, DisplayType, TableProps } from "./table.types";
+import { useTableFeatures } from "./useTableFeatures";
 
 export function Table<T extends Record<string, any>>({
   columns,
@@ -19,7 +19,7 @@ export function Table<T extends Record<string, any>>({
   const { sortState, handleSort, sortedData } = useTableFeatures<T>({
     data,
     columns,
-    defaultSortKey: columns.find(col => col.enableSort)?.accessor as keyof T,
+    defaultSortKey: columns.find((col) => col.enableSort)?.accessor as keyof T,
     serverSide: !!onSortChange,
   });
 
@@ -30,7 +30,7 @@ export function Table<T extends Record<string, any>>({
   const handleColumnSort = (accessor: keyof T) => {
     if (onSortChange) {
       // Tri côté serveur
-      const newOrder = currentSortKey === String(accessor) && currentSortOrder === 'asc' ? 'desc' : 'asc';
+      const newOrder = currentSortKey === String(accessor) && currentSortOrder === "asc" ? "desc" : "asc";
       onSortChange(String(accessor), newOrder);
     } else {
       // Tri côté client
@@ -38,17 +38,16 @@ export function Table<T extends Record<string, any>>({
     }
   };
 
-
   // Factorisation du rendu des cellules
-  const renderCell = useCallback((column: typeof columns[number], row: T): React.ReactNode => {
+  const renderCell = useCallback((column: (typeof columns)[number], row: T): React.ReactNode => {
     const value = row[column.accessor];
     if (column.displayType) {
       switch (column.displayType) {
         case DisplayType.DATE:
-          return dayjs(value).format(column.dateFormat || 'DD/MM/YYYY');
+          return dayjs(value).format(column.dateFormat || "DD/MM/YYYY");
         case DisplayType.CURRENCY:
-          const currency = column.getCurrentCurrency ? column.getCurrentCurrency() : '€';
-          return typeof value === 'number' ? `${value.toFixed(2)} ${currency}` : value;
+          const currency = column.getCurrentCurrency ? column.getCurrentCurrency() : "€";
+          return typeof value === "number" ? `${value.toFixed(2)} ${currency}` : value;
         case DisplayType.ICON:
           if (column.getIcon) {
             const icon = column.getIcon(row);
@@ -65,7 +64,7 @@ export function Table<T extends Record<string, any>>({
         case DataType.STRING:
           return value;
         case DataType.NUMBER:
-          return typeof value === 'number' ? value.toLocaleString() : value;
+          return typeof value === "number" ? value.toLocaleString() : value;
         default:
           return value;
       }
@@ -78,35 +77,25 @@ export function Table<T extends Record<string, any>>({
         <thead>
           <tr className="bg-gray-100">
             {columns.map((column, index) => {
+              const header = (column.header ?? String(column.accessor)).replace(/^\w/, (c) => c.toUpperCase());
 
-              const header = (column.header ?? String(column.accessor))
-                .replace(/^\w/, (c) => c.toUpperCase())
-              
               // Déterminer si cette colonne est actuellement triée
-              const isSorted = onSortChange 
+              const isSorted = onSortChange
                 ? currentSortKey === String(column.accessor)
                 : sortState?.key === column.accessor;
-              
+
               // Déterminer la direction du tri
-              const sortDirection = onSortChange 
-                ? currentSortOrder 
-                : sortState?.direction;
-              
+              const sortDirection = onSortChange ? currentSortOrder : sortState?.direction;
+
               return (
                 <th
                   key={index}
-                  className={`px-4 py-2 text-left ${column.enableSort ? 'cursor-pointer select-none hover:bg-gray-200 transition-colors' : ''} ${column.className || ''}`}
-                  onClick={column.enableSort ? () => handleColumnSort(column.accessor) : undefined}
-                >
+                  className={`px-4 py-2 text-left ${column.enableSort ? "cursor-pointer select-none hover:bg-gray-200 transition-colors" : ""} ${column.className || ""}`}
+                  onClick={column.enableSort ? () => handleColumnSort(column.accessor) : undefined}>
                   <div className="flex items-center gap-2">
                     {header}
                     {column.enableSort && (
-                      <span className="text-xs">
-                        {isSorted 
-                          ? (sortDirection === 'asc' ? '↑' : '↓')
-                          : '↕'
-                        }
-                      </span>
+                      <span className="text-xs">{isSorted ? (sortDirection === "asc" ? "↑" : "↓") : "↕"}</span>
                     )}
                   </div>
                 </th>
@@ -118,12 +107,9 @@ export function Table<T extends Record<string, any>>({
         <tbody>
           {displayData.length > 0 ? (
             displayData.map((row, index) => {
-              const rowClassName = getRowClassName ? getRowClassName(row) : '';
+              const rowClassName = getRowClassName ? getRowClassName(row) : "";
               return (
-                <tr 
-                  className={`border-b hover:bg-gray-50 ${rowClassName}`} 
-                  key={index}
-                >
+                <tr className={`border-b hover:bg-gray-50 ${rowClassName}`} key={index}>
                   {columns.map((column, columnIndex) => (
                     <td key={columnIndex} className={`px-4 py-2 ${column.className}`}>
                       {column.getValue ? column.getValue(row) : renderCell(column, row)}
@@ -132,24 +118,33 @@ export function Table<T extends Record<string, any>>({
                   {rowAction && (
                     <td className="px-4 py-2">
                       {rowAction.map((action, rowIndex) => {
-                        const { icon, action: actionFn, disabled: disabledFn, color: colorFn, header, ariaLabel: ariaLabelFn, className } = action;
-                        const color = colorFn || 'blue';
-                        const disabled = typeof disabledFn === 'function' ? disabledFn(row) : !!disabledFn;
+                        const {
+                          icon,
+                          action: actionFn,
+                          disabled: disabledFn,
+                          color: colorFn,
+                          header,
+                          ariaLabel: ariaLabelFn,
+                          className,
+                        } = action;
+                        const color = colorFn || "blue";
+                        const disabled = typeof disabledFn === "function" ? disabledFn(row) : !!disabledFn;
                         const ariaLabel = header
                           ? undefined
-                          : typeof ariaLabelFn === 'function'
+                          : typeof ariaLabelFn === "function"
                             ? ariaLabelFn(row)
-                            : ariaLabelFn || 'Action';
+                            : ariaLabelFn || "Action";
                         return (
                           <button
                             key={rowIndex}
                             type="button"
-                            className={`p-1 text-${color}-600 hover:text-${color}-800 disabled:opacity-50 disabled:cursor-not-allowed ${className || ''}`}
+                            className={`p-1 text-${color}-600 hover:text-${color}-800 disabled:opacity-50 disabled:cursor-not-allowed ${className || ""}`}
                             onClick={() => actionFn(row)}
                             aria-label={ariaLabel}
-                            disabled={disabled}
-                          >
-                            <span className="inline-block mr-1 align-middle"><DynamicIcon name={icon} size={16} color={color} /></span>
+                            disabled={disabled}>
+                            <span className="inline-block mr-1 align-middle">
+                              <DynamicIcon name={icon} size={16} color={color} />
+                            </span>
                           </button>
                         );
                       })}
@@ -165,10 +160,9 @@ export function Table<T extends Record<string, any>>({
               </td>
             </tr>
           )}
-
         </tbody>
         {footer && <tfoot className="table-footer">{footer}</tfoot>}
-      </table >
+      </table>
     </>
   );
 }

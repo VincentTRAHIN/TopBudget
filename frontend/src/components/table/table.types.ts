@@ -1,19 +1,20 @@
-import type { DataEnum } from './index';
-import { IconName } from 'lucide-react/dynamic';
-import React from 'react';
+import { IconName } from "lucide-react/dynamic";
+import React from "react";
+
+import type { DataEnum } from "./index";
 
 export enum DataType {
-  STRING = 'string',
-  NUMBER = 'number',
-  BOOLEAN = 'boolean',
-  OBJECT = 'object',
+  STRING = "string",
+  NUMBER = "number",
+  BOOLEAN = "boolean",
+  OBJECT = "object",
 }
 
 export enum DisplayType {
-  DATE = 'date',
-  CURRENCY = 'currency',
-  ICON = 'icon',
-  ENUM = 'enum', // Ajout de la valeur ENUM
+  DATE = "date",
+  CURRENCY = "currency",
+  ICON = "icon",
+  ENUM = "enum", // Ajout de la valeur ENUM
 }
 
 export type TableCustomFilter =
@@ -29,21 +30,21 @@ export interface TableColumn<T> {
    * Permet d'afficher un filtre personnalisé dans l'en-tête de la colonne (ex: range, datepicker, etc.)
    * Peut être un ReactNode ou une fonction qui reçoit { value, onChange, data }
    */
-    customFilter?: TableCustomFilter;
+  customFilter?: TableCustomFilter;
   /**
    * Fonction pour obtenir dynamiquement une icône Lucide (nom, taille, couleur)
    */
-  getIcon?: (row: T) => { name: IconName; size?: number; color?: string } | null | undefined;  /**
+  getIcon?: (row: T) => { name: IconName; size?: number; color?: string } | null | undefined /**
    * En-tête de la colonne
    * Si non défini, utilise l'accessor comme en-tête
-   */
+   */;
   header?: string;
   /**
    * Accesseur pour la colonne
    * Clé de l'objet
    */
   accessor: keyof T;
-   /* Classe supplémentaire CSS pour la cellule
+  /* Classe supplémentaire CSS pour la cellule
    */
   className?: string;
 
@@ -86,12 +87,12 @@ export interface TableColumn<T> {
 export interface TableAction<T> {
   header?: string | React.ReactNode;
   accessor: keyof T | ((row: T) => void);
-  action: ((row: T) => Promise<void> | void);
+  action: (row: T) => Promise<void> | void;
   className?: string;
   /**
    * Fonction pour obtenir dynamiquement une icône Lucide (nom, taille, couleur)
    */
-  icon: IconName
+  icon: IconName;
   color?: string;
 
   ariaLabel?: string | ((row: T) => string);
@@ -116,7 +117,7 @@ export interface TableProps<T> {
    * Callback pour gérer le tri côté serveur
    * Si défini, désactive le tri côté client
    */
-  onSortChange?: (sortBy: string, order: 'asc' | 'desc') => void;
+  onSortChange?: (sortBy: string, order: "asc" | "desc") => void;
   /**
    * Clé de tri actuelle (pour afficher l'indicateur de tri)
    */
@@ -124,5 +125,5 @@ export interface TableProps<T> {
   /**
    * Direction de tri actuelle
    */
-  currentSortOrder?: 'asc' | 'desc';
+  currentSortOrder?: "asc" | "desc";
 }

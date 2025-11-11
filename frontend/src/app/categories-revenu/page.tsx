@@ -1,22 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Layout from '@/components/layout/Layout';
-import RequireAuth from '@/components/auth/requireAuth.component';
-import { useCategoriesRevenu } from '@/hooks/useCategoriesRevenu.hook';
-import { ICategorieRevenu } from '@/types/categorieRevenu.type';
-import CategoriesList from '@/components/categories/CategoriesList.component';
-import FormCategorie from '@/components/categories/formCategorie.component';
-import DeleteAllCategoriesRevenuButton from '@/components/categories/DeleteAllCategoriesRevenuButton.component';
-import { categoriesRevenuEndpoint } from '@/services/api.service';
-import { Plus, Settings, Search } from 'lucide-react';
+import RequireAuth from "@/components/auth/requireAuth.component";
+import CategoriesList from "@/components/categories/CategoriesList.component";
+import DeleteAllCategoriesRevenuButton from "@/components/categories/DeleteAllCategoriesRevenuButton.component";
+import FormCategorie from "@/components/categories/formCategorie.component";
+import Layout from "@/components/layout/Layout";
+import { useCategoriesRevenu } from "@/hooks/useCategoriesRevenu.hook";
+import { categoriesRevenuEndpoint } from "@/services/api.service";
+import { ICategorieRevenu } from "@/types/categorieRevenu.type";
+import { Plus, Search, Settings } from "lucide-react";
+import { useState } from "react";
 
 export default function CategoriesRevenuPage() {
   const { categoriesRevenu, isLoading, isError, refreshCategoriesRevenu } = useCategoriesRevenu();
-  const [selectedCategorieRevenu, setSelectedCategorieRevenu] =
-    useState<ICategorieRevenu | null>(null);
+  const [selectedCategorieRevenu, setSelectedCategorieRevenu] = useState<ICategorieRevenu | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
   const handleEdit = (categorie: ICategorieRevenu) => {
     setSelectedCategorieRevenu(categorie);
@@ -43,18 +42,12 @@ export default function CategoriesRevenuPage() {
       <Layout>
         <div className="space-y-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Gestion des Catégories de Revenus
-            </h1>
-            <p className="text-sm text-gray-600 mb-6">
-              Gérez et organisez vos catégories de revenus
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des Catégories de Revenus</h1>
+            <p className="text-sm text-gray-600 mb-6">Gérez et organisez vos catégories de revenus</p>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-                <button
-                  className="flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium bg-white text-indigo-600 shadow-sm"
-                >
+                <button className="flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium bg-white text-indigo-600 shadow-sm">
                   <Settings className="w-4 h-4" />
                   <span>Catégories</span>
                 </button>
@@ -71,11 +64,10 @@ export default function CategoriesRevenuPage() {
                     className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
                   />
                 </div>
-                
+
                 <button
                   onClick={handleAdd}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm"
-                >
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-colors shadow-sm">
                   <Plus className="w-4 h-4" />
                   <span>Nouvelle Catégorie</span>
                 </button>

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface SearchInputProps {
   initialValue?: string;
@@ -7,7 +7,7 @@ interface SearchInputProps {
   debounceMs?: number;
 }
 
-const SearchInput = React.memo<SearchInputProps>(({ initialValue = '', onChange, placeholder, debounceMs = 200 }) => {
+const SearchInput = React.memo<SearchInputProps>(({ initialValue = "", onChange, placeholder, debounceMs = 200 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [localValue, setLocalValue] = useState(initialValue);
   const onChangeRef = useRef(onChange);
@@ -32,10 +32,7 @@ const SearchInput = React.memo<SearchInputProps>(({ initialValue = '', onChange,
 
   return (
     <div className="flex-grow min-w-[150px]">
-      <label
-        htmlFor="search-input"
-        className="block text-sm font-medium text-gray-700 mb-1"
-      >
+      <label htmlFor="search-input" className="block text-sm font-medium text-gray-700 mb-1">
         Recherche
       </label>
       <input
@@ -52,6 +49,6 @@ const SearchInput = React.memo<SearchInputProps>(({ initialValue = '', onChange,
   );
 });
 
-SearchInput.displayName = 'SearchInput';
+SearchInput.displayName = "SearchInput";
 
 export default SearchInput;

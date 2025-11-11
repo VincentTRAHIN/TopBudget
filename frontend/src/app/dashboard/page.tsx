@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import Layout from '@/components/layout/Layout';
-import RequireAuth from '@/components/auth/requireAuth.component';
-import { lazy, Suspense } from 'react';
+import RequireAuth from "@/components/auth/requireAuth.component";
+import Layout from "@/components/layout/Layout";
+import { Suspense, lazy } from "react";
 
 // Lazy loading des composants lourds pour améliorer les performances
-const ExpensesSyncReminder = lazy(() => import('@/components/dashboard/ExpensesSyncReminder.component'));
-const MonthlyExpenseSummary = lazy(() => import('@/components/dashboard/MonthlyExpenseSummary.component'));
-const UpcomingChargesCalendar = lazy(() => import('@/components/dashboard/UpcomingChargesCalendar.component'));
-const QuickActionsPanel = lazy(() => import('@/components/dashboard/QuickActionsPanel.component'));
+const ExpensesSyncReminder = lazy(() => import("@/components/dashboard/ExpensesSyncReminder.component"));
+const MonthlyExpenseSummary = lazy(() => import("@/components/dashboard/MonthlyExpenseSummary.component"));
+const UpcomingChargesCalendar = lazy(() => import("@/components/dashboard/UpcomingChargesCalendar.component"));
+const QuickActionsPanel = lazy(() => import("@/components/dashboard/QuickActionsPanel.component"));
 
 // Skeleton de chargement réutilisable
-const LoadingSkeleton = ({ height = 'h-64' }: { height?: string }) => (
+const LoadingSkeleton = ({ height = "h-64" }: { height?: string }) => (
   <div className={`bg-white rounded-lg shadow-sm ${height} animate-pulse`}>
     <div className="p-6 space-y-4">
       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -28,7 +28,7 @@ const LoadingSkeleton = ({ height = 'h-64' }: { height?: string }) => (
  * - Lazy loading de tous les composants lourds
  * - Suspense boundaries pour un chargement progressif
  * - Skeletons de chargement pour améliorer l'UX
- * 
+ *
  * Layout structuré :
  * 1. ExpensesSyncReminder (pleine largeur) - Alerte si inactivité > 7 jours
  * 2. Row avec :
@@ -43,12 +43,8 @@ export default function DashboardPage() {
         <div className="space-y-6">
           {/* En-tête de la page */}
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Tableau de Bord
-            </h1>
-            <p className="mt-2 text-sm text-gray-600">
-              Vue d&apos;ensemble de votre situation financière
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">Tableau de Bord</h1>
+            <p className="mt-2 text-sm text-gray-600">Vue d&apos;ensemble de votre situation financière</p>
           </div>
 
           {/* Section 1 : Alerte de synchronisation (pleine largeur) */}

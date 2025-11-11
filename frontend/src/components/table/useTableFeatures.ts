@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
-import { TableColumn } from './table.types';
+import { useMemo, useState } from "react";
+
+import { TableColumn } from "./table.types";
 
 export interface UseTableFeaturesProps<T> {
   data: T[];
@@ -8,39 +9,40 @@ export interface UseTableFeaturesProps<T> {
   serverSide?: boolean;
 }
 
-
 export function useTableFeatures<T extends Record<string, any>>({
   data,
   defaultSortKey,
   columns = [],
   serverSide = false,
 }: UseTableFeaturesProps<T>) {
-  interface SortStateProps   { key: keyof T; direction: 'asc' | 'desc' } 
+  interface SortStateProps {
+    key: keyof T;
+    direction: "asc" | "desc";
+  }
   const [sortState, setSortState] = useState<SortStateProps | null>(
-    defaultSortKey ? { key: defaultSortKey, direction: 'desc' } : null
+    defaultSortKey ? { key: defaultSortKey, direction: "desc" } : null,
   );
 
   const handleSort = (key: keyof T) => {
     setSortState((prev) => {
-      if (!prev || prev.key !== key) return { key, direction: 'asc' };
-      return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+      if (!prev || prev.key !== key) return { key, direction: "asc" };
+      return { key, direction: prev.direction === "asc" ? "desc" : "asc" };
     });
   };
-
 
   const sortedData = useMemo(() => {
     // Si le tri est géré côté serveur, ne pas trier côté client
     if (serverSide) return data;
-    
+
     if (!sortState) return data;
-    
+
     // Trouver la colonne correspondante pour utiliser getSortValue ou getValue
-    const column = columns.find(col => col.accessor === sortState.key);
-    
+    const column = columns.find((col) => col.accessor === sortState.key);
+
     return [...data].sort((a, b) => {
       let aValue: any;
       let bValue: any;
-      
+
       // Utiliser getSortValue si disponible, sinon getValue, sinon la valeur brute
       if (column?.getSortValue) {
         aValue = column.getSortValue(a);
@@ -52,22 +54,22 @@ export function useTableFeatures<T extends Record<string, any>>({
         aValue = a[sortState.key];
         bValue = b[sortState.key];
       }
-      
+
       if (aValue === bValue) return 0;
       if (aValue == null) return 1;
       if (bValue == null) return -1;
-      if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return sortState.direction === 'asc' ? aValue - bValue : bValue - aValue;
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortState.direction === "asc" ? aValue - bValue : bValue - aValue;
       }
-        return sortState.direction === 'asc'
+      return sortState.direction === "asc"
         ? String(aValue).localeCompare(String(bValue))
         : String(bValue).localeCompare(String(aValue));
     });
-  }, [data, sortState, columns, serverSide]);  return {
+  }, [data, sortState, columns, serverSide]);
+  return {
     sortState,
     setSortState,
     handleSort,
     sortedData,
-
   };
 }

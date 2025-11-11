@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 /**
  * Hook personnalisé pour debouncer une valeur
  * Utile pour les inputs de recherche afin d'éviter les appels API trop fréquents
- * 
+ *
  * @param value - La valeur à debouncer
  * @param delay - Le délai en millisecondes (par défaut 500ms)
  * @returns La valeur debouncée

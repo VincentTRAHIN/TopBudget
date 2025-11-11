@@ -1,30 +1,25 @@
-import useSWR from 'swr';
-import { createSafeDataFetcher } from '../utils/fetcher.utils';
-import { evolutionMensuelleEndpoint } from '../services/api.service';
-import { MonthlyEvolutionDataPoint } from '../types/statistiques.type';
+import useSWR from "swr";
+
+import { evolutionMensuelleEndpoint } from "../services/api.service";
+import { MonthlyEvolutionDataPoint } from "../types/statistiques.type";
+import { createSafeDataFetcher } from "../utils/fetcher.utils";
 
 export const useMonthlyFlowsEvolution = (
   nbMois: number = 6,
-  contexte?: 'moi' | 'couple',
-  dataType: 'depenses' | 'revenus' | 'solde' = 'depenses',
+  contexte?: "moi" | "couple",
+  dataType: "depenses" | "revenus" | "solde" = "depenses",
 ) => {
   let url = `${evolutionMensuelleEndpoint}?nbMois=${nbMois}`;
-  if (contexte && contexte === 'couple') {
+  if (contexte && contexte === "couple") {
     url += `&contexte=couple`;
   }
   if (dataType) {
     url += `&type=${dataType}`;
   }
 
-  const safeFetcher = createSafeDataFetcher<MonthlyEvolutionDataPoint[]>(
-    [],
-    (error) => {
-      console.error(
-        `Erreur lors du chargement des données d'évolution pour ${dataType}:`,
-        error,
-      );
-    },
-  );
+  const safeFetcher = createSafeDataFetcher<MonthlyEvolutionDataPoint[]>([], (error) => {
+    console.error(`Erreur lors du chargement des données d'évolution pour ${dataType}:`, error);
+  });
 
   const { data, error, isLoading, mutate } = useSWR(url, safeFetcher, {
     fallbackData: [] as MonthlyEvolutionDataPoint[],
@@ -34,9 +29,7 @@ export const useMonthlyFlowsEvolution = (
     dedupingInterval: 60000,
   });
 
-  const formattedData = Array.isArray(data)
-    ? data.filter((item) => item.mois && typeof item.mois === 'string')
-    : [];
+  const formattedData = Array.isArray(data) ? data.filter((item) => item.mois && typeof item.mois === "string") : [];
 
   return {
     data: formattedData,

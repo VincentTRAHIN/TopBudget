@@ -116,11 +116,11 @@ npx playwright show-report
 ### Exemple d'utilisation
 
 ```typescript
-import { test, expect } from './fixtures';
+import { expect, test } from "./fixtures";
 
-test('my test', async ({ authenticatedPage }) => {
+test("my test", async ({ authenticatedPage }) => {
   // La page est déjà authentifiée
-  await authenticatedPage.goto('/dashboard');
+  await authenticatedPage.goto("/dashboard");
   // ...
 });
 ```

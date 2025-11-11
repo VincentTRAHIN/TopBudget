@@ -11,75 +11,66 @@ export interface FinancialStats {
   average: number;
   minimum: { value: number; month: string };
   maximum: { value: number; month: string };
-  trend: 'up' | 'down' | 'stable';
+  trend: "up" | "down" | "stable";
   hasEnoughData: boolean;
 }
 
 /**
  * Formate une date au format YYYY-MM en texte lisible
- * 
+ *
  * @param dateStr - Date au format YYYY-MM
  * @returns Date formatée en français (ex: "janvier 2025")
  */
 export function formatMonthYear(dateStr: string): string {
-  if (!dateStr) return 'Date inconnue';
+  if (!dateStr) return "Date inconnue";
 
   if (!/^\d{4}-\d{2}$/.test(dateStr)) {
-    return 'Date incorrecte';
+    return "Date incorrecte";
   }
 
   try {
     const date = new Date(`${dateStr}-01`);
-    if (isNaN(date.getTime())) return 'Date incorrecte';
+    if (isNaN(date.getTime())) return "Date incorrecte";
 
-    return date.toLocaleDateString('fr-FR', {
-      month: 'long',
-      year: 'numeric',
+    return date.toLocaleDateString("fr-FR", {
+      month: "long",
+      year: "numeric",
     });
   } catch (e) {
-    console.error('Erreur lors du formatage de la date:', e);
-    return 'Date incorrecte';
+    console.error("Erreur lors du formatage de la date:", e);
+    return "Date incorrecte";
   }
 }
 
 /**
  * Calcule le pourcentage de variation entre deux valeurs
- * 
+ *
  * @param current - Valeur actuelle
  * @param average - Valeur moyenne de référence
  * @returns Pourcentage formaté (ex: "15.5%")
  */
 export function calculatePercentage(current: number, average: number): string {
   if (average === 0) {
-    return 'N/A (moyenne à 0)';
+    return "N/A (moyenne à 0)";
   }
-  return (
-    ((Math.abs(current - average) / Math.abs(average)) * 100).toFixed(1) + '%'
-  );
+  return ((Math.abs(current - average) / Math.abs(average)) * 100).toFixed(1) + "%";
 }
 
 /**
  * Calcule les statistiques financières (moyenne, min, max, tendance)
  * à partir d'un ensemble de données mensuelles
- * 
+ *
  * @param data - Tableau de données mensuelles
  * @param currentValue - Valeur du mois en cours
  * @returns Statistiques calculées
  */
-export function computeFinancialStats(
-  data: MonthlyDataPoint[],
-  currentValue: number,
-): FinancialStats {
+export function computeFinancialStats(data: MonthlyDataPoint[], currentValue: number): FinancialStats {
   // Filtrer les données valides (non nulles et non zéro)
-  const filtered = data.filter(
-    (item) => typeof item.value === 'number' && item.value !== 0,
-  );
+  const filtered = data.filter((item) => typeof item.value === "number" && item.value !== 0);
 
   // Ajouter le mois en cours si valeur non nulle
   const hasCurrentValue = currentValue !== 0;
-  const currentMonthEntry = hasCurrentValue
-    ? { value: currentValue, mois: 'Mois en cours' }
-    : null;
+  const currentMonthEntry = hasCurrentValue ? { value: currentValue, mois: "Mois en cours" } : null;
 
   const dataForAnalysis = filtered.slice();
   if (currentMonthEntry) {
@@ -92,17 +83,15 @@ export function computeFinancialStats(
   if (dataForAnalysis.length === 0) {
     return {
       average: 0,
-      minimum: { value: 0, month: 'Aucune donnée' },
-      maximum: { value: 0, month: 'Aucune donnée' },
-      trend: 'stable',
+      minimum: { value: 0, month: "Aucune donnée" },
+      maximum: { value: 0, month: "Aucune donnée" },
+      trend: "stable",
       hasEnoughData: false,
     };
   }
 
   // Calcul de la moyenne
-  const average =
-    dataForAnalysis.reduce((sum, item) => sum + (item.value ?? 0), 0) /
-    dataForAnalysis.length;
+  const average = dataForAnalysis.reduce((sum, item) => sum + (item.value ?? 0), 0) / dataForAnalysis.length;
 
   // Calcul du minimum et maximum
   let min = dataForAnalysis[0];
@@ -114,12 +103,12 @@ export function computeFinancialStats(
   });
 
   // Calcul de la tendance (sur les 3 derniers mois)
-  let trend: 'up' | 'down' | 'stable' = 'stable';
+  let trend: "up" | "down" | "stable" = "stable";
 
   if (hasEnoughData) {
     const sortedData = [...dataForAnalysis].sort((a, b) => {
-      if (a.mois === 'Mois en cours') return 1;
-      if (b.mois === 'Mois en cours') return -1;
+      if (a.mois === "Mois en cours") return 1;
+      if (b.mois === "Mois en cours") return -1;
       return a.mois.localeCompare(b.mois);
     });
 
@@ -130,11 +119,11 @@ export function computeFinancialStats(
       const lastValue = lastThree[lastThree.length - 1].value ?? 0;
 
       if (firstValue === 0) {
-        trend = lastValue > 0 ? 'up' : 'stable';
+        trend = lastValue > 0 ? "up" : "stable";
       } else {
         const changeRatio = lastValue / firstValue;
-        if (changeRatio > 1.1) trend = 'up';
-        else if (changeRatio < 0.9) trend = 'down';
+        if (changeRatio > 1.1) trend = "up";
+        else if (changeRatio < 0.9) trend = "down";
       }
     }
   }

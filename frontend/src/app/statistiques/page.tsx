@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import Layout from '@/components/layout/Layout';
-import RequireAuth from '@/components/auth/requireAuth.component';
-import { useAuth } from '@/hooks/useAuth.hook';
-import { useState, useMemo, useCallback, lazy, Suspense, memo } from 'react';
+import RequireAuth from "@/components/auth/requireAuth.component";
+import Layout from "@/components/layout/Layout";
+import { useAuth } from "@/hooks/useAuth.hook";
+import { Suspense, lazy, memo, useCallback, useMemo, useState } from "react";
 
 // Lazy loading des composants lourds (graphiques Chart.js)
-const MonthlyComparisonChart = lazy(() => import('@/components/statistiques/MonthlyComparisonChart.component'));
-const ExpensesTrendsChart = lazy(() => import('@/components/statistiques/ExpensesTrendsChart.component'));
-const CategoryBreakdown = lazy(() => import('@/components/statistiques/CategoryBreakdown.component'));
-const PieChartFlows = lazy(() => import('@/components/shared/PieChartFlows.component'));
-const CoupleContributionsSummary = lazy(() => import('@/components/statistiques/CoupleContributionsSummary.component'));
-const CoupleFixedChargesList = lazy(() => import('@/components/statistiques/CoupleFixedChargesList.component'));
+const MonthlyComparisonChart = lazy(() => import("@/components/statistiques/MonthlyComparisonChart.component"));
+const ExpensesTrendsChart = lazy(() => import("@/components/statistiques/ExpensesTrendsChart.component"));
+const CategoryBreakdown = lazy(() => import("@/components/statistiques/CategoryBreakdown.component"));
+const PieChartFlows = lazy(() => import("@/components/shared/PieChartFlows.component"));
+const CoupleContributionsSummary = lazy(() => import("@/components/statistiques/CoupleContributionsSummary.component"));
+const CoupleFixedChargesList = lazy(() => import("@/components/statistiques/CoupleFixedChargesList.component"));
 
 // Skeleton de chargement pour les graphiques
-const ChartSkeleton = memo(({ height = 'h-96' }: { height?: string }) => (
+const ChartSkeleton = memo(({ height = "h-96" }: { height?: string }) => (
   <div className={`bg-white rounded-lg shadow-sm p-6 ${height}`}>
     <div className="animate-pulse space-y-4">
       <div className="h-6 bg-gray-200 rounded w-1/3"></div>
@@ -23,33 +23,43 @@ const ChartSkeleton = memo(({ height = 'h-96' }: { height?: string }) => (
     </div>
   </div>
 ));
-ChartSkeleton.displayName = 'ChartSkeleton';
+ChartSkeleton.displayName = "ChartSkeleton";
 
 // Icons SVG memoizés
 const UserIcon = memo(() => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+    />
   </svg>
 ));
-UserIcon.displayName = 'UserIcon';
+UserIcon.displayName = "UserIcon";
 
 const UsersIcon = memo(() => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+    />
   </svg>
 ));
-UsersIcon.displayName = 'UsersIcon';
+UsersIcon.displayName = "UsersIcon";
 
 /**
  * Page Statistiques - Analyse financière détaillée avec optimisations
- * 
+ *
  * Optimisations appliquées :
  * - Lazy loading de tous les graphiques Chart.js
  * - Memoization des composants statiques (icons)
  * - useMemo pour les tooltips et titres
  * - useCallback pour les handlers d'événements
  * - Suspense boundaries pour chargement progressif
- * 
+ *
  * Cette page offre une vue complète des statistiques financières avec :
  * - Comparaison mensuelle revenus/dépenses
  * - Tendances des dépenses par catégorie
@@ -58,46 +68,50 @@ UsersIcon.displayName = 'UsersIcon';
  */
 export default function StatistiquesPage() {
   const { user } = useAuth();
-  const [statsContext, setStatsContext] = useState<'moi' | 'couple'>('moi');
-  
+  const [statsContext, setStatsContext] = useState<"moi" | "couple">("moi");
+
   // Memoization du nom du partenaire
   const partenaireNom = useMemo(() => {
-    return typeof user?.partenaireId === 'object' && user?.partenaireId?.nom
-      ? user.partenaireId.nom
-      : 'Partenaire';
+    return typeof user?.partenaireId === "object" && user?.partenaireId?.nom ? user.partenaireId.nom : "Partenaire";
   }, [user?.partenaireId]);
 
   // Memoization de la description
   const pageDescription = useMemo(() => {
-    return statsContext === 'moi'
-      ? 'Analyse détaillée de vos finances personnelles'
-      : `Analyse détaillée des finances du couple${partenaireNom !== 'Partenaire' ? ` avec ${partenaireNom}` : ''}`;
+    return statsContext === "moi"
+      ? "Analyse détaillée de vos finances personnelles"
+      : `Analyse détaillée des finances du couple${partenaireNom !== "Partenaire" ? ` avec ${partenaireNom}` : ""}`;
   }, [statsContext, partenaireNom]);
 
   // Handlers avec useCallback pour éviter les re-renders
-  const handleSetMoiContext = useCallback(() => setStatsContext('moi'), []);
-  const handleSetCoupleContext = useCallback(() => setStatsContext('couple'), []);
+  const handleSetMoiContext = useCallback(() => setStatsContext("moi"), []);
+  const handleSetCoupleContext = useCallback(() => setStatsContext("couple"), []);
 
   // Memoization des tooltips
-  const depensesTooltipContent = useMemo(() => (
-    <div>
-      <p className="font-medium mb-1">Répartition des dépenses</p>
-      <p>
-        Ce graphique montre comment vos dépenses se répartissent entre les différentes catégories. 
-        Chaque segment représente le pourcentage et le montant dépensé dans une catégorie spécifique.
-      </p>
-    </div>
-  ), []);
+  const depensesTooltipContent = useMemo(
+    () => (
+      <div>
+        <p className="font-medium mb-1">Répartition des dépenses</p>
+        <p>
+          Ce graphique montre comment vos dépenses se répartissent entre les différentes catégories. Chaque segment
+          représente le pourcentage et le montant dépensé dans une catégorie spécifique.
+        </p>
+      </div>
+    ),
+    [],
+  );
 
-  const revenusTooltipContent = useMemo(() => (
-    <div>
-      <p className="font-medium mb-1">Répartition des revenus</p>
-      <p>
-        Ce graphique montre la répartition de vos revenus par catégorie (salaire, investissements, autres sources). 
-        Visualisez facilement d&apos;où proviennent vos entrées d&apos;argent.
-      </p>
-    </div>
-  ), []);
+  const revenusTooltipContent = useMemo(
+    () => (
+      <div>
+        <p className="font-medium mb-1">Répartition des revenus</p>
+        <p>
+          Ce graphique montre la répartition de vos revenus par catégorie (salaire, investissements, autres sources).
+          Visualisez facilement d&apos;où proviennent vos entrées d&apos;argent.
+        </p>
+      </div>
+    ),
+    [],
+  );
 
   return (
     <RequireAuth>
@@ -105,24 +119,17 @@ export default function StatistiquesPage() {
         <div className="space-y-8">
           {/* En-tête de page avec switcher de contexte */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Statistiques Financières
-            </h1>
-            <p className="text-sm text-gray-600 mb-6">
-              {pageDescription}
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Statistiques Financières</h1>
+            <p className="text-sm text-gray-600 mb-6">{pageDescription}</p>
 
             {/* Switcher de contexte (Moi / Couple) */}
             <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
               <button
                 onClick={handleSetMoiContext}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  statsContext === 'moi'
-                    ? 'bg-white text-indigo-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                  statsContext === "moi" ? "bg-white text-indigo-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
                 }`}
-                aria-label="Afficher mes statistiques personnelles"
-              >
+                aria-label="Afficher mes statistiques personnelles">
                 <UserIcon />
                 <span>Mes Statistiques</span>
               </button>
@@ -130,12 +137,11 @@ export default function StatistiquesPage() {
                 <button
                   onClick={handleSetCoupleContext}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                    statsContext === 'couple'
-                      ? 'bg-white text-indigo-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                    statsContext === "couple"
+                      ? "bg-white text-indigo-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
-                  aria-label="Afficher les statistiques du couple"
-                >
+                  aria-label="Afficher les statistiques du couple">
                   <UsersIcon />
                   <span>Statistiques du Couple</span>
                 </button>
@@ -146,9 +152,7 @@ export default function StatistiquesPage() {
           {/* Section 1: Vue d'Ensemble Mensuelle */}
           <section className="mb-8">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-800">
-                Vue d&apos;Ensemble Mensuelle
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-800">Vue d&apos;Ensemble Mensuelle</h2>
               <p className="text-sm text-gray-600 mt-1">
                 Comparaison de vos revenus et dépenses du mois en cours avec le mois précédent
               </p>
@@ -161,12 +165,8 @@ export default function StatistiquesPage() {
           {/* Section 2: Analyse des Dépenses */}
           <section className="mb-8">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-800">
-                Analyse des Dépenses
-              </h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Tendances et répartition de vos dépenses par catégorie
-              </p>
+              <h2 className="text-xl font-semibold text-gray-800">Analyse des Dépenses</h2>
+              <p className="text-sm text-gray-600 mt-1">Tendances et répartition de vos dépenses par catégorie</p>
             </div>
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               <div className="xl:col-span-2">
@@ -185,9 +185,7 @@ export default function StatistiquesPage() {
           {/* Section 3: Répartitions par Catégorie (vue en camembert) */}
           <section className="mb-8">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-800">
-                Répartitions par Catégorie
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-800">Répartitions par Catégorie</h2>
               <p className="text-sm text-gray-600 mt-1">
                 Visualisation circulaire de la distribution de vos flux financiers
               </p>
@@ -213,15 +211,11 @@ export default function StatistiquesPage() {
           </section>
 
           {/* Section 4: Statistiques du Couple */}
-          {user?.partenaireId && statsContext === 'couple' && (
+          {user?.partenaireId && statsContext === "couple" && (
             <section className="mb-8">
               <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Statistiques du Couple
-                </h2>
-                <p className="text-sm text-gray-600 mt-1">
-                  Analyse des contributions et charges partagées
-                </p>
+                <h2 className="text-xl font-semibold text-gray-800">Statistiques du Couple</h2>
+                <p className="text-sm text-gray-600 mt-1">Analyse des contributions et charges partagées</p>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Suspense fallback={<ChartSkeleton height="h-64" />}>

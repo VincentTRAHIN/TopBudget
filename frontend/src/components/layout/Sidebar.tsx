@@ -1,38 +1,41 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth.hook';
-import { LogOut } from 'lucide-react';
-import { usePathname } from 'next/navigation';
-import { useState, useCallback, useMemo } from 'react';
-import React from 'react';
+import { useAuth } from "@/hooks/useAuth.hook";
+import { LogOut } from "lucide-react";
 import {
-  Home,
-  CreditCard,
-  Tag,
-  LayoutDashboard,
-  BarChart2,
-  UserCircle,
   ArrowDownCircle,
+  BarChart2,
   ChevronDown,
   ChevronUp,
-} from 'lucide-react';
+  CreditCard,
+  Home,
+  LayoutDashboard,
+  Tag,
+  UserCircle,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import React from "react";
 
 function Sidebar() {
   const { isAuthenticated, logout } = useAuth();
   const pathname = usePathname();
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
-  
+
   const isCategoriesPathActive = useMemo(() => {
-    return pathname.startsWith('/categories');
+    return pathname.startsWith("/categories");
   }, [pathname]);
 
-  const isActive = useCallback((path: string) => {
-    return pathname === path;
-  }, [pathname]);
+  const isActive = useCallback(
+    (path: string) => {
+      return pathname === path;
+    },
+    [pathname],
+  );
 
   const handleCategoriesToggle = useCallback(() => {
-    setIsCategoriesOpen(prev => !prev);
+    setIsCategoriesOpen((prev) => !prev);
   }, []);
 
   const handleLogout = useCallback(() => {
@@ -45,18 +48,16 @@ function Sidebar() {
         <Link
           href="/"
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
-            isActive('/') ? 'bg-indigo-50 text-indigo-600' : ''
-          }`}
-        >
+            isActive("/") ? "bg-indigo-50 text-indigo-600" : ""
+          }`}>
           <Home size={20} />
           <span>Accueil</span>
         </Link>
         <Link
           href="/dashboard"
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
-            isActive('/dashboard') ? 'bg-indigo-50 text-indigo-600' : ''
-          }`}
-        >
+            isActive("/dashboard") ? "bg-indigo-50 text-indigo-600" : ""
+          }`}>
           <LayoutDashboard size={20} />
           <span>Tableau de Bord</span>
         </Link>
@@ -64,18 +65,16 @@ function Sidebar() {
         <Link
           href="/expenses"
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
-            isActive('/expenses') ? 'bg-indigo-50 text-indigo-600' : ''
-          }`}
-        >
+            isActive("/expenses") ? "bg-indigo-50 text-indigo-600" : ""
+          }`}>
           <CreditCard size={20} />
           <span>Mes Dépenses</span>
         </Link>
         <Link
           href="/revenus"
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
-            isActive('/revenus') ? 'bg-indigo-50 text-indigo-600' : ''
-          }`}
-        >
+            isActive("/revenus") ? "bg-indigo-50 text-indigo-600" : ""
+          }`}>
           <ArrowDownCircle size={20} />
           <span>Mes Revenus</span>
         </Link>
@@ -84,39 +83,28 @@ function Sidebar() {
           <button
             onClick={handleCategoriesToggle}
             className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
-              isCategoriesPathActive ? 'bg-indigo-50 text-indigo-600' : ''
-            }`}
-          >
+              isCategoriesPathActive ? "bg-indigo-50 text-indigo-600" : ""
+            }`}>
             <div className="flex items-center gap-2">
               <Tag size={20} />
               <span>Catégories</span>
             </div>
-            {isCategoriesOpen ? (
-              <ChevronUp size={18} />
-            ) : (
-              <ChevronDown size={18} />
-            )}
+            {isCategoriesOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </button>
           {isCategoriesOpen && (
             <div className="pl-4 mt-1 space-y-1">
               <Link
                 href="/categories"
                 className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-100 hover:text-primary font-medium ${
-                  isActive('/categories')
-                    ? 'bg-indigo-50 text-indigo-600 font-semibold'
-                    : ''
-                }`}
-              >
+                  isActive("/categories") ? "bg-indigo-50 text-indigo-600 font-semibold" : ""
+                }`}>
                 <span>Dépenses</span>
               </Link>
               <Link
                 href="/categories-revenu"
                 className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-100 hover:text-primary font-medium ${
-                  isActive('/categories-revenu')
-                    ? 'bg-indigo-50 text-indigo-600 font-semibold'
-                    : ''
-                }`}
-              >
+                  isActive("/categories-revenu") ? "bg-indigo-50 text-indigo-600 font-semibold" : ""
+                }`}>
                 <span>Revenus</span>
               </Link>
             </div>
@@ -125,18 +113,16 @@ function Sidebar() {
         <Link
           href="/statistiques"
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
-            isActive('/statistiques') ? 'bg-indigo-50 text-indigo-600' : ''
-          }`}
-        >
+            isActive("/statistiques") ? "bg-indigo-50 text-indigo-600" : ""
+          }`}>
           <BarChart2 size={20} />
           <span>Statistiques</span>
         </Link>
         <Link
           href="/profil"
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary font-medium ${
-            isActive('/profil') ? 'bg-indigo-50 text-indigo-600' : ''
-          }`}
-        >
+            isActive("/profil") ? "bg-indigo-50 text-indigo-600" : ""
+          }`}>
           <UserCircle size={20} />
           <span>Mon Profil</span>
         </Link>
@@ -146,8 +132,7 @@ function Sidebar() {
         <div className="mt-auto pt-4 border-t border-gray-200">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center px-3 py-2 rounded-md text-red-600 hover:bg-red-50 hover:text-red-800 font-medium"
-          >
+            className="w-full flex items-center px-3 py-2 rounded-md text-red-600 hover:bg-red-50 hover:text-red-800 font-medium">
             <LogOut className="mr-2 h-5 w-5" />
             Déconnexion
           </button>

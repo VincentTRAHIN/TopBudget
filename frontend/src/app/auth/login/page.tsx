@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth.hook';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import AuthNav from '@/components/auth/authNav.component';
-import { toast } from 'react-hot-toast';
-import { useState, useEffect } from 'react';
+import AuthNav from "@/components/auth/authNav.component";
+import { useAuth } from "@/hooks/useAuth.hook";
+import { ErrorMessage, Field, Form, Formik } from "formik";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
+import * as Yup from "yup";
 
 const LoginSchema = Yup.object().shape({
-  email: Yup.string().email('Email invalide').required('Requis'),
-  motDePasse: Yup.string().required('Requis'),
+  email: Yup.string().email("Email invalide").required("Requis"),
+  motDePasse: Yup.string().required("Requis"),
 });
 
 export default function LoginPage() {
@@ -19,9 +19,9 @@ export default function LoginPage() {
   const [loginError, setLoginError] = useState<string | null>(null);
 
   useEffect(() => {
-    const existingToken = localStorage.getItem('authToken');
+    const existingToken = localStorage.getItem("authToken");
     if (existingToken) {
-      router.push('/dashboard');
+      router.push("/dashboard");
     }
   }, [router]);
 
@@ -32,37 +32,30 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold mb-6 text-center">Connexion</h1>
 
         <Formik
-          initialValues={{ email: '', motDePasse: '' }}
+          initialValues={{ email: "", motDePasse: "" }}
           validationSchema={LoginSchema}
           onSubmit={async (values, { setSubmitting }) => {
             setLoginError(null);
             try {
               await login(values.email, values.motDePasse);
-              
-              toast.success('Connexion réussie');
+
+              toast.success("Connexion réussie");
 
               setTimeout(() => {
-                router.push('/dashboard');
+                router.push("/dashboard");
               }, 300);
             } catch (error) {
-              const errorMessage =
-                error instanceof Error
-                  ? error.message
-                  : 'Identifiants incorrects';
+              const errorMessage = error instanceof Error ? error.message : "Identifiants incorrects";
               setLoginError(errorMessage);
               toast.error(errorMessage);
             } finally {
               setSubmitting(false);
             }
-          }}
-        >
+          }}>
           {({ isSubmitting }) => (
             <Form className="space-y-4">
               <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email
                 </label>
                 <Field
@@ -70,18 +63,11 @@ export default function LoginPage() {
                   name="email"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-3"
                 />
-                <ErrorMessage
-                  name="email"
-                  component="div"
-                  className="text-red-500 text-sm"
-                />
+                <ErrorMessage name="email" component="div" className="text-red-500 text-sm" />
               </div>
 
               <div>
-                <label
-                  htmlFor="motDePasse"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="motDePasse" className="block text-sm font-medium text-gray-700">
                   Mot de passe
                 </label>
                 <Field
@@ -89,11 +75,7 @@ export default function LoginPage() {
                   name="motDePasse"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-3"
                 />
-                <ErrorMessage
-                  name="motDePasse"
-                  component="div"
-                  className="text-red-500 text-sm"
-                />
+                <ErrorMessage name="motDePasse" component="div" className="text-red-500 text-sm" />
               </div>
 
               {loginError && (
@@ -105,11 +87,8 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isSubmitting || loadingAction}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                {isSubmitting || loadingAction
-                  ? 'Connexion...'
-                  : 'Se connecter'}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                {isSubmitting || loadingAction ? "Connexion..." : "Se connecter"}
               </button>
             </Form>
           )}

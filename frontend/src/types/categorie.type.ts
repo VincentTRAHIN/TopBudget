@@ -10,7 +10,4 @@ export interface ICategorie extends CategorieBase {
   updatedAt?: string;
 }
 
-export type CategoriePayload = Omit<
-  ICategorie,
-  '_id' | 'createdAt' | 'updatedAt'
->;
+export type CategoriePayload = Omit<ICategorie, "_id" | "createdAt" | "updatedAt">;

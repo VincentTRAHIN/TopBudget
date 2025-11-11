@@ -1,22 +1,18 @@
-'use client';
+"use client";
 
-import Layout from '@/components/layout/Layout';
-import RequireAuth from '@/components/auth/requireAuth.component';
-import TableDepenses from '@/components/expenses/tableDepenses.component';
-import FormDepense from '@/components/expenses/formDepenses.component';
-import FormCategorie from '@/components/categories/formCategorie.component';
-import ImportCsvModal from '@/components/expenses/importCsvModal.component';
-import DeleteAllExpensesButton from '@/components/expenses/DeleteAllExpensesButton.component';
-import {
-  useDepenses,
-  DepenseFilters,
-  DepenseSort,
-} from '@/hooks/useDepenses.hook';
-import { useCategories } from '@/hooks/useCategories.hook';
-import { useAuth } from '@/hooks/useAuth.hook';
-import { useState, useCallback, useMemo } from 'react';
-import { IDepense } from '@/types/depense.type';
-import { ChevronLeft, ChevronRight, Plus, Upload, Settings, User, Users } from 'lucide-react';
+import RequireAuth from "@/components/auth/requireAuth.component";
+import FormCategorie from "@/components/categories/formCategorie.component";
+import DeleteAllExpensesButton from "@/components/expenses/DeleteAllExpensesButton.component";
+import FormDepense from "@/components/expenses/formDepenses.component";
+import ImportCsvModal from "@/components/expenses/importCsvModal.component";
+import TableDepenses from "@/components/expenses/tableDepenses.component";
+import Layout from "@/components/layout/Layout";
+import { useAuth } from "@/hooks/useAuth.hook";
+import { useCategories } from "@/hooks/useCategories.hook";
+import { DepenseFilters, DepenseSort, useDepenses } from "@/hooks/useDepenses.hook";
+import { IDepense } from "@/types/depense.type";
+import { ChevronLeft, ChevronRight, Plus, Settings, Upload, User, Users } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 
 const ITEMS_PER_PAGE = 25;
 
@@ -28,11 +24,9 @@ export default function ExpensesPage() {
   const [showAddCategorieForm, setShowAddCategorieForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [filters, setFilters] = useState<DepenseFilters>({});
-  const [sort, setSort] = useState<DepenseSort>({ sortBy: 'date', order: 'desc' });
-  const [selectedVue, setSelectedVue] = useState<
-    'moi' | 'partenaire' | 'couple_complet'
-  >('moi');
-  
+  const [sort, setSort] = useState<DepenseSort>({ sortBy: "date", order: "desc" });
+  const [selectedVue, setSelectedVue] = useState<"moi" | "partenaire" | "couple_complet">("moi");
+
   const { depenses, pagination, isLoading, isError, refreshDepenses } = useDepenses(
     currentPage,
     ITEMS_PER_PAGE,
@@ -84,18 +78,18 @@ export default function ExpensesPage() {
     }
   }, [currentPage]);
 
-  const handleFilterOrSortChange = useCallback((
-    changedFilters?: Partial<DepenseFilters>,
-    changedSort?: DepenseSort,
-  ) => {
-    if (changedFilters) {
-      setFilters((prevFilters) => ({ ...prevFilters, ...changedFilters }));
-    }
-    if (changedSort) {
-      setSort(changedSort);
-    }
-    setCurrentPage(1);
-  }, []);
+  const handleFilterOrSortChange = useCallback(
+    (changedFilters?: Partial<DepenseFilters>, changedSort?: DepenseSort) => {
+      if (changedFilters) {
+        setFilters((prevFilters) => ({ ...prevFilters, ...changedFilters }));
+      }
+      if (changedSort) {
+        setSort(changedSort);
+      }
+      setCurrentPage(1);
+    },
+    [],
+  );
 
   const handleFilterChange = useCallback((newFilters: Partial<DepenseFilters>) => {
     // Merger avec les filtres existants au lieu de tout remplacer
@@ -103,25 +97,28 @@ export default function ExpensesPage() {
     setCurrentPage(1);
   }, []);
 
-  const handleSortChange = useCallback((sortBy: string, order: 'asc' | 'desc') => {
-    handleFilterOrSortChange(undefined, { sortBy, order });
-  }, [handleFilterOrSortChange]);
+  const handleSortChange = useCallback(
+    (sortBy: string, order: "asc" | "desc") => {
+      handleFilterOrSortChange(undefined, { sortBy, order });
+    },
+    [handleFilterOrSortChange],
+  );
 
   const handleVueChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedVue(e.target.value as 'moi' | 'partenaire' | 'couple_complet');
+    setSelectedVue(e.target.value as "moi" | "partenaire" | "couple_complet");
     setCurrentPage(1);
   }, []);
 
   const handleVueMoi = useCallback(() => {
-    handleVueChange({ target: { value: 'moi' } } as React.ChangeEvent<HTMLSelectElement>);
+    handleVueChange({ target: { value: "moi" } } as React.ChangeEvent<HTMLSelectElement>);
   }, [handleVueChange]);
 
   const handleVuePartenaire = useCallback(() => {
-    handleVueChange({ target: { value: 'partenaire' } } as React.ChangeEvent<HTMLSelectElement>);
+    handleVueChange({ target: { value: "partenaire" } } as React.ChangeEvent<HTMLSelectElement>);
   }, [handleVueChange]);
 
   const handleVueCouple = useCallback(() => {
-    handleVueChange({ target: { value: 'couple_complet' } } as React.ChangeEvent<HTMLSelectElement>);
+    handleVueChange({ target: { value: "couple_complet" } } as React.ChangeEvent<HTMLSelectElement>);
   }, [handleVueChange]);
 
   const handleCloseAddCategorieForm = useCallback(() => {
@@ -134,29 +131,27 @@ export default function ExpensesPage() {
   }, []);
 
   const pageDescription = useMemo(() => {
-    if (selectedVue === 'moi') {
-      return 'Gérez et suivez vos dépenses personnelles en temps réel';
-    } else if (selectedVue === 'partenaire') {
-      return `Consultez les dépenses de ${user?.partenaireId && typeof user.partenaireId === 'object' ? user.partenaireId.nom : 'votre partenaire'}`;
+    if (selectedVue === "moi") {
+      return "Gérez et suivez vos dépenses personnelles en temps réel";
+    } else if (selectedVue === "partenaire") {
+      return `Consultez les dépenses de ${user?.partenaireId && typeof user.partenaireId === "object" ? user.partenaireId.nom : "votre partenaire"}`;
     } else {
-      return 'Vue d\'ensemble des dépenses du couple';
+      return "Vue d'ensemble des dépenses du couple";
     }
   }, [selectedVue, user?.partenaireId]);
 
   const partenaireId = useMemo(() => {
-    return user?.partenaireId && typeof user.partenaireId === 'object'
-      ? user.partenaireId._id
-      : undefined;
+    return user?.partenaireId && typeof user.partenaireId === "object" ? user.partenaireId._id : undefined;
   }, [user?.partenaireId]);
 
   const hasPartner = useMemo(() => {
-    return user?.partenaireId && typeof user.partenaireId === 'object';
+    return user?.partenaireId && typeof user.partenaireId === "object";
   }, [user?.partenaireId]);
 
   const partnerName = useMemo(() => {
-    return user?.partenaireId && typeof user.partenaireId === 'object'
+    return user?.partenaireId && typeof user.partenaireId === "object"
       ? (user.partenaireId as { nom: string; _id: string }).nom
-      : '';
+      : "";
   }, [user?.partenaireId]);
 
   return (
@@ -164,23 +159,16 @@ export default function ExpensesPage() {
       <Layout>
         <div className="space-y-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Gestion des Dépenses
-            </h1>
-            <p className="text-sm text-gray-600 mb-6">
-              {pageDescription}
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des Dépenses</h1>
+            <p className="text-sm text-gray-600 mb-6">{pageDescription}</p>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
                 <button
                   onClick={handleVueMoi}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                    selectedVue === 'moi'
-                      ? 'bg-white text-indigo-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
+                    selectedVue === "moi" ? "bg-white text-indigo-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
+                  }`}>
                   <User className="w-4 h-4" />
                   <span>Mes Dépenses</span>
                 </button>
@@ -188,11 +176,10 @@ export default function ExpensesPage() {
                   <button
                     onClick={handleVuePartenaire}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                      selectedVue === 'partenaire'
-                        ? 'bg-white text-indigo-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
+                      selectedVue === "partenaire"
+                        ? "bg-white text-indigo-600 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}>
                     <User className="w-4 h-4" />
                     <span>{partnerName}</span>
                   </button>
@@ -201,11 +188,10 @@ export default function ExpensesPage() {
                   <button
                     onClick={handleVueCouple}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                      selectedVue === 'couple_complet'
-                        ? 'bg-white text-indigo-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
+                      selectedVue === "couple_complet"
+                        ? "bg-white text-indigo-600 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}>
                     <Users className="w-4 h-4" />
                     <span>Couple Complet</span>
                   </button>
@@ -215,31 +201,28 @@ export default function ExpensesPage() {
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={handleAdd}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md flex items-center gap-2 transition-colors shadow-sm"
-                >
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md flex items-center gap-2 transition-colors shadow-sm">
                   <Plus size={16} />
                   Nouvelle Dépense
                 </button>
-                
+
                 <button
                   onClick={handleOpenImportModal}
-                  className="border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
-                >
+                  className="border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm px-4 py-2 rounded-md flex items-center gap-2 transition-colors">
                   <Upload size={16} />
                   Importer CSV
                 </button>
-                
+
                 <button
                   onClick={handleAddCategorie}
-                  className="border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
-                >
+                  className="border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm px-4 py-2 rounded-md flex items-center gap-2 transition-colors">
                   <Settings size={16} />
                   Catégories
                 </button>
 
                 {/* Bouton de suppression uniquement pour la vue "moi" */}
-                {selectedVue === 'moi' && (
-                  <DeleteAllExpensesButton 
+                {selectedVue === "moi" && (
+                  <DeleteAllExpensesButton
                     className="text-sm"
                     onSuccess={(deletedCount) => {
                       // Recharger les données après suppression réussie
@@ -255,25 +238,16 @@ export default function ExpensesPage() {
           {showAddCategorieForm && (
             <FormCategorie
               onClose={handleCloseAddCategorieForm}
-              endpoint={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/categories`}
+              endpoint={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api"}/categories`}
               refresh={refreshCategories}
             />
           )}
-          {showAddForm && (
-            <FormDepense
-              existingDepense={selectedDepense ?? undefined}
-              onClose={handleCloseAddForm}
-            />
-          )}
-          {showImportModal && (
-            <ImportCsvModal onClose={handleCloseImportModal} />
-          )}
+          {showAddForm && <FormDepense existingDepense={selectedDepense ?? undefined} onClose={handleCloseAddForm} />}
+          {showImportModal && <ImportCsvModal onClose={handleCloseImportModal} />}
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Liste des Dépenses
-            </h2>
-            
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">Liste des Dépenses</h2>
+
             {isLoading && (
               <div className="bg-white p-8 rounded-lg shadow-md text-center">
                 <div className="animate-pulse">
@@ -282,7 +256,7 @@ export default function ExpensesPage() {
                 </div>
               </div>
             )}
-            
+
             {isError && (
               <div className="bg-red-50 border border-red-200 p-4 rounded-lg text-center text-red-600">
                 Erreur lors du chargement des dépenses.
@@ -315,19 +289,18 @@ export default function ExpensesPage() {
                   <div className="text-sm text-gray-700">
                     <span className="font-medium">{pagination.total}</span> dépenses au total
                   </div>
-                  
+
                   <div className="flex items-center space-x-4">
                     <div className="text-sm text-gray-500">
                       Page {pagination.page} sur {pagination.pages}
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={handlePrevPage}
                         disabled={currentPage === 1 || isLoading}
                         className="p-2 rounded-md border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        aria-label="Page précédente"
-                      >
+                        aria-label="Page précédente">
                         <ChevronLeft className="h-5 w-5" />
                       </button>
 
@@ -335,8 +308,7 @@ export default function ExpensesPage() {
                         onClick={handleNextPage}
                         disabled={currentPage === pagination.pages || isLoading}
                         className="p-2 rounded-md border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        aria-label="Page suivante"
-                      >
+                        aria-label="Page suivante">
                         <ChevronRight className="h-5 w-5" />
                       </button>
                     </div>

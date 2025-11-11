@@ -1,4 +1,4 @@
-export type RoleUtilisateur = 'Perso' | 'Conjoint' | 'Admin';
+export type RoleUtilisateur = "Perso" | "Conjoint" | "Admin";
 
 export interface IUser {
   _id: string;
@@ -33,4 +33,4 @@ export type UserLoginPayload = {
 export type UserElementChild = {
   _id: string;
   nom: string;
-}
+};

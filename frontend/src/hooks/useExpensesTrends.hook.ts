@@ -1,6 +1,7 @@
-import useSWR from 'swr';
-import fetcher from '../utils/fetcher.utils';
-import { API_BASE_URL } from '../services/api.service';
+import useSWR from "swr";
+
+import { API_BASE_URL } from "../services/api.service";
+import fetcher from "../utils/fetcher.utils";
 
 /**
  * Interface pour une catégorie avec sa tendance
@@ -12,7 +13,7 @@ export interface CategoryTrend {
   totalPrecedent: number;
   variation: number;
   variationPourcent: number;
-  tendance: 'hausse' | 'baisse' | 'stable';
+  tendance: "hausse" | "baisse" | "stable";
 }
 
 /**
@@ -61,26 +62,18 @@ export interface ExpensesTrendsData {
  * );
  * ```
  */
-export const useExpensesTrends = (
-  contexte: 'moi' | 'couple' = 'moi',
-  nbMois: number = 6
-) => {
+export const useExpensesTrends = (contexte: "moi" | "couple" = "moi", nbMois: number = 6) => {
   // Construire l'URL avec les paramètres
   const params = new URLSearchParams();
-  params.append('nbMois', nbMois.toString());
-  if (contexte && contexte !== 'moi') {
-    params.append('contexte', contexte);
+  params.append("nbMois", nbMois.toString());
+  if (contexte && contexte !== "moi") {
+    params.append("contexte", contexte);
   }
 
   const url = `${API_BASE_URL}/statistiques/expenses-trends?${params.toString()}`;
 
   // Utiliser SWR pour récupérer les données
-  const {
-    data,
-    error,
-    isLoading,
-    mutate,
-  } = useSWR<ExpensesTrendsData>(url, fetcher, {
+  const { data, error, isLoading, mutate } = useSWR<ExpensesTrendsData>(url, fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
     dedupingInterval: 60000, // 1 minute

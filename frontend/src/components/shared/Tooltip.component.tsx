@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect, useRef } from "react";
 
 /**
  * Composant Tooltip réutilisable avec gestion du clic extérieur
- * 
+ *
  * @param children - L'élément déclencheur du tooltip (généralement une icône)
  * @param content - Le contenu à afficher dans le tooltip
  * @param isOpen - État d'ouverture du tooltip
@@ -19,31 +19,22 @@ interface TooltipProps {
   onClickOutside: () => void;
 }
 
-export default function Tooltip({
-  children,
-  content,
-  isOpen,
-  onToggle,
-  onClickOutside,
-}: TooltipProps) {
+export default function Tooltip({ children, content, isOpen, onToggle, onClickOutside }: TooltipProps) {
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        tooltipRef.current &&
-        !tooltipRef.current.contains(event.target as Node)
-      ) {
+      if (tooltipRef.current && !tooltipRef.current.contains(event.target as Node)) {
         onClickOutside();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen, onClickOutside]);
 
@@ -54,15 +45,13 @@ export default function Tooltip({
         onClick={onToggle}
         className="inline-flex items-center cursor-pointer text-gray-400 hover:text-gray-600 focus:outline-none"
         aria-expanded={isOpen}
-        aria-haspopup="true"
-      >
+        aria-haspopup="true">
         {children}
       </button>
       {isOpen && (
         <div
           role="tooltip"
-          className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-md shadow-lg md:left-auto md:right-0 md:-translate-x-0"
-        >
+          className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-md shadow-lg md:left-auto md:right-0 md:-translate-x-0">
           {content}
           <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-3 h-3 bg-gray-800 rotate-45 md:left-auto md:right-3"></div>
         </div>

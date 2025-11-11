@@ -1,22 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useEffect } from 'react';
-import { IRevenu } from '@/types/revenu.type';
-import { useRevenus, RevenuFilters, RevenuSort } from '@/hooks/useRevenus.hook';
-import { ICategorieRevenu } from '@/types/categorieRevenu.type';
-import { useCategoriesRevenu } from '@/hooks/useCategoriesRevenu.hook';
-import { Table } from '../table';
-import { useColumns } from './useColumn';
-import { TYPE_REVENU_OPTIONS } from '@/types/common.type';
-import { useRevenuFilters } from '@/hooks/useTableFilters.hook';
+import { useCategoriesRevenu } from "@/hooks/useCategoriesRevenu.hook";
+import { RevenuFilters, RevenuSort, useRevenus } from "@/hooks/useRevenus.hook";
+import { useRevenuFilters } from "@/hooks/useTableFilters.hook";
+import { ICategorieRevenu } from "@/types/categorieRevenu.type";
+import { TYPE_REVENU_OPTIONS } from "@/types/common.type";
+import { IRevenu } from "@/types/revenu.type";
+import { useCallback, useEffect, useState } from "react";
+
+import { Table } from "../table";
+import { useColumns } from "./useColumn";
 
 interface TableRevenusProps {
   revenus: IRevenu[];
   onEdit: (revenu: IRevenu) => void;
   onFilterChange: (filters: Partial<RevenuFilters>) => void;
-  onSortChange?: (sortBy: string, order: 'asc' | 'desc') => void;
+  onSortChange?: (sortBy: string, order: "asc" | "desc") => void;
   currentSortKey?: string;
-  currentSortOrder?: 'asc' | 'desc';
+  currentSortOrder?: "asc" | "desc";
   currentUserId?: string;
 }
 
@@ -29,24 +30,19 @@ export default function TableRevenus({
   currentSortOrder,
   currentUserId,
 }: TableRevenusProps) {
-  const { 
-    filters, 
-    setFilter, 
-    resetFilters, 
-    hasActiveFilters 
-  } = useRevenuFilters();
-  
+  const { filters, setFilter, resetFilters, hasActiveFilters } = useRevenuFilters();
+
   const { refreshRevenus } = useRevenus();
   const { categoriesRevenu } = useCategoriesRevenu();
 
   // Extraire les valeurs des filtres
   const {
-    search = '',
-    dateDebut = '',
-    dateFin = '',
-    typeCompte = '',
-    categorieRevenu = '',
-    estRecurrent = ''
+    search = "",
+    dateDebut = "",
+    dateFin = "",
+    typeCompte = "",
+    categorieRevenu = "",
+    estRecurrent = "",
   } = filters;
 
   const { actions, columns } = useColumns({
@@ -56,30 +52,48 @@ export default function TableRevenus({
   });
 
   // Handlers pour les filtres
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilter('search', e.target.value);
-  }, [setFilter]);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFilter("search", e.target.value);
+    },
+    [setFilter],
+  );
 
-  const handleCategorieRevenuChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilter('categorieRevenu', e.target.value);
-  }, [setFilter]);
+  const handleCategorieRevenuChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setFilter("categorieRevenu", e.target.value);
+    },
+    [setFilter],
+  );
 
-  const handleTypeCompteChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilter('typeCompte', e.target.value);
-  }, [setFilter]);
+  const handleTypeCompteChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setFilter("typeCompte", e.target.value);
+    },
+    [setFilter],
+  );
 
-  const handleEstRecurrentChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value === '' ? null : e.target.value === 'true';
-    setFilter('estRecurrent', value);
-  }, [setFilter]);
+  const handleEstRecurrentChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const value = e.target.value === "" ? null : e.target.value === "true";
+      setFilter("estRecurrent", value);
+    },
+    [setFilter],
+  );
 
-  const handleDateDebutChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilter('dateDebut', e.target.value);
-  }, [setFilter]);
+  const handleDateDebutChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFilter("dateDebut", e.target.value);
+    },
+    [setFilter],
+  );
 
-  const handleDateFinChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilter('dateFin', e.target.value);
-  }, [setFilter]);
+  const handleDateFinChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFilter("dateFin", e.target.value);
+    },
+    [setFilter],
+  );
 
   // Synchroniser avec le parent quand les filtres changent (debounce réduit à 200ms)
   useEffect(() => {
@@ -102,10 +116,7 @@ export default function TableRevenus({
       {/* Filtres */}
       <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded items-end">
         <div className="flex-grow min-w-[150px]">
-          <label
-            htmlFor="search-input"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <label htmlFor="search-input" className="block text-sm font-medium text-gray-700 mb-1">
             Recherche
           </label>
           <input
@@ -119,18 +130,14 @@ export default function TableRevenus({
           />
         </div>
         <div className="flex-grow min-w-[150px]">
-          <label
-            htmlFor="categorie-revenu-select"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <label htmlFor="categorie-revenu-select" className="block text-sm font-medium text-gray-700 mb-1">
             Catégorie de Revenu
           </label>
           <select
             id="categorie-revenu-select"
             value={categorieRevenu}
             onChange={handleCategorieRevenuChange}
-            className="input"
-          >
+            className="input">
             <option value="">Toutes</option>
             {Array.isArray(categoriesRevenu) &&
               categoriesRevenu.map((cat: ICategorieRevenu) => (
@@ -141,10 +148,7 @@ export default function TableRevenus({
           </select>
         </div>
         <div className="flex-grow min-w-[130px]">
-          <label
-            htmlFor="date-debut"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <label htmlFor="date-debut" className="block text-sm font-medium text-gray-700 mb-1">
             Du
           </label>
           <input
@@ -157,10 +161,7 @@ export default function TableRevenus({
           />
         </div>
         <div className="flex-grow min-w-[130px]">
-          <label
-            htmlFor="date-fin"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <label htmlFor="date-fin" className="block text-sm font-medium text-gray-700 mb-1">
             Au
           </label>
           <input
@@ -173,18 +174,10 @@ export default function TableRevenus({
           />
         </div>
         <div className="flex-grow min-w-[150px]">
-          <label
-            htmlFor="type-compte-select"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <label htmlFor="type-compte-select" className="block text-sm font-medium text-gray-700 mb-1">
             Compte
           </label>
-          <select
-            id="type-compte-select"
-            value={typeCompte}
-            onChange={handleTypeCompteChange}
-            className="input"
-          >
+          <select id="type-compte-select" value={typeCompte} onChange={handleTypeCompteChange} className="input">
             <option value="">Tous</option>
             {TYPE_REVENU_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -194,37 +187,32 @@ export default function TableRevenus({
           </select>
         </div>
         <div className="flex-grow min-w-[120px]">
-          <label
-            htmlFor="est-recurrent-select"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <label htmlFor="est-recurrent-select" className="block text-sm font-medium text-gray-700 mb-1">
             Récurrence
           </label>
           <select
             id="est-recurrent-select"
-            value={estRecurrent === null ? '' : String(estRecurrent)}
+            value={estRecurrent === null ? "" : String(estRecurrent)}
             onChange={handleEstRecurrentChange}
-            className="input"
-          >
+            className="input">
             <option value="">Tous</option>
             <option value="true">Oui</option>
             <option value="false">Non</option>
           </select>
         </div>
-        
+
         {/* Bouton de reset des filtres */}
         <div className="flex items-end">
           <button
             onClick={resetFilters}
             disabled={!hasActiveFilters}
             className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-              hasActiveFilters 
-                ? 'bg-red-500 text-white hover:bg-red-600' 
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              hasActiveFilters
+                ? "bg-red-500 text-white hover:bg-red-600"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
-            title={hasActiveFilters ? 'Réinitialiser tous les filtres' : 'Aucun filtre actif'}
-          >
-            {hasActiveFilters ? '🗑️ Réinitialiser' : '🗑️ Pas de filtres'}
+            title={hasActiveFilters ? "Réinitialiser tous les filtres" : "Aucun filtre actif"}>
+            {hasActiveFilters ? "🗑️ Réinitialiser" : "🗑️ Pas de filtres"}
           </button>
         </div>
       </div>
@@ -237,11 +225,7 @@ export default function TableRevenus({
           onSortChange={onSortChange}
           currentSortKey={currentSortKey}
           currentSortOrder={currentSortOrder}
-          emptyRender={
-            <div className="text-center py-4 text-gray-500">
-              Aucun revenu trouvé.
-            </div>
-          }
+          emptyRender={<div className="text-center py-4 text-gray-500">Aucun revenu trouvé.</div>}
         />
       </div>
     </div>

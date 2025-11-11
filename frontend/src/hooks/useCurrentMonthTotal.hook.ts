@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import useSWR from 'swr';
-import fetcher from '@/utils/fetcher.utils';
-import { soldeMensuelEndpoint } from '@/services/api.service';
+import { soldeMensuelEndpoint } from "@/services/api.service";
+import fetcher from "@/utils/fetcher.utils";
+import useSWR from "swr";
 
 export interface CurrentMonthFlowsData {
   totalDepenses: number;
@@ -11,8 +11,8 @@ export interface CurrentMonthFlowsData {
   mois?: string;
 }
 
-export const useCurrentMonthFlows = (contexte: 'moi' | 'couple' = 'moi') => {
-  const url = `${soldeMensuelEndpoint}${contexte !== 'moi' ? `?contexte=${contexte}` : ''}`;
+export const useCurrentMonthFlows = (contexte: "moi" | "couple" = "moi") => {
+  const url = `${soldeMensuelEndpoint}${contexte !== "moi" ? `?contexte=${contexte}` : ""}`;
 
   const {
     data: responseData,

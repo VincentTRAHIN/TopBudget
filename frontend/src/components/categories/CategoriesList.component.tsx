@@ -1,15 +1,16 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { ICategorie } from '@/types/categorie.type';
-import { RefreshCw } from 'lucide-react';
-import { useCategories } from '@/hooks/useCategories.hook';
-import { Table } from '../table';
-import { useColumns } from './useColumns';
-import { EmptyComponent } from './empty.component';
-import { categoriesEndpoint } from '@/services/api.service';
-import { ICategorieRevenu } from '@/types/categorieRevenu.type';
-import { KeyedMutator } from 'swr';
+import { useCategories } from "@/hooks/useCategories.hook";
+import { categoriesEndpoint } from "@/services/api.service";
+import { ICategorie } from "@/types/categorie.type";
+import { ICategorieRevenu } from "@/types/categorieRevenu.type";
+import { RefreshCw } from "lucide-react";
+import React from "react";
+import { KeyedMutator } from "swr";
+
+import { Table } from "../table";
+import { EmptyComponent } from "./empty.component";
+import { useColumns } from "./useColumns";
 
 interface CategoriesListProps {
   categories: ICategorie[];
@@ -32,7 +33,7 @@ export default function CategoriesList({
   onAdd,
   endpoint,
   refresh,
-  search
+  search,
 }: CategoriesListProps) {
   const { refreshCategories } = useCategories();
 
@@ -50,8 +51,7 @@ export default function CategoriesList({
   const filteredCategories = categories.filter((categorie) => {
     const searchLower = search.toLowerCase();
     return (
-      categorie.nom.toLowerCase().includes(searchLower) ||
-      categorie.description?.toLowerCase().includes(searchLower)
+      categorie.nom.toLowerCase().includes(searchLower) || categorie.description?.toLowerCase().includes(searchLower)
     );
   });
   if (isLoading) {
@@ -73,12 +73,7 @@ export default function CategoriesList({
         <div className="bg-white rounded-lg shadow-md p-8">
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="text-red-500">
-              <svg
-                className="w-12 h-12"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -88,16 +83,11 @@ export default function CategoriesList({
               </svg>
             </div>
             <div className="text-center">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Erreur lors du chargement
-              </h3>
-              <p className="text-gray-500 mb-4">
-                Impossible de charger les catégories. Veuillez réessayer.
-              </p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Erreur lors du chargement</h3>
+              <p className="text-gray-500 mb-4">Impossible de charger les catégories. Veuillez réessayer.</p>
               <button
                 onClick={handleRetry}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Réessayer
               </button>
@@ -115,13 +105,7 @@ export default function CategoriesList({
           columns={columns}
           data={filteredCategories}
           rowAction={actions}
-          emptyRender={
-            <EmptyComponent
-              search={search}
-              onAdd={onAdd}
-              categories={categories}
-            />
-          }
+          emptyRender={<EmptyComponent search={search} onAdd={onAdd} categories={categories} />}
         />
       </div>
     </div>

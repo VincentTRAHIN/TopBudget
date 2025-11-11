@@ -6,19 +6,19 @@
 export async function GET() {
   const timestamp = new Date().toISOString();
   const uptime = Math.floor(process.uptime());
-  
+
   // Simple vérification que le processus fonctionne
   const result = {
-    status: 'healthy',
+    status: "healthy",
     timestamp,
     uptime,
-    message: 'Frontend process is alive',
+    message: "Frontend process is alive",
   };
-  
+
   return new Response(JSON.stringify(result), {
     status: 200,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 }

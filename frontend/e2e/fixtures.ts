@@ -1,27 +1,27 @@
-import { test as base } from '@playwright/test';
+import { test as base } from "@playwright/test";
 
 /**
  * Fixtures personnalisées pour les tests E2E
- * 
+ *
  * Permet de partager des configurations et helpers entre tests
  */
 
 // Données de test
 export const testUser = {
-  email: 'test@topbudget.com',
-  password: 'Test123!',
-  nom: 'Test',
-  prenom: 'User',
+  email: "test@topbudget.com",
+  password: "Test123!",
+  nom: "Test",
+  prenom: "User",
 };
 
 // Helper pour se connecter
 export async function login(page: any, email: string, password: string) {
-  await page.goto('/login');
+  await page.goto("/login");
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
   await page.click('button[type="submit"]');
   // Attendre la redirection après login
-  await page.waitForURL('/dashboard', { timeout: 10000 });
+  await page.waitForURL("/dashboard", { timeout: 10000 });
 }
 
 // Helper pour se déconnecter
@@ -36,7 +36,7 @@ export async function logout(page: any) {
 // Helper pour attendre le chargement des données
 export async function waitForDataLoaded(page: any) {
   // Attendre que les skeletons de chargement disparaissent
-  await page.waitForSelector('[data-testid="skeleton"]', { state: 'detached', timeout: 10000 }).catch(() => {
+  await page.waitForSelector('[data-testid="skeleton"]', { state: "detached", timeout: 10000 }).catch(() => {
     // Si pas de skeleton, attendre un délai court
     return page.waitForTimeout(1000);
   });
@@ -51,13 +51,13 @@ export const test = base.extend<AuthenticatedFixture>({
   authenticatedPage: async ({ page }, use) => {
     // Setup : Se connecter avant chaque test
     await login(page, testUser.email, testUser.password);
-    
+
     // Utiliser la page authentifiée dans le test
     await use(page);
-    
+
     // Teardown : Se déconnecter après le test (optionnel)
     // await logout(page);
   },
 });
 
-export { expect } from '@playwright/test';
+export { expect } from "@playwright/test";

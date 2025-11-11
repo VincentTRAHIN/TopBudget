@@ -58,9 +58,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY . .
 
 # Permissions pour l'utilisateur
-RUN chown -R nextuser:nextgroup /app
+# RUN chown -R nextuser:nextgroup /app
 
-USER nextuser
+# USER nextuser
 
 EXPOSE 3000
 

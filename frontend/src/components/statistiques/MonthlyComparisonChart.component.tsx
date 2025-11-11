@@ -1,27 +1,20 @@
-'use client';
+"use client";
 
-import { useMonthlyComparison } from '@/hooks/useMonthlyComparison.hook';
-import { Bar } from 'react-chartjs-2';
+import { useMonthlyComparison } from "@/hooks/useMonthlyComparison.hook";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
   BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  ChartOptions,
+  Legend,
+  LinearScale,
   Title,
   Tooltip,
-  Legend,
-  ChartOptions,
-} from 'chart.js';
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
 
 // Enregistrement des composants Chart.js
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 /**
  * MonthlyComparisonChart - Graphique de comparaison mensuelle revenus vs dépenses
@@ -32,21 +25,17 @@ ChartJS.register(
  * @param contexte - Contexte des statistiques ('moi' ou 'couple')
  */
 interface MonthlyComparisonChartProps {
-  contexte?: 'moi' | 'couple';
+  contexte?: "moi" | "couple";
 }
 
-export default function MonthlyComparisonChart({
-  contexte = 'moi',
-}: MonthlyComparisonChartProps) {
+export default function MonthlyComparisonChart({ contexte = "moi" }: MonthlyComparisonChartProps) {
   // Récupérer les données pour revenus, dépenses et solde
-  const depensesData = useMonthlyComparison(contexte, 'depenses');
-  const revenusData = useMonthlyComparison(contexte, 'revenus');
-  const soldeData = useMonthlyComparison(contexte, 'solde');
+  const depensesData = useMonthlyComparison(contexte, "depenses");
+  const revenusData = useMonthlyComparison(contexte, "revenus");
+  const soldeData = useMonthlyComparison(contexte, "solde");
 
-  const isLoading =
-    depensesData.isLoading || revenusData.isLoading || soldeData.isLoading;
-  const isError =
-    depensesData.isError || revenusData.isError || soldeData.isError;
+  const isLoading = depensesData.isLoading || revenusData.isLoading || soldeData.isLoading;
+  const isError = depensesData.isError || revenusData.isError || soldeData.isError;
 
   // Noms des mois en français
   const currentDate = new Date();
@@ -54,18 +43,18 @@ export default function MonthlyComparisonChart({
   previousDate.setMonth(previousDate.getMonth() - 1);
 
   const monthNames = [
-    'Janvier',
-    'Février',
-    'Mars',
-    'Avril',
-    'Mai',
-    'Juin',
-    'Juillet',
-    'Août',
-    'Septembre',
-    'Octobre',
-    'Novembre',
-    'Décembre',
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
   ];
 
   const currentMonth = monthNames[currentDate.getMonth()];
@@ -87,9 +76,7 @@ export default function MonthlyComparisonChart({
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="text-center text-red-600">
           <p className="font-semibold">Erreur de chargement</p>
-          <p className="text-sm mt-1">
-            Impossible de récupérer les données de comparaison
-          </p>
+          <p className="text-sm mt-1">Impossible de récupérer les données de comparaison</p>
         </div>
       </div>
     );
@@ -100,34 +87,28 @@ export default function MonthlyComparisonChart({
     labels: [previousMonth, currentMonth],
     datasets: [
       {
-        label: 'Revenus',
-        data: [
-          revenusData.data?.totalMoisPrecedent || 0,
-          revenusData.data?.totalMoisActuel || 0,
-        ],
-        backgroundColor: 'rgba(34, 197, 94, 0.7)', // green-500
-        borderColor: 'rgb(34, 197, 94)',
+        label: "Revenus",
+        data: [revenusData.data?.totalMoisPrecedent || 0, revenusData.data?.totalMoisActuel || 0],
+        backgroundColor: "rgba(34, 197, 94, 0.7)", // green-500
+        borderColor: "rgb(34, 197, 94)",
         borderWidth: 2,
       },
       {
-        label: 'Dépenses',
-        data: [
-          depensesData.data?.totalMoisPrecedent || 0,
-          depensesData.data?.totalMoisActuel || 0,
-        ],
-        backgroundColor: 'rgba(239, 68, 68, 0.7)', // red-500
-        borderColor: 'rgb(239, 68, 68)',
+        label: "Dépenses",
+        data: [depensesData.data?.totalMoisPrecedent || 0, depensesData.data?.totalMoisActuel || 0],
+        backgroundColor: "rgba(239, 68, 68, 0.7)", // red-500
+        borderColor: "rgb(239, 68, 68)",
         borderWidth: 2,
       },
     ],
   };
 
-  const options: ChartOptions<'bar'> = {
+  const options: ChartOptions<"bar"> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'bottom' as const,
+        position: "bottom" as const,
         labels: {
           padding: 15,
           font: {
@@ -142,7 +123,7 @@ export default function MonthlyComparisonChart({
       tooltip: {
         callbacks: {
           label: (context) => {
-            const label = context.dataset.label || '';
+            const label = context.dataset.label || "";
             const value = context.parsed.y;
             return `${label}: ${value.toFixed(2)} €`;
           },
@@ -156,7 +137,7 @@ export default function MonthlyComparisonChart({
           callback: (value) => `${value} €`,
         },
         grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
+          color: "rgba(0, 0, 0, 0.05)",
         },
       },
       x: {
@@ -172,17 +153,14 @@ export default function MonthlyComparisonChart({
   const revenusVariation = revenusData.data?.difference || 0;
   const soldeVariation = soldeData.data?.difference || 0;
 
-  const depensesVariationPercent =
-    depensesData.data?.pourcentageVariation || 0;
+  const depensesVariationPercent = depensesData.data?.pourcentageVariation || 0;
   const revenusVariationPercent = revenusData.data?.pourcentageVariation || 0;
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       {/* En-tête */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Comparaison Mensuelle
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900">Comparaison Mensuelle</h3>
         <p className="text-sm text-gray-600 mt-1">
           Revenus vs Dépenses : {previousMonth} / {currentMonth}
         </p>
@@ -212,15 +190,11 @@ export default function MonthlyComparisonChart({
             ) : (
               <ArrowDownIcon className="w-4 h-4 text-red-600 mr-1" />
             )}
-            <span
-              className={
-                revenusVariation >= 0 ? 'text-green-600' : 'text-red-600'
-              }
-            >
+            <span className={revenusVariation >= 0 ? "text-green-600" : "text-red-600"}>
               {Math.abs(revenusVariationPercent).toFixed(1)}%
             </span>
             <span className="text-gray-500 ml-2">
-              ({revenusVariation >= 0 ? '+' : ''}
+              ({revenusVariation >= 0 ? "+" : ""}
               {revenusVariation.toFixed(2)} €)
             </span>
           </div>
@@ -243,15 +217,11 @@ export default function MonthlyComparisonChart({
             ) : (
               <ArrowDownIcon className="w-4 h-4 text-green-600 mr-1" />
             )}
-            <span
-              className={
-                depensesVariation >= 0 ? 'text-red-600' : 'text-green-600'
-              }
-            >
+            <span className={depensesVariation >= 0 ? "text-red-600" : "text-green-600"}>
               {Math.abs(depensesVariationPercent).toFixed(1)}%
             </span>
             <span className="text-gray-500 ml-2">
-              ({depensesVariation >= 0 ? '+' : ''}
+              ({depensesVariation >= 0 ? "+" : ""}
               {depensesVariation.toFixed(2)} €)
             </span>
           </div>
@@ -259,30 +229,20 @@ export default function MonthlyComparisonChart({
 
         {/* Solde */}
         <div
-          className={`${
-            (soldeData.data?.totalMoisActuel || 0) >= 0
-              ? 'bg-indigo-50'
-              : 'bg-orange-50'
-          } rounded-lg p-4`}
-        >
+          className={`${(soldeData.data?.totalMoisActuel || 0) >= 0 ? "bg-indigo-50" : "bg-orange-50"} rounded-lg p-4`}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Solde</p>
               <p
                 className={`text-2xl font-bold mt-1 ${
-                  (soldeData.data?.totalMoisActuel || 0) >= 0
-                    ? 'text-indigo-600'
-                    : 'text-orange-600'
-                }`}
-              >
+                  (soldeData.data?.totalMoisActuel || 0) >= 0 ? "text-indigo-600" : "text-orange-600"
+                }`}>
                 {(soldeData.data?.totalMoisActuel || 0).toFixed(2)} €
               </p>
             </div>
             <WalletIcon
               className={`w-8 h-8 ${
-                (soldeData.data?.totalMoisActuel || 0) >= 0
-                  ? 'text-indigo-500'
-                  : 'text-orange-500'
+                (soldeData.data?.totalMoisActuel || 0) >= 0 ? "text-indigo-500" : "text-orange-500"
               }`}
             />
           </div>
@@ -292,12 +252,8 @@ export default function MonthlyComparisonChart({
             ) : (
               <ArrowDownIcon className="w-4 h-4 text-red-600 mr-1" />
             )}
-            <span
-              className={
-                soldeVariation >= 0 ? 'text-green-600' : 'text-red-600'
-              }
-            >
-              {soldeVariation >= 0 ? '+' : ''}
+            <span className={soldeVariation >= 0 ? "text-green-600" : "text-red-600"}>
+              {soldeVariation >= 0 ? "+" : ""}
               {soldeVariation.toFixed(2)} €
             </span>
           </div>
@@ -310,12 +266,7 @@ export default function MonthlyComparisonChart({
 // Icônes SVG inline
 function MoneyIcon({ className }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -328,12 +279,7 @@ function MoneyIcon({ className }: { className?: string }) {
 
 function ShoppingIcon({ className }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -346,12 +292,7 @@ function ShoppingIcon({ className }: { className?: string }) {
 
 function WalletIcon({ className }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -364,36 +305,16 @@ function WalletIcon({ className }: { className?: string }) {
 
 function ArrowUpIcon({ className }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M5 10l7-7m0 0l7 7m-7-7v18"
-      />
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
     </svg>
   );
 }
 
 function ArrowDownIcon({ className }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M19 14l-7 7m0 0l-7-7m7 7V3"
-      />
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
     </svg>
   );
 }

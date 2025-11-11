@@ -1,6 +1,6 @@
-import { CategorieBase } from './categorie.type';
-import { UserElementChild } from './user.type';
-import { TypeCompte, TypeDepense } from './common.type';
+import { CategorieBase } from "./categorie.type";
+import { TypeCompte, TypeDepense } from "./common.type";
+import { UserElementChild } from "./user.type";
 
 export interface IDepense {
   _id: string;
@@ -18,7 +18,4 @@ export interface IDepense {
   estChargeFixe?: boolean;
 }
 
-export type DepensePayload = Omit<
-  IDepense,
-  '_id' | 'utilisateur' | 'createdAt' | 'updatedAt'
->;
+export type DepensePayload = Omit<IDepense, "_id" | "utilisateur" | "createdAt" | "updatedAt">;

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { toast } from 'react-hot-toast';
-import fetcher from '@/utils/fetcher.utils';
-import { X, UploadCloud, FileText } from 'lucide-react';
+import fetcher from "@/utils/fetcher.utils";
+import { FileText, UploadCloud, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 interface ImportError {
   ligne: number;
@@ -43,7 +43,7 @@ export default function ImportCsvModalBase({
   onImportSuccess,
   formatInstructions,
   importedItemLabel,
-  inputId = 'csv-file-input',
+  inputId = "csv-file-input",
 }: ImportCsvModalBaseProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
@@ -52,14 +52,11 @@ export default function ImportCsvModalBase({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
-      if (
-        file.type === 'text/csv' ||
-        file.name.toLowerCase().endsWith('.csv')
-      ) {
+      if (file.type === "text/csv" || file.name.toLowerCase().endsWith(".csv")) {
         setSelectedFile(file);
         setImportResult(null);
       } else {
-        toast.error('Veuillez sélectionner un fichier CSV valide.');
+        toast.error("Veuillez sélectionner un fichier CSV valide.");
         setSelectedFile(null);
       }
     }
@@ -67,46 +64,45 @@ export default function ImportCsvModalBase({
 
   const handleImport = async () => {
     if (!selectedFile) {
-      toast.error('Veuillez sélectionner un fichier CSV.');
+      toast.error("Veuillez sélectionner un fichier CSV.");
       return;
     }
 
     setIsImporting(true);
     setImportResult(null);
     const formData = new FormData();
-    formData.append('csvFile', selectedFile);
+    formData.append("csvFile", selectedFile);
 
     try {
       const result = await fetcher<ImportResult>(endpoint, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       });
       setImportResult(result);
-      
+
       // Nettoyer le message pour éviter les doublons d'icônes (react-hot-toast ajoute déjà sa propre icône)
-      const cleanMessage = (result.message || 'Importation terminée avec succès !')
-        .replace(/^[✅❌⚠️🔥]?\s*/, ''); // Supprimer les émojis en début de message
-      
+      const cleanMessage = (result.message || "Importation terminée avec succès !").replace(/^[✅❌⚠️🔥]?\s*/, ""); // Supprimer les émojis en début de message
+
       // Afficher le toast approprié selon le résultat
       if (result.success && result.successCount > 0) {
         toast.success(cleanMessage);
         onImportSuccess();
       } else if (result.success && result.successCount === 0) {
-        toast.error('Aucune ligne importée : ' + cleanMessage);
+        toast.error("Aucune ligne importée : " + cleanMessage);
       } else {
-        toast.error('Erreur d\'importation : ' + cleanMessage);
+        toast.error("Erreur d'importation : " + cleanMessage);
       }
     } catch (error: unknown) {
       console.error("Erreur lors de l'importation:", error);
       let errorMessage = "Erreur lors de l'importation.";
-      if (typeof error === 'object' && error !== null && 'info' in error) {
+      if (typeof error === "object" && error !== null && "info" in error) {
         const errorInfo = (error as { info?: { message?: string } }).info;
 
         if (
-          typeof errorInfo === 'object' &&
+          typeof errorInfo === "object" &&
           errorInfo !== null &&
-          'message' in errorInfo &&
-          typeof errorInfo.message === 'string'
+          "message" in errorInfo &&
+          typeof errorInfo.message === "string"
         ) {
           errorMessage = errorInfo.message;
         } else if (error instanceof Error) {
@@ -135,8 +131,7 @@ export default function ImportCsvModalBase({
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-          aria-label="Fermer"
-        >
+          aria-label="Fermer">
           <X size={24} />
         </button>
         <h2 className="text-xl font-semibold mb-4">{modalTitle}</h2>
@@ -148,17 +143,12 @@ export default function ImportCsvModalBase({
         <div className="mb-4">
           <label
             htmlFor={inputId}
-            className="flex flex-col items-center justify-center w-full h-32 px-4 transition bg-white border-2 border-gray-300 border-dashed rounded-md appearance-none cursor-pointer hover:border-gray-400 focus:outline-none"
-          >
+            className="flex flex-col items-center justify-center w-full h-32 px-4 transition bg-white border-2 border-gray-300 border-dashed rounded-md appearance-none cursor-pointer hover:border-gray-400 focus:outline-none">
             {selectedFile ? (
               <div className="text-center">
                 <FileText className="mx-auto h-8 w-8 text-gray-500" />
-                <span className="mt-2 block text-sm font-medium text-gray-900">
-                  {selectedFile.name}
-                </span>
-                <span className="text-xs text-gray-500">
-                  Cliquez pour changer
-                </span>
+                <span className="mt-2 block text-sm font-medium text-gray-900">{selectedFile.name}</span>
+                <span className="text-xs text-gray-500">Cliquez pour changer</span>
               </div>
             ) : (
               <div className="text-center">
@@ -182,31 +172,24 @@ export default function ImportCsvModalBase({
 
         {importResult && (
           <div
-            className={`mb-4 p-4 rounded-md ${importResult.errorCount > 0 ? 'bg-red-50 border border-red-200' : 'bg-green-50 border border-green-200'}`}
-          >
-            <p
-              className={`font-semibold ${importResult.errorCount > 0 ? 'text-red-800' : 'text-green-800'}`}
-            >
+            className={`mb-4 p-4 rounded-md ${importResult.errorCount > 0 ? "bg-red-50 border border-red-200" : "bg-green-50 border border-green-200"}`}>
+            <p className={`font-semibold ${importResult.errorCount > 0 ? "text-red-800" : "text-green-800"}`}>
               Résultat de l&apos;importation :
             </p>
-            <ul
-              className={`text-sm ${importResult.errorCount > 0 ? 'text-red-700' : 'text-green-700'}`}
-            >
+            <ul className={`text-sm ${importResult.errorCount > 0 ? "text-red-700" : "text-green-700"}`}>
               <li>Lignes lues : {importResult.totalLines}</li>
-              <li>{importedItemLabel} : {importResult.successCount}</li>
+              <li>
+                {importedItemLabel} : {importResult.successCount}
+              </li>
               <li>Lignes avec erreurs : {importResult.errorCount}</li>
-              {importResult.statistiques && (
-                <li>Lignes vides : {importResult.statistiques.lignesVides}</li>
-              )}
+              {importResult.statistiques && <li>Lignes vides : {importResult.statistiques.lignesVides}</li>}
             </ul>
             {importResult.errors && importResult.errors.length > 0 && (
               <div className="mt-2 max-h-32 overflow-y-auto text-xs border-t border-red-200 pt-2">
-                <p className="font-medium text-red-800 mb-1">
-                  Détails des erreurs :
-                </p>
+                <p className="font-medium text-red-800 mb-1">Détails des erreurs :</p>
                 {importResult.errors.slice(0, 10).map((err, index) => (
                   <p key={index} className="text-red-600">
-                    Ligne {err.ligne}: {err.erreurs.join(', ')}
+                    Ligne {err.ligne}: {err.erreurs.join(", ")}
                   </p>
                 ))}
               </div>
@@ -215,22 +198,17 @@ export default function ImportCsvModalBase({
         )}
 
         <div className="flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            disabled={isImporting}
-            className="btn-secondary"
-          >
+          <button onClick={onClose} disabled={isImporting} className="btn-secondary">
             Annuler
           </button>
           <button
             onClick={handleImport}
             disabled={!selectedFile || isImporting}
-            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isImporting ? 'Importation...' : 'Importer'}
+            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
+            {isImporting ? "Importation..." : "Importer"}
           </button>
         </div>
       </div>
     </div>
   );
-} 
+}

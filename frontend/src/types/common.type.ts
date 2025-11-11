@@ -7,25 +7,25 @@
  * Types de compte disponibles dans l'application
  */
 export enum TypeCompteEnum {
-  PERSO = 'Perso',
-  CONJOINT = 'Conjoint',
-  COMMUN = 'Commun',
+  PERSO = "Perso",
+  CONJOINT = "Conjoint",
+  COMMUN = "Commun",
 }
 
 /**
  * Types de dépense disponibles
  */
 export enum TypeDepenseEnum {
-  PERSO = 'Perso',
-  COMMUNE = 'Commune',
+  PERSO = "Perso",
+  COMMUNE = "Commune",
 }
 
 /**
  * Types de revenu disponibles - équivalent à TypeCompte mais pour clarification
  */
 export enum TypeRevenuEnum {
-  PERSO = 'Perso',
-  CONJOINT = 'Conjoint',
+  PERSO = "Perso",
+  CONJOINT = "Conjoint",
 }
 
 // Types string pour compatibilité avec l'existant
@@ -46,17 +46,17 @@ export const TYPE_REVENU_VALUES = Object.values(TypeRevenuEnum);
 /**
  * Options pour les composants Select
  */
-export const TYPE_COMPTE_OPTIONS = TYPE_COMPTE_VALUES.map(value => ({
+export const TYPE_COMPTE_OPTIONS = TYPE_COMPTE_VALUES.map((value) => ({
   label: value,
   value: value,
 }));
 
-export const TYPE_DEPENSE_OPTIONS = TYPE_DEPENSE_VALUES.map(value => ({
+export const TYPE_DEPENSE_OPTIONS = TYPE_DEPENSE_VALUES.map((value) => ({
   label: value,
   value: value,
 }));
 
-export const TYPE_REVENU_OPTIONS = TYPE_REVENU_VALUES.map(value => ({
+export const TYPE_REVENU_OPTIONS = TYPE_REVENU_VALUES.map((value) => ({
   label: value,
   value: value,
 }));

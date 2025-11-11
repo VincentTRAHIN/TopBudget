@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import useSWR from 'swr';
-import fetcher from '@/utils/fetcher.utils';
-import { totalMensuelEndpoint } from '@/services/api.service';
-import { IDepense } from '@/types/depense.type';
+import { totalMensuelEndpoint } from "@/services/api.service";
+import { IDepense } from "@/types/depense.type";
+import fetcher from "@/utils/fetcher.utils";
+import useSWR from "swr";
 
 export interface MonthlyTotalResponse {
   depenses: IDepense[];
@@ -14,19 +14,15 @@ export const useMonthlyTotal = (year?: number, month?: number) => {
   let url = totalMensuelEndpoint;
 
   if (year && month) {
-    const formattedMonth = String(month).padStart(2, '0');
+    const formattedMonth = String(month).padStart(2, "0");
     url = `${url}?annee=${year}&mois=${formattedMonth}`;
   }
 
-  const { data, error, isLoading, mutate } = useSWR<MonthlyTotalResponse>(
-    url,
-    fetcher,
-    {
-      shouldRetryOnError: false,
-      refreshInterval: 0,
-      revalidateOnFocus: true,
-    },
-  );
+  const { data, error, isLoading, mutate } = useSWR<MonthlyTotalResponse>(url, fetcher, {
+    shouldRetryOnError: false,
+    refreshInterval: 0,
+    revalidateOnFocus: true,
+  });
 
   return {
     monthlyTotal: data?.total || 0,

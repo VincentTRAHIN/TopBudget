@@ -1,6 +1,7 @@
 # TopBudget - Interface Utilisateur
 
-Interface utilisateur pour l'application TopBudget, une solution de gestion budgétaire personnelle développée avec Next.js 15, React 19, TypeScript et Tailwind CSS.
+Interface utilisateur pour l'application TopBudget, une solution de gestion budgétaire personnelle développée avec
+Next.js 15, React 19, TypeScript et Tailwind CSS.
 
 ## Prérequis
 
@@ -36,7 +37,8 @@ Créez un fichier `.env.local` à partir du fichier d'exemple :
 cp .env.example .env.local
 ```
 
-Modifiez le fichier `.env.local` avec vos propres valeurs. Consultez la section [Variables d'environnement](#variables-denvironnement) pour plus de détails.
+Modifiez le fichier `.env.local` avec vos propres valeurs. Consultez la section
+[Variables d'environnement](#variables-denvironnement) pour plus de détails.
 
 ## Mode Développement
 
@@ -84,7 +86,8 @@ Cela démarre un serveur de production sur `http://localhost:3000`.
 
 ## Variables d'environnement
 
-L'application frontend utilise des variables d'environnement préfixées par `NEXT_PUBLIC_` pour être accessibles côté client. Consultez le fichier `.env.example` pour voir toutes les variables requises.
+L'application frontend utilise des variables d'environnement préfixées par `NEXT_PUBLIC_` pour être accessibles côté
+client. Consultez le fichier `.env.example` pour voir toutes les variables requises.
 
 ### Variables principales
 
@@ -214,6 +217,7 @@ L'application peut être déployée sur différentes plateformes :
 - **Docker** : Conteneurisation avec Dockerfile inclus
 - **Serveur statique** : Export statique possible
 
-Pour plus de détails sur le déploiement, consultez la [documentation Next.js](https://nextjs.org/docs/app/building-your-application/deploying).
+Pour plus de détails sur le déploiement, consultez la
+[documentation Next.js](https://nextjs.org/docs/app/building-your-application/deploying).
 
 # Test de déploiement Vercel Mer 23 jul 2025 17:80:00 CEST

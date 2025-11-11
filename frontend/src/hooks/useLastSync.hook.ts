@@ -1,6 +1,7 @@
-import useSWR from 'swr';
-import fetcher from '../utils/fetcher.utils';
-import { lastSyncEndpoint } from '../services/api.service';
+import useSWR from "swr";
+
+import { lastSyncEndpoint } from "../services/api.service";
+import fetcher from "../utils/fetcher.utils";
 
 /**
  * Interface pour la réponse de l'endpoint last-sync
@@ -33,18 +34,18 @@ export interface UseLastSyncReturn {
 
 /**
  * Hook personnalisé pour récupérer les informations de dernière synchronisation
- * 
+ *
  * Récupère la date de la dernière dépense/revenu et indique si une mise à jour
  * est nécessaire (plus de 7 jours sans activité).
- * 
+ *
  * @returns Informations de synchronisation avec états de chargement et d'erreur
- * 
+ *
  * @example
  * ```tsx
  * const { lastActivityDate, daysSinceLastActivity, needsUpdate, isLoading } = useLastSync();
- * 
+ *
  * if (isLoading) return <div>Chargement...</div>;
- * 
+ *
  * if (needsUpdate) {
  *   return (
  *     <div className="alert alert-warning">
@@ -53,18 +54,13 @@ export interface UseLastSyncReturn {
  *     </div>
  *   );
  * }
- * 
+ *
  * return <div>Dernière activité : {lastActivityDate?.toLocaleDateString()}</div>;
  * ```
  */
 export function useLastSync(): UseLastSyncReturn {
   // Appel SWR avec fetcher
-  const {
-    data,
-    error,
-    isLoading,
-    mutate,
-  } = useSWR<LastSyncData>(lastSyncEndpoint, fetcher, {
+  const { data, error, isLoading, mutate } = useSWR<LastSyncData>(lastSyncEndpoint, fetcher, {
     refreshInterval: 60000, // Refresh toutes les minutes
     revalidateOnFocus: true, // Revalider quand la fenêtre reprend le focus
   });

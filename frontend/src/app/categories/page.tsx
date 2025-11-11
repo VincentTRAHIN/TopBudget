@@ -1,23 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Layout from '@/components/layout/Layout';
-import RequireAuth from '@/components/auth/requireAuth.component';
-import CategoriesList from '@/components/categories/CategoriesList.component';
-import FormCategorie from '@/components/categories/formCategorie.component';
-import DeleteAllCategoriesButton from '@/components/categories/DeleteAllCategoriesButton.component';
-import { useCategories } from '@/hooks/useCategories.hook';
-import { ICategorie } from '@/types/categorie.type';
-import { categoriesEndpoint } from '@/services/api.service';
-import { Plus, Settings, Search } from 'lucide-react';
+import RequireAuth from "@/components/auth/requireAuth.component";
+import CategoriesList from "@/components/categories/CategoriesList.component";
+import DeleteAllCategoriesButton from "@/components/categories/DeleteAllCategoriesButton.component";
+import FormCategorie from "@/components/categories/formCategorie.component";
+import Layout from "@/components/layout/Layout";
+import { useCategories } from "@/hooks/useCategories.hook";
+import { categoriesEndpoint } from "@/services/api.service";
+import { ICategorie } from "@/types/categorie.type";
+import { Plus, Search, Settings } from "lucide-react";
+import { useState } from "react";
 
 export default function CategoriesPage() {
   const { categories, isLoading, isError, refreshCategories } = useCategories();
-  const [selectedCategorie, setSelectedCategorie] = useState<ICategorie | null>(
-    null,
-  );
+  const [selectedCategorie, setSelectedCategorie] = useState<ICategorie | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
   const handleEdit = (categorie: ICategorie) => {
     setSelectedCategorie(categorie);
@@ -44,18 +42,12 @@ export default function CategoriesPage() {
       <Layout>
         <div className="space-y-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Gestion des Catégories
-            </h1>
-            <p className="text-sm text-gray-600 mb-6">
-              Gérez et organisez vos catégories de dépenses
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des Catégories</h1>
+            <p className="text-sm text-gray-600 mb-6">Gérez et organisez vos catégories de dépenses</p>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-                <button
-                  className="flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium bg-white text-indigo-600 shadow-sm"
-                >
+                <button className="flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium bg-white text-indigo-600 shadow-sm">
                   <Settings className="w-4 h-4" />
                   <span>Catégories</span>
                 </button>
@@ -72,11 +64,10 @@ export default function CategoriesPage() {
                     className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
                   />
                 </div>
-                
+
                 <button
                   onClick={handleAdd}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md flex items-center gap-2 transition-colors shadow-sm"
-                >
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md flex items-center gap-2 transition-colors shadow-sm">
                   <Plus size={16} />
                   Nouvelle Catégorie
                 </button>

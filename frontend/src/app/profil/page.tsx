@@ -1,34 +1,30 @@
-'use client';
-import Layout from '@/components/layout/Layout';
-import RequireAuth from '@/components/auth/requireAuth.component';
-import { useAuth } from '@/hooks/useAuth.hook';
-import { IUser } from '@/types/user.type';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import { toast } from 'react-hot-toast';
-import { UserCircle } from 'lucide-react';
-import { useState } from 'react';
-import Image from 'next/image';
-import fetcher from '@/utils/fetcher.utils';
+"use client";
+
+import RequireAuth from "@/components/auth/requireAuth.component";
+import Layout from "@/components/layout/Layout";
+import { useAuth } from "@/hooks/useAuth.hook";
 import {
   profileAvatarEndpoint,
   profileChangePasswordEndpoint,
   profileUpdateEndpoint,
   searchUserEndpoint,
-} from '@/services/api.service';
+} from "@/services/api.service";
+import { IUser } from "@/types/user.type";
+import fetcher from "@/utils/fetcher.utils";
+import { ErrorMessage, Field, Form, Formik } from "formik";
+import { UserCircle } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
+import { toast } from "react-hot-toast";
+import * as Yup from "yup";
 
 const ProfileSchema = Yup.object().shape({
-  nom: Yup.string()
-    .min(2, 'Nom trop court')
-    .max(50, 'Nom trop long')
-    .required('Nom requis'),
-  email: Yup.string().email('Email invalide').required('Email requis'),
+  nom: Yup.string().min(2, "Nom trop court").max(50, "Nom trop long").required("Nom requis"),
+  email: Yup.string().email("Email invalide").required("Email requis"),
 });
 
 const PartnerSchema = Yup.object().shape({
-  partenaireIdentifier: Yup.string().required(
-    'Identifiant du partenaire requis',
-  ),
+  partenaireIdentifier: Yup.string().required("Identifiant du partenaire requis"),
 });
 
 export default function ProfilPage() {
@@ -51,20 +47,20 @@ export default function ProfilPage() {
   ) => {
     try {
       await fetcher(profileUpdateEndpoint, {
-        method: 'PUT',
+        method: "PUT",
         body: JSON.stringify({
           nom: values.nom,
           email: values.email,
         }),
       });
 
-      toast.success('Profil mis à jour avec succès');
+      toast.success("Profil mis à jour avec succès");
       mutateAuth();
     } catch (error) {
       if (error instanceof Error) {
-        toast.error(error.message || 'Une erreur est survenue');
+        toast.error(error.message || "Une erreur est survenue");
       } else {
-        toast.error('Une erreur inattendue est survenue');
+        toast.error("Une erreur inattendue est survenue");
       }
     } finally {
       setSubmitting(false);
@@ -88,26 +84,20 @@ export default function ProfilPage() {
           _id: string;
           nom: string;
           email: string;
-        }>(
-          `${searchUserEndpoint}?query=${encodeURIComponent(values.partenaireIdentifier)}`,
-        );
+        }>(`${searchUserEndpoint}?query=${encodeURIComponent(values.partenaireIdentifier)}`);
         partenaireIdToSend = userFound._id;
       }
       await fetcher<IUser>(profileUpdateEndpoint, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           partenaireId: unlinkPartner ? null : partenaireIdToSend,
         }),
       });
 
-      toast.success(
-        unlinkPartner
-          ? 'Partenaire délié avec succès'
-          : 'Partenaire lié avec succès',
-      );
+      toast.success(unlinkPartner ? "Partenaire délié avec succès" : "Partenaire lié avec succès");
       if (unlinkPartner) {
         setUnlinkPartner(false);
         resetForm();
@@ -115,9 +105,9 @@ export default function ProfilPage() {
       mutateAuth();
     } catch (error) {
       if (error instanceof Error) {
-        toast.error(error.message || 'Une erreur est survenue');
+        toast.error(error.message || "Une erreur est survenue");
       } else {
-        toast.error('Une erreur inattendue est survenue');
+        toast.error("Une erreur inattendue est survenue");
       }
     } finally {
       setSubmitting(false);
@@ -135,31 +125,27 @@ export default function ProfilPage() {
     setIsUploadingAvatar(true);
     try {
       const formData = new FormData();
-      formData.append('avatar', avatarFile);
+      formData.append("avatar", avatarFile);
       await fetcher(profileAvatarEndpoint, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       });
-      toast.success('Avatar mis à jour !');
+      toast.success("Avatar mis à jour !");
       setAvatarFile(null);
       mutateAuth();
     } catch (error: unknown) {
       let message = "Erreur lors de l'upload de l'avatar";
       if (error instanceof Error && error.message) {
-        if (error.message.includes('404')) {
-          message =
-            "Impossible de téléverser l'avatar (ressource non trouvée). Merci de réessayer plus tard.";
-        } else if (error.message.includes('413')) {
-          message =
-            'Fichier trop volumineux. Choisis une image de moins de 2 Mo.';
-        } else if (error.message.includes('415')) {
-          message =
-            'Format de fichier non supporté. Choisis une image JPEG, PNG ou GIF.';
+        if (error.message.includes("404")) {
+          message = "Impossible de téléverser l'avatar (ressource non trouvée). Merci de réessayer plus tard.";
+        } else if (error.message.includes("413")) {
+          message = "Fichier trop volumineux. Choisis une image de moins de 2 Mo.";
+        } else if (error.message.includes("415")) {
+          message = "Format de fichier non supporté. Choisis une image JPEG, PNG ou GIF.";
         } else if (error.message.match(/\b4\d\d\b/)) {
-          message =
-            'Erreur de requête. Merci de vérifier le fichier et réessayer.';
+          message = "Erreur de requête. Merci de vérifier le fichier et réessayer.";
         } else if (error.message.match(/\b5\d\d\b/)) {
-          message = 'Erreur serveur. Merci de réessayer plus tard.';
+          message = "Erreur serveur. Merci de réessayer plus tard.";
         } else {
           try {
             const errObj = JSON.parse(error.message);
@@ -175,7 +161,7 @@ export default function ProfilPage() {
     }
   };
 
-  const hasPartner = user.partenaireId && typeof user.partenaireId === 'object';
+  const hasPartner = user.partenaireId && typeof user.partenaireId === "object";
 
   return (
     <RequireAuth>
@@ -216,8 +202,7 @@ export default function ProfilPage() {
                     viewBox="0 0 24 24"
                     width="40"
                     height="40"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
+                    xmlns="http://www.w3.org/2000/svg">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -227,9 +212,7 @@ export default function ProfilPage() {
                 </div>
                 {isUploadingAvatar && (
                   <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60 rounded-full z-30">
-                    <span className="text-primary font-bold animate-pulse">
-                      Upload...
-                    </span>
+                    <span className="text-primary font-bold animate-pulse">Upload...</span>
                   </div>
                 )}
               </div>
@@ -241,15 +224,12 @@ export default function ProfilPage() {
               {/* Affichage du nom du fichier et bouton de confirmation */}
               {avatarFile && (
                 <div className="w-full flex flex-col items-center gap-2 mt-2">
-                  <span className="text-xs text-gray-700 truncate max-w-full">
-                    {avatarFile.name}
-                  </span>
+                  <span className="text-xs text-gray-700 truncate max-w-full">{avatarFile.name}</span>
                   <button
                     className="btn-primary w-full text-sm"
                     onClick={handleAvatarUpload}
-                    disabled={isUploadingAvatar}
-                  >
-                    {isUploadingAvatar ? 'Upload...' : "Confirmer l'upload"}
+                    disabled={isUploadingAvatar}>
+                    {isUploadingAvatar ? "Upload..." : "Confirmer l'upload"}
                   </button>
                 </div>
               )}
@@ -259,24 +239,18 @@ export default function ProfilPage() {
             <div className="md:col-span-2 space-y-6">
               {/* Formulaire Infos Perso */}
               <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-4">
-                  Informations Personnelles
-                </h3>
+                <h3 className="text-lg font-semibold mb-4">Informations Personnelles</h3>
                 <Formik
                   initialValues={{
-                    nom: user.nom || '',
-                    email: user.email || '',
+                    nom: user.nom || "",
+                    email: user.email || "",
                   }}
                   validationSchema={ProfileSchema}
-                  onSubmit={handleProfileSubmit}
-                >
+                  onSubmit={handleProfileSubmit}>
                   {({ isSubmitting }) => (
                     <Form>
                       <div className="mb-4">
-                        <label
-                          htmlFor="nom"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
+                        <label htmlFor="nom" className="block text-sm font-medium text-gray-700 mb-1">
                           Nom
                         </label>
                         <Field
@@ -285,18 +259,11 @@ export default function ProfilPage() {
                           id="nom"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <ErrorMessage
-                          name="nom"
-                          component="div"
-                          className="text-red-500 text-sm mt-1"
-                        />
+                        <ErrorMessage name="nom" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
 
                       <div className="mb-4">
-                        <label
-                          htmlFor="email"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
+                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                           Email
                         </label>
                         <Field
@@ -305,21 +272,11 @@ export default function ProfilPage() {
                           id="email"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <ErrorMessage
-                          name="email"
-                          component="div"
-                          className="text-red-500 text-sm mt-1"
-                        />
+                        <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
 
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="btn-primary w-full"
-                      >
-                        {isSubmitting
-                          ? 'Enregistrement...'
-                          : 'Enregistrer les modifications'}
+                      <button type="submit" disabled={isSubmitting} className="btn-primary w-full">
+                        {isSubmitting ? "Enregistrement..." : "Enregistrer les modifications"}
                       </button>
                     </Form>
                   )}
@@ -328,28 +285,17 @@ export default function ProfilPage() {
 
               {/* Formulaire Liaison Partenaire */}
               <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-4">
-                  Liaison Partenaire
-                </h3>
+                <h3 className="text-lg font-semibold mb-4">Liaison Partenaire</h3>
 
-                {hasPartner &&
-                typeof user.partenaireId === 'object' &&
-                user.partenaireId ? (
+                {hasPartner && typeof user.partenaireId === "object" && user.partenaireId ? (
                   <div className="mb-4">
-                    <p className="text-sm mb-2">
-                      Vous êtes actuellement lié(e) à :
-                    </p>
+                    <p className="text-sm mb-2">Vous êtes actuellement lié(e) à :</p>
                     <div className="bg-gray-100 p-3 rounded-md flex items-center justify-between">
                       <div>
                         <p className="font-medium">{user.partenaireId.nom}</p>
-                        <p className="text-gray-600 text-sm">
-                          {user.partenaireId.email}
-                        </p>
+                        <p className="text-gray-600 text-sm">{user.partenaireId.email}</p>
                       </div>
-                      <button
-                        onClick={() => setUnlinkPartner(true)}
-                        className="btn-danger-sm"
-                      >
+                      <button onClick={() => setUnlinkPartner(true)} className="btn-danger-sm">
                         Délier le compte
                       </button>
                     </div>
@@ -357,18 +303,16 @@ export default function ProfilPage() {
                 ) : (
                   <Formik
                     initialValues={{
-                      partenaireIdentifier: '',
+                      partenaireIdentifier: "",
                     }}
                     validationSchema={PartnerSchema}
-                    onSubmit={handlePartnerSubmit}
-                  >
+                    onSubmit={handlePartnerSubmit}>
                     {({ isSubmitting }) => (
                       <Form>
                         <div className="mb-4">
                           <label
                             htmlFor="partenaireIdentifier"
-                            className="block text-sm font-medium text-gray-700 mb-1"
-                          >
+                            className="block text-sm font-medium text-gray-700 mb-1">
                             Identifiant ou email du partenaire
                           </label>
                           <Field
@@ -385,12 +329,8 @@ export default function ProfilPage() {
                           />
                         </div>
 
-                        <button
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="btn-primary w-full"
-                        >
-                          {isSubmitting ? 'Liaison...' : 'Lier le compte'}
+                        <button type="submit" disabled={isSubmitting} className="btn-primary w-full">
+                          {isSubmitting ? "Liaison..." : "Lier le compte"}
                         </button>
                       </Form>
                     )}
@@ -401,25 +341,17 @@ export default function ProfilPage() {
                   <div className="mt-4">
                     <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-md mb-3">
                       <p className="text-sm text-yellow-700">
-                        Êtes-vous sûr de vouloir vous délier de votre partenaire
-                        actuel ?
+                        Êtes-vous sûr de vouloir vous délier de votre partenaire actuel ?
                       </p>
                     </div>
                     <div className="flex space-x-2">
-                      <button
-                        onClick={() => setUnlinkPartner(false)}
-                        className="btn-secondary flex-1"
-                      >
+                      <button onClick={() => setUnlinkPartner(false)} className="btn-secondary flex-1">
                         Annuler
                       </button>
                       <Formik initialValues={{}} onSubmit={handlePartnerSubmit}>
                         {({ isSubmitting }) => (
                           <Form className="flex-1">
-                            <button
-                              type="submit"
-                              disabled={isSubmitting}
-                              className="btn-danger w-full"
-                            >
+                            <button type="submit" disabled={isSubmitting} className="btn-danger w-full">
                               Confirmer la déliaison
                             </button>
                           </Form>
@@ -432,57 +364,45 @@ export default function ProfilPage() {
 
               {/* Formulaire Changement de mot de passe */}
               <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-4">
-                  Changer de Mot de Passe
-                </h3>
+                <h3 className="text-lg font-semibold mb-4">Changer de Mot de Passe</h3>
                 <Formik
                   initialValues={{
-                    currentPassword: '',
-                    newPassword: '',
-                    confirmPassword: '',
+                    currentPassword: "",
+                    newPassword: "",
+                    confirmPassword: "",
                   }}
                   validationSchema={Yup.object({
-                    currentPassword: Yup.string().required(
-                      'Mot de passe actuel requis',
-                    ),
+                    currentPassword: Yup.string().required("Mot de passe actuel requis"),
                     newPassword: Yup.string()
-                      .required('Nouveau mot de passe requis')
-                      .min(8, '8 caractères minimum')
-                      .matches(/[A-Z]/, 'Au moins une majuscule')
-                      .matches(/[0-9]/, 'Au moins un chiffre'),
+                      .required("Nouveau mot de passe requis")
+                      .min(8, "8 caractères minimum")
+                      .matches(/[A-Z]/, "Au moins une majuscule")
+                      .matches(/[0-9]/, "Au moins un chiffre"),
                     confirmPassword: Yup.string()
-                      .oneOf(
-                        [Yup.ref('newPassword')],
-                        'Les mots de passe ne correspondent pas',
-                      )
-                      .required('Confirmation requise'),
+                      .oneOf([Yup.ref("newPassword")], "Les mots de passe ne correspondent pas")
+                      .required("Confirmation requise"),
                   })}
                   onSubmit={async (values, { setSubmitting, resetForm }) => {
                     try {
                       await fetcher(profileChangePasswordEndpoint, {
-                        method: 'PUT',
+                        method: "PUT",
                         body: JSON.stringify(values),
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { "Content-Type": "application/json" },
                       });
-                      toast.success('Mot de passe mis à jour avec succès');
+                      toast.success("Mot de passe mis à jour avec succès");
                       resetForm();
                     } catch (error: unknown) {
                       toast.error(
-                        (error instanceof Error && error.message) ||
-                          'Erreur lors du changement de mot de passe',
+                        (error instanceof Error && error.message) || "Erreur lors du changement de mot de passe",
                       );
                     } finally {
                       setSubmitting(false);
                     }
-                  }}
-                >
+                  }}>
                   {({ isSubmitting }) => (
                     <Form className="space-y-4">
                       <div>
-                        <label
-                          htmlFor="currentPassword"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
+                        <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
                           Mot de passe actuel
                         </label>
                         <Field
@@ -491,17 +411,10 @@ export default function ProfilPage() {
                           id="currentPassword"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <ErrorMessage
-                          name="currentPassword"
-                          component="div"
-                          className="text-red-500 text-sm mt-1"
-                        />
+                        <ErrorMessage name="currentPassword" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
                       <div>
-                        <label
-                          htmlFor="newPassword"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
+                        <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
                           Nouveau mot de passe
                         </label>
                         <Field
@@ -510,17 +423,10 @@ export default function ProfilPage() {
                           id="newPassword"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <ErrorMessage
-                          name="newPassword"
-                          component="div"
-                          className="text-red-500 text-sm mt-1"
-                        />
+                        <ErrorMessage name="newPassword" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
                       <div>
-                        <label
-                          htmlFor="confirmPassword"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
+                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
                           Confirmer le nouveau mot de passe
                         </label>
                         <Field
@@ -529,20 +435,10 @@ export default function ProfilPage() {
                           id="confirmPassword"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <ErrorMessage
-                          name="confirmPassword"
-                          component="div"
-                          className="text-red-500 text-sm mt-1"
-                        />
+                        <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="btn-primary w-full"
-                      >
-                        {isSubmitting
-                          ? 'Changement...'
-                          : 'Changer le mot de passe'}
+                      <button type="submit" disabled={isSubmitting} className="btn-primary w-full">
+                        {isSubmitting ? "Changement..." : "Changer le mot de passe"}
                       </button>
                     </Form>
                   )}

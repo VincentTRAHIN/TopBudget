@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import useSWR from 'swr';
-import fetcher from '@/utils/fetcher.utils';
-import { statistiquesParCategorieEndpoint } from '@/services/api.service';
-import { useEffect } from 'react';
+import { statistiquesParCategorieEndpoint } from "@/services/api.service";
+import fetcher from "@/utils/fetcher.utils";
+import { useEffect } from "react";
+import useSWR from "swr";
 
 export interface CategoryDistributionDataPoint {
   _id: string;
@@ -11,19 +11,13 @@ export interface CategoryDistributionDataPoint {
   total: number;
 }
 
-export const useCategoryDistribution = (
-  year: number,
-  month: number,
-  contexte?: 'moi' | 'couple',
-) => {
-  const formattedMonth = String(month).padStart(2, '0');
+export const useCategoryDistribution = (year: number, month: number, contexte?: "moi" | "couple") => {
+  const formattedMonth = String(month).padStart(2, "0");
   let url = `${statistiquesParCategorieEndpoint}?annee=${year}&mois=${formattedMonth}`;
-  if (contexte && contexte === 'couple') {
+  if (contexte && contexte === "couple") {
     url += `&contexte=couple`;
   }
-  const { data, error, isLoading, mutate } = useSWR<
-    CategoryDistributionDataPoint[]
-  >(url, fetcher, {
+  const { data, error, isLoading, mutate } = useSWR<CategoryDistributionDataPoint[]>(url, fetcher, {
     shouldRetryOnError: false,
   });
 

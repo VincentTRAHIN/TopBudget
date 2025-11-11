@@ -1,6 +1,6 @@
-import useSWR from 'swr';
-import fetcher from '@/utils/fetcher.utils';
-import { API_BASE_URL } from '@/services/api.service';
+import { API_BASE_URL } from "@/services/api.service";
+import fetcher from "@/utils/fetcher.utils";
+import useSWR from "swr";
 
 export interface CoupleFixedCharge {
   _id: string;
@@ -33,24 +33,23 @@ interface ApiResponse {
 
 export const useCoupleFixedCharges = (annee: string, mois: string) => {
   const url = `${API_BASE_URL}/statistiques/couple/charges-fixes?annee=${annee}&mois=${mois}`;
-  const { data: apiData, error, isLoading, mutate } = useSWR<ApiResponse>(
-    url,
-    fetcher,
-  );
-  
-  const data: CoupleFixedChargesResponse | undefined = apiData ? {
-    listeChargesFixes: [
-      ...(apiData.chargesUtilisateurPrincipal || []).map((charge) => ({
-        ...charge,
-        payePar: 'Vous'
-      })),
-      ...(apiData.chargesPartenaire || []).map((charge) => ({
-        ...charge,
-        payePar: 'Partenaire'
-      }))
-    ],
-    totalChargesFixesCommunes: apiData.totalChargesCouple || 0
-  } : undefined;
+  const { data: apiData, error, isLoading, mutate } = useSWR<ApiResponse>(url, fetcher);
+
+  const data: CoupleFixedChargesResponse | undefined = apiData
+    ? {
+        listeChargesFixes: [
+          ...(apiData.chargesUtilisateurPrincipal || []).map((charge) => ({
+            ...charge,
+            payePar: "Vous",
+          })),
+          ...(apiData.chargesPartenaire || []).map((charge) => ({
+            ...charge,
+            payePar: "Partenaire",
+          })),
+        ],
+        totalChargesFixesCommunes: apiData.totalChargesCouple || 0,
+      }
+    : undefined;
 
   return {
     data,

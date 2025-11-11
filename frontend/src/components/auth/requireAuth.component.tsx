@@ -1,22 +1,18 @@
-'use client';
-import { useAuth } from '@/hooks/useAuth.hook';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+"use client";
 
-export default function RequireAuth({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+import { useAuth } from "@/hooks/useAuth.hook";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+export default function RequireAuth({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, refreshUser } = useAuth();
   const router = useRouter();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     if (!token) {
-      
-      router.push('/auth/login');
+      router.push("/auth/login");
       return;
     }
 
@@ -29,7 +25,7 @@ export default function RequireAuth({
     }
 
     if (!isLoading && !isAuthenticated && !isCheckingAuth) {
-      router.push('/auth/login');
+      router.push("/auth/login");
     }
   }, [isLoading, isAuthenticated, router, refreshUser, isCheckingAuth]);
 

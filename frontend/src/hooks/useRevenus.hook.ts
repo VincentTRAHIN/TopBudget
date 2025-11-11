@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import useSWR from 'swr';
-import fetcher from '@/utils/fetcher.utils';
-import { IRevenu } from '@/types/revenu.type';
-import { revenusEndpoint } from '@/services/api.service';
+import { revenusEndpoint } from "@/services/api.service";
+import { IRevenu } from "@/types/revenu.type";
+import fetcher from "@/utils/fetcher.utils";
+import useSWR from "swr";
 
 export interface RevenusResponse {
   revenus: IRevenu[];
@@ -21,12 +21,12 @@ export interface RevenuFilters {
   typeCompte?: string;
   search?: string;
   categorieRevenu?: string;
-  estRecurrent?: 'true' | 'false' | '';
+  estRecurrent?: "true" | "false" | "";
 }
 
 export interface RevenuSort {
   sortBy?: string;
-  order?: 'asc' | 'desc';
+  order?: "asc" | "desc";
 }
 
 export const useRevenus = (
@@ -34,7 +34,7 @@ export const useRevenus = (
   limit: number = 25,
   filters: RevenuFilters = {},
   sort: RevenuSort = {},
-  vue: 'moi' | 'partenaire' | 'couple_complet' = 'moi',
+  vue: "moi" | "partenaire" | "couple_complet" = "moi",
 ) => {
   const queryParams = new URLSearchParams({
     page: String(page),
@@ -43,12 +43,12 @@ export const useRevenus = (
 
   Object.entries(filters).forEach(([key, value]) => {
     if (value) {
-      if (key === 'estRecurrent') {
-        if (value === 'true' || value === 'false') {
-          queryParams.append('estRecurrent', value);
+      if (key === "estRecurrent") {
+        if (value === "true" || value === "false") {
+          queryParams.append("estRecurrent", value);
         }
-      } else if (key === 'search') {
-        queryParams.append('search', value);
+      } else if (key === "search") {
+        queryParams.append("search", value);
       } else {
         queryParams.append(key, value);
       }
@@ -56,22 +56,18 @@ export const useRevenus = (
   });
 
   if (sort.sortBy) {
-    queryParams.append('sortBy', sort.sortBy);
-    queryParams.append('order', sort.order || 'asc');
+    queryParams.append("sortBy", sort.sortBy);
+    queryParams.append("order", sort.order || "asc");
   }
 
-  if (vue && vue !== 'moi') {
-    queryParams.append('vue', vue);
+  if (vue && vue !== "moi") {
+    queryParams.append("vue", vue);
   }
 
   const url = `${revenusEndpoint}?${queryParams.toString()}`;
-  const { data, error, isLoading, mutate } = useSWR<RevenusResponse>(
-    url,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  const { data, error, isLoading, mutate } = useSWR<RevenusResponse>(url, fetcher, {
+    keepPreviousData: true,
+  });
 
   return {
     revenus: data?.revenus || [],
