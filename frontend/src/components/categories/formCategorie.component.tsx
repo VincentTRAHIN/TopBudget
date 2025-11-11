@@ -4,7 +4,6 @@ import { ICategorie } from "@/types/categorie.type";
 import fetcher from "@/utils/fetcher.utils";
 import { ErrorMessage, Field, Form, Formik, FormikHelpers } from "formik";
 import { useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
 import { toast } from "react-hot-toast";
 import { KeyedMutator } from "swr";
 import * as Yup from "yup";
@@ -81,7 +80,7 @@ export default function FormCategorie({ existingCategorie, onClose, endpoint, re
     }
   };
 
-  return createPortal(
+  return (
     <Modal onClose={onClose}>
       <div className="bg-white p-6 rounded-lg shadow-md relative">
         <h3 className="text-lg font-semibold mb-4">
@@ -141,7 +140,6 @@ export default function FormCategorie({ existingCategorie, onClose, endpoint, re
           )}
         </Formik>
       </div>
-    </Modal>,
-    document.body,
+    </Modal>
   );
 }

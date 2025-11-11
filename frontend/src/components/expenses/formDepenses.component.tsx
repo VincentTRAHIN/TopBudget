@@ -6,12 +6,11 @@ import { DepensesResponse, useDepenses } from "@/hooks/useDepenses.hook";
 import { useDescriptions } from "@/hooks/useDescriptions.hook";
 import { depensesEndpoint } from "@/services/api.service";
 import { ICategorie } from "@/types/categorie.type";
-import { TYPE_COMPTE_OPTIONS, TYPE_DEPENSE_OPTIONS } from "@/types/common.type";
+import { TYPE_COMPTE_OPTIONS, TYPE_DEPENSE_OPTIONS, TypeCompteEnum, TypeDepenseEnum } from "@/types/common.type";
 import { IDepense } from "@/types/depense.type";
 import fetcher from "@/utils/fetcher.utils";
-import { ErrorMessage, Field, Form, Formik, FormikHelpers } from "formik";
+import { ErrorMessage, Field, FieldProps, Form, Formik, FormikHelpers } from "formik";
 import { useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
 import { toast } from "react-hot-toast";
 import * as Yup from "yup";
 
@@ -68,29 +67,19 @@ export default function FormDepense({
     return () => clearTimeout(timer);
   }, []);
 
-  const initialValues: DepenseFormValues = existingDepense
-    ? {
-        montant: existingDepense.montant,
-        date: existingDepense.date.split("T")[0],
-        typeCompte: existingDepense.typeCompte,
-        typeDepense: existingDepense.typeDepense,
-        categorie:
-          typeof existingDepense.categorie === "string" ? existingDepense.categorie : existingDepense.categorie._id,
-        commentaire: existingDepense.commentaire || "",
-        description: existingDepense.description || "",
-        estChargeFixe: existingDepense?.estChargeFixe ?? false,
-      }
-    : {
-        montant: "",
-        date: new Date().toISOString().split("T")[0],
-        typeCompte: "Perso",
-        typeDepense: "Perso",
-        categorie: "",
-        commentaire: "",
-        description: "",
-        estChargeFixe: false,
-      };
-
+  const initialValues: DepenseFormValues = {
+    montant: existingDepense?.montant || "",
+    date: existingDepense?.date.split("T")[0] || new Date().toISOString().split("T")[0],
+    typeCompte: existingDepense?.typeCompte || TypeCompteEnum.PERSO,
+    typeDepense: existingDepense?.typeDepense || TypeDepenseEnum.PERSO,
+    categorie:
+      typeof existingDepense?.categorie === "string"
+        ? existingDepense?.categorie
+        : existingDepense?.categorie._id || "",
+    commentaire: existingDepense?.commentaire || "",
+    description: existingDepense?.description || "",
+    estChargeFixe: existingDepense?.estChargeFixe ?? false,
+  };
   const handleSubmit = async (values: DepenseFormValues, { resetForm }: FormikHelpers<DepenseFormValues>) => {
     const isEditing = !!existingDepense;
     const url = isEditing ? `${depensesEndpoint}/${existingDepense._id}` : depensesEndpoint;
@@ -135,7 +124,7 @@ export default function FormDepense({
     }
   };
 
-  return createPortal(
+  return (
     <Modal onClose={onClose}>
       <div key={existingDepense?._id || "new"} className="bg-white p-6 rounded-lg shadow-md mb-6 relative">
         <h3 className="text-lg font-semibold mb-4">
@@ -221,7 +210,7 @@ export default function FormDepense({
                   Description
                 </label>
                 <Field name="description">
-                  {({ field, form }: any) => (
+                  {({ field, form }: FieldProps<string>) => (
                     <AutocompleteInput
                       name="description"
                       value={field.value}
@@ -278,7 +267,6 @@ export default function FormDepense({
           )}
         </Formik>
       </div>
-    </Modal>,
-    document.body,
+    </Modal>
   );
 }
