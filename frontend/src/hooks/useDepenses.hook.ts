@@ -1,21 +1,17 @@
-'use client';
+"use client";
 
-import useSWR from 'swr';
-import fetcher from '@/utils/fetcher.utils';
-import { IDepense } from '@/types/depense.type';
-import { depensesEndpoint } from '@/services/api.service';
-import debug from 'debug';
+import { PaginationProps } from "@/components/shared/Pagination";
+import { depensesEndpoint } from "@/services/api.service";
+import { IDepense } from "@/types/depense.type";
+import fetcher from "@/utils/fetcher.utils";
+import debug from "debug";
+import useSWR from "swr";
 
-const log = debug('app:frontend:useDepenses');
+const log = debug("app:frontend:useDepenses");
 
 export interface DepensesResponse {
   depenses: IDepense[];
-  pagination: {
-    total: number;
-    page: number;
-    pages: number;
-    limit: number;
-  };
+  pagination: PaginationProps;
 }
 
 export interface DepenseFilters {
@@ -29,7 +25,7 @@ export interface DepenseFilters {
 
 export interface DepenseSort {
   sortBy?: string;
-  order?: 'asc' | 'desc';
+  order?: "asc" | "desc";
 }
 
 export const useDepenses = (
@@ -37,10 +33,10 @@ export const useDepenses = (
   limit: number = 25,
   filters: DepenseFilters = {},
   sort: DepenseSort = {},
-  vue: 'moi' | 'partenaire' | 'couple_complet' = 'moi',
+  vue: "moi" | "partenaire" | "couple_complet" = "moi",
 ) => {
   log(
-    'Hook useDepenses appelé avec page: %d, limit: %d, filtres: %O, tri: %O, vue: %s',
+    "Hook useDepenses appelé avec page: %d, limit: %d, filtres: %O, tri: %O, vue: %s",
     page,
     limit,
     filters,
@@ -60,24 +56,20 @@ export const useDepenses = (
   });
 
   if (sort.sortBy) {
-    queryParams.append('sortBy', sort.sortBy);
-    queryParams.append('order', sort.order || 'asc');
+    queryParams.append("sortBy", sort.sortBy);
+    queryParams.append("order", sort.order || "asc");
   }
 
-  if (vue && vue !== 'moi') {
-    queryParams.append('vue', vue);
+  if (vue && vue !== "moi") {
+    queryParams.append("vue", vue);
   }
 
   const url = `${depensesEndpoint}?${queryParams.toString()}`;
-  log('URL SWR pour useDepenses: %s', url);
+  log("URL SWR pour useDepenses: %s", url);
 
-  const { data, error, isLoading, mutate } = useSWR<DepensesResponse>(
-    url,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  const { data, error, isLoading, mutate } = useSWR<DepensesResponse>(url, fetcher, {
+    keepPreviousData: true,
+  });
 
   return {
     depenses: data?.depenses || [],
