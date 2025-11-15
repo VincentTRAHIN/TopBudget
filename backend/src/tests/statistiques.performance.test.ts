@@ -5,6 +5,7 @@ import Categorie from "../models/categorie.model";
 import CategorieRevenu from "../models/categorieRevenu.model";
 import DepenseModel from "../models/depense.model";
 import RevenuModel from "../models/revenu.model";
+import {describe, it, expect, beforeAll, beforeEach} from '@jest/globals';
 
 describe("StatistiquesService Performance Tests", () => {
   let userId: mongoose.Types.ObjectId;

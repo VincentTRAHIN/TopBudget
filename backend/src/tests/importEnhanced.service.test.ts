@@ -41,8 +41,6 @@ Ticket de bus,25.50`;
       const userId = 'test-user-123';
 
       const result = await ImportServiceV2.importDepensesFromCSV(csvBuffer, userId);
-      console.log(result.errors);
-      
       
       expect(result.success).toBe(false);
       expect(result.errors).toHaveLength(1);
