@@ -1,5 +1,6 @@
 import { ImportServiceV2 } from '../services/importEnhanced.service';
 import mongoose from 'mongoose';
+import {describe, it, expect, beforeAll, afterAll} from '@jest/globals';
 
 describe('ImportServiceV2', () => {
   beforeAll(async () => {
@@ -40,6 +41,8 @@ Ticket de bus,25.50`;
       const userId = 'test-user-123';
 
       const result = await ImportServiceV2.importDepensesFromCSV(csvBuffer, userId);
+      console.log(result.errors);
+      
       
       expect(result.success).toBe(false);
       expect(result.errors).toHaveLength(1);
