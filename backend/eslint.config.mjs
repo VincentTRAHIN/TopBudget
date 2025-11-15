@@ -4,7 +4,13 @@ import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 
-export default defineConfig([
+const compat = new FlatCompat({ recommendedConfig: { extends: [] } });
+
+export default [
+    globalIgnores(["dist"]),
+    ...compat.extends("eslint:recommended"),
+    ...compat.extends("plugin:@typescript-eslint/recommended"),
+    ...compat.extends("plugin:prettier/recommended"),
   { files: ["**/*.{js,mjs,cjs,ts}"] },
   { files: ["**/*.js"], languageOptions: { sourceType: "commonjs" } },
   {
@@ -16,6 +22,4 @@ export default defineConfig([
     plugins: { js },
     extends: ["js/recommended"],
   },
-  tseslint.configs.recommended,
-  ...eslintPluginPrettierRecommended,
-]);
+];

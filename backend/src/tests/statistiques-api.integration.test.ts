@@ -17,6 +17,7 @@ import Depense from '../models/depense.model';
 import Revenu from '../models/revenu.model';
 import Categorie from '../models/categorie.model';
 import CategorieRevenu from '../models/categorieRevenu.model';
+import {describe, it, expect, beforeAll, afterAll, beforeEach} from '@jest/globals';
 
 describe('Statistiques API Integration Tests', () => {
   let mongoServer: MongoMemoryServer;
@@ -29,6 +30,12 @@ describe('Statistiques API Integration Tests', () => {
     // Démarrer MongoDB en mémoire
     mongoServer = await MongoMemoryServer.create();
     const mongoUri = mongoServer.getUri();
+    
+    // Déconnecter si déjà connecté
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect();
+    }
+    
     await mongoose.connect(mongoUri);
   });
 
@@ -50,15 +57,14 @@ describe('Statistiques API Integration Tests', () => {
       nom: 'Alimentation',
       couleur: '#FF5733',
     });
-    categorieId = categorie._id.toString();
+    categorieId = `${categorie._id}`;
 
     // Créer une catégorie de revenu
     const categorieRevenu = await CategorieRevenu.create({
       nom: 'Salaire',
       couleur: '#33FF57',
     });
-    categorieRevenuId = categorieRevenu._id.toString();
-
+    categorieRevenuId = `${categorieRevenu._id}`;
     // Créer un utilisateur de test
     const userResponse = await request(app)
       .post('/api/users/register')

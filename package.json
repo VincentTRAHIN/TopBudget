@@ -5,45 +5,42 @@
   "private": true,
   "scripts": {
     "preinstall": "echo '⚠️  Utilisez npm install dans les dossiers backend/ et frontend/ séparément'",
-    
     "docker:dev": "docker-compose -f docker-compose.yml -f docker/docker-compose.dev.yml up",
     "docker:dev:build": "docker-compose -f docker-compose.yml -f docker/docker-compose.dev.yml up --build",
     "docker:dev:down": "docker-compose -f docker-compose.yml -f docker/docker-compose.dev.yml down",
     "docker:dev:logs": "docker-compose -f docker-compose.yml -f docker/docker-compose.dev.yml logs -f",
-    
     "docker:prod": "docker-compose -f docker-compose.yml -f docker/docker-compose.prod.yml up -d",
     "docker:prod:build": "docker-compose -f docker-compose.yml -f docker/docker-compose.prod.yml up --build -d",
     "docker:prod:down": "docker-compose -f docker-compose.yml -f docker/docker-compose.prod.yml down",
     "docker:prod:logs": "docker-compose -f docker-compose.yml -f docker/docker-compose.prod.yml logs -f",
-    
     "docker:test": "docker-compose -f docker-compose.yml -f docker/docker-compose.test.yml up --abort-on-container-exit",
     "docker:test:build": "docker-compose -f docker-compose.yml -f docker/docker-compose.test.yml up --build --abort-on-container-exit",
-    
     "docker:clean": "docker system prune -f && docker volume prune -f",
     "docker:clean:all": "docker system prune -af && docker volume prune -f",
     "docker:reset": "docker-compose down -v --remove-orphans && docker system prune -f",
-    
     "docker:build:backend": "docker build --target production -t topbudget-backend:latest ./backend",
     "docker:build:frontend": "docker build --target runner -t topbudget-frontend:latest ./frontend",
     "docker:build:all": "npm run docker:build:backend && npm run docker:build:frontend",
-    
     "secrets:create": "./docker/scripts/manage-secrets.sh create",
     "secrets:list": "./docker/scripts/manage-secrets.sh list",
     "secrets:verify": "./docker/scripts/manage-secrets.sh verify",
-    
     "monitor": "./docker/scripts/monitor.sh check",
     "monitor:dev": "./docker/scripts/monitor.sh -e dev check",
     "monitor:prod": "./docker/scripts/monitor.sh -e prod check",
     "monitor:watch": "./docker/scripts/monitor.sh monitor",
-    
     "health:frontend": "curl -f http://localhost:3000 || echo 'Frontend not available'",
     "health:backend": "curl -f http://localhost:5001/health || echo 'Backend not available'",
     "health:all": "npm run health:frontend && npm run health:backend",
-    
     "setup:dev": "cp .env.example .env && echo '✅ Fichier .env créé - Adaptez les valeurs puis lancez npm run docker:dev'",
     "setup:prod": "npm run secrets:create && echo '✅ Secrets créés - Configurez vos domaines puis lancez npm run docker:prod'"
   },
-  "keywords": ["budget", "finance", "docker", "nodejs", "nextjs"],
+  "keywords": [
+    "budget",
+    "finance",
+    "docker",
+    "nodejs",
+    "nextjs"
+  ],
   "author": "TopBudget Team",
   "license": "MIT",
   "engines": {

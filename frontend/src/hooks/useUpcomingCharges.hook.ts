@@ -29,7 +29,7 @@ export interface UpcomingCharge {
     _id: string;
     nom: string;
   };
-  expectedDate: string;
+  date: string;
 }
 
 /**

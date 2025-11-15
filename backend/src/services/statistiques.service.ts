@@ -721,7 +721,7 @@ export class StatistiquesService {
       description: string;
       montant: number;
       categorie: { _id: mongoose.Types.ObjectId; nom: string };
-      expectedDate: Date;
+      date: Date;
     }>;
     totalPaid: number;
     totalUpcoming: number;
@@ -774,13 +774,13 @@ export class StatistiquesService {
         // Estimer la date attendue (même jour du mois que le mois précédent)
         const prevDate = new Date(charge.date);
         const expectedDay = Math.min(prevDate.getDate(), dateFin.getDate());
-        const expectedDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), expectedDay);
+        const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), expectedDay);
 
         return {
           description: charge.description || "Charge fixe",
           montant: charge.montant,
           categorie: charge.categorie,
-          expectedDate,
+          date,
         };
       });
 

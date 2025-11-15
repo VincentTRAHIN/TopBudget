@@ -1,5 +1,6 @@
 import { ImportServiceV2 } from '../services/importEnhanced.service';
 import mongoose from 'mongoose';
+import {describe, it, expect, beforeAll, afterAll} from '@jest/globals';
 
 describe('ImportServiceV2', () => {
   beforeAll(async () => {
@@ -32,7 +33,7 @@ describe('ImportServiceV2', () => {
     });
 
     it('🐛 devrait détecter les en-têtes manquants', async () => {
-      const csvContent = `Description,Prix
+      const csvContent = `Description,Debit
 Courses du matin,50.00
 Ticket de bus,25.50`;
 

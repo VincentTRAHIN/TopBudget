@@ -1,14 +1,14 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import authRoutes from "../routes/auth.route";
-import depenseRoutes from "../routes/depense.route";
-import categorieRoutes from "../routes/categorie.route";
-import statistiquesRoutes from "../routes/statistiques.route";
-import profileRoutes from "../routes/profile.route";
-import userRoutes from "../routes/user.route";
-import revenuRoutes from "../routes/revenu.route";
-import categorieRevenuRoutes from "../routes/categorieRevenu.route";
+import authRoutes from "../routes/api/auth.route";
+import depenseRoutes from "../routes/api/depense.route";
+import categorieRoutes from "../routes/api/categorie.route";
+import statistiquesRoutes from "../routes/api/statistiques.route";
+import profileRoutes from "../routes/api/profile.route";
+import userRoutes from "../routes/api/user.route";
+import revenuRoutes from "../routes/api/revenu.route";
+import categorieRevenuRoutes from "../routes/api/categorieRevenu.route";
 import { errorHandler, AppError } from "../middlewares/error.middleware";
 
 export const createTestApp = (): express.Application => {

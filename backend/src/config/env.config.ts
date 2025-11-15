@@ -161,9 +161,7 @@ function validateEnvironment() {
     } else {
       console.error('❌ Erreur de configuration:', error);
     }
-    
-    process.exit(1);
-  }
+      }
 }
 
 // Type pour les variables d'environnement validées
